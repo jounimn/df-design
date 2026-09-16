@@ -1,0 +1,22 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Heroless Canvas</title>
+<style>
+  body { margin: 0; background: rgb(6, 6, 10); }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  .tag { position: fixed; bottom: 16px; left: 16px; color: #888; font-size: 12px; }
+</style></head>
+<body>
+  <canvas id="stage" width="1440" height="900"></canvas>
+  <div class="tag">no heading anywhere</div>
+  <script>
+    const ctx = document.getElementById('stage').getContext('2d');
+    let t = 0;
+    (function loop() {
+      t += 0.02;
+      ctx.fillStyle = 'rgb(6,6,10)'; ctx.fillRect(0, 0, 1440, 900);
+      ctx.fillStyle = 'rgb(39,247,149)';
+      ctx.fillRect(700 + Math.sin(t) * 200, 420, 40, 40);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body></html>

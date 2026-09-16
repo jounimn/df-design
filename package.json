@@ -1,0 +1,14 @@
+{
+  "name": "df-design",
+  "version": "0.2.0",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test",
+    "probe": "node scripts/probe.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}
