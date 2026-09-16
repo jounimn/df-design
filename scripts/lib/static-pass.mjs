@@ -66,8 +66,33 @@ export async function runStaticPass(page) {
     const grounds = sections.map((el) => paintedGround(el));
     const groundChanges = grounds.filter((g, i) => i > 0 && g !== grounds[i - 1]).length;
 
-    const cta = document.querySelector('button, a[class*="cta"], [class*="cta"], a[role="button"]');
-    const ctaRect = cta?.getBoundingClientRect();
+    // Picking the first button in DOM order finds nav icon toggles, not the
+    // page's call to action. On a real site that produced a 32px transparent
+    // pill, and its colour was published as the accent — the same
+    // transparent-sample-as-fact failure the painted-ancestor walk above exists
+    // to prevent. Require an actually painted background, a plausible control
+    // size, and prefer the largest such control in the first viewport.
+    const isPainted = (bg) => {
+      const m = bg.match(/rgba?\(([^)]+)\)/i);
+      if (!m) return false;
+      const p = m[1].split(',').map((x) => parseFloat(x));
+      return !(p.length === 4 && p[3] === 0);
+    };
+
+    const ctaCandidates = [...document.querySelectorAll(
+      'button, a[role="button"], [class*="cta"], [class*="btn"], [class*="Button"], a',
+    )]
+      .filter((el) => inFirstViewport(el))
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        return { el, rect: r, area: r.width * r.height, painted: isPainted(getComputedStyle(el).backgroundColor) };
+      })
+      .filter((c) => c.painted && c.area >= 600 && c.area <= vw * vh * 0.06)
+      .sort((a, b) => b.area - a.area);
+
+    const ctaPick = ctaCandidates[0] ?? null;
+    const cta = ctaPick?.el ?? null;
+    const ctaRect = ctaPick?.rect ?? null;
 
     let webgl = false;
     for (const c of document.querySelectorAll('canvas')) {

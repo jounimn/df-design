@@ -1,3 +1,16 @@
+// A fixed timeout after scrolling is a guess about how long the page's scroll
+// handler needs, and under load the guess fails silently: the handler has not
+// run, the properties have not changed, and the trace comes back FLAT — which
+// reads as "no scroll-linked motion", the exact conclusion this module exists to
+// avoid. Wait for two animation frames instead, which waits on the event itself:
+// one to let the scroll handler run, a second to let the resulting style land.
+async function afterPaint(page) {
+  await page.evaluate(
+    () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(true)))),
+  ).catch(() => {});
+  await page.waitForTimeout(30);
+}
+
 export async function runScrollTrace(page, { selectors, steps = 24 } = {}) {
   const max = await page.evaluate(
     () => document.documentElement.scrollHeight - innerHeight,
@@ -11,7 +24,7 @@ export async function runScrollTrace(page, { selectors, steps = 24 } = {}) {
   // library owns it. Emitting a flat series here would read as "no scroll-linked
   // motion", which is the opposite of the truth. Spec §6.5.
   await page.evaluate((y) => window.scrollTo(0, y), Math.round(max / 2));
-  await page.waitForTimeout(250);
+  await afterPaint(page);
   const moved = await page.evaluate(() => window.scrollY);
   if (moved < 1) {
     await page.evaluate(() => window.scrollTo(0, 0));
@@ -27,7 +40,7 @@ export async function runScrollTrace(page, { selectors, steps = 24 } = {}) {
   for (let i = 0; i < steps; i += 1) {
     const target = Math.round((max * i) / Math.max(steps - 1, 1));
     await page.evaluate((y) => window.scrollTo(0, y), target);
-    await page.waitForTimeout(120);
+    await afterPaint(page);
     series.push(await page.evaluate((sels) => {
       const values = {};
       for (const sel of sels) {

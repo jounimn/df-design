@@ -52,6 +52,12 @@ test('a fully transparent ground is quarantined', () => {
   assert.equal(quarantine[0].field, 'groundColor');
 });
 
+test('a fully transparent accent is quarantined, not published', () => {
+  const { record, quarantine } = validateRecord({ ...ok, accentColor: 'rgba(0, 0, 0, 0)' });
+  assert.equal(record.accentColor, undefined);
+  assert.equal(quarantine[0].field, 'accentColor');
+});
+
 test('zero font faces on a page that rendered text is quarantined', () => {
   const { quarantine } = validateRecord({ ...ok, fontFaceCount: 0, renderedTextLength: 4000 });
   assert.equal(quarantine[0].field, 'fontFaceCount');

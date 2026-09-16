@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>CTA Decoy</title>
+<style>
+  body { margin: 0; background: rgb(8, 9, 10); color: #eee; font-family: system-ui, sans-serif; }
+  /* A transparent icon toggle that appears FIRST in DOM order — this is the
+     shape that fooled the original picker into publishing a transparent accent. */
+  .icon { width: 32px; height: 32px; background: transparent; border: 0;
+          border-radius: 999px; color: #888; }
+  h1 { font-size: 64px; letter-spacing: -0.022em; margin: 0; padding: 40px; }
+  .cta { display: inline-block; background: rgb(94, 106, 210); color: #fff;
+         border-radius: 8px; padding: 14px 28px; text-decoration: none; }
+</style></head>
+<body>
+  <button class="icon" aria-label="menu">=</button>
+  <h1>Decoy above the real one</h1>
+  <a class="cta" href="#">Get started</a>
+</body></html>
