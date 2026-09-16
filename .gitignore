@@ -3,3 +3,8 @@ captures/
 candidates/
 .claude-flow/
 *.log
+
+# Design specs and implementation plans stay local — they are working
+# documents for the person driving the build, not part of the shipped skill.
+docs/superpowers/plans/
+docs/superpowers/specs/
