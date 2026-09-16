@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>rAF Motion</title>
+<style>body { margin: 0; background: #0b0d12; } #mover { width: 60px; height: 60px; background: #27f795; }</style>
+</head>
+<body>
+  <div id="mover"></div>
+  <script>
+    // Deliberately NOT a CSS animation and NOT the Web Animations API.
+    // This is the shape GSAP uses: its own ticker writing inline styles.
+    const el = document.getElementById('mover');
+    let t = 0;
+    (function tick() {
+      t += 0.05;
+      el.style.transform = `translateX(${Math.sin(t) * 300}px)`;
+      el.style.opacity = String(0.5 + Math.sin(t) * 0.5);
+      requestAnimationFrame(tick);
+    })();
+  </script>
+</body></html>

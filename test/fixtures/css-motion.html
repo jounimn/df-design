@@ -1,0 +1,15 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>CSS Motion</title>
+<style>
+  body { margin: 0; background: #0b0d12; }
+  @keyframes dot-pulse { 0% { opacity: 0.3 } 50% { opacity: 1 } 100% { opacity: 0.3 } }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #5e6ad2;
+    animation: dot-pulse 7s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  }
+  .card { transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+</style></head>
+<body>
+  <div class="dot" id="dot"></div>
+  <div class="card" id="card">card</div>
+</body></html>
