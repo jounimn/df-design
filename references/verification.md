@@ -56,6 +56,75 @@ container if you need what is below.
 
 ---
 
+## A screenshot always succeeds
+
+`page.screenshot()` has no failure mode. It writes a valid PNG of whatever
+was on screen, and a PNG of the wrong thing looks exactly as much like a
+result as a PNG of the right thing. Every other step in a build can fail
+loudly; this one cannot. So the rig has to fail loudly for it.
+
+One session, capturing eight pages for a README, took three passes. Each
+pass wrote eight plausible PNGs. Each was wrong in a different silent way:
+
+| Pass | What the files showed | Cause |
+|---|---|---|
+| 1 | An unrendered headline, a panel reading "unavailable", four counters at `0` | The shutter fired on load. The helper waited only for a loading string to detach — on a public page, that is immediately. Reveals had not fired and the fetches had not landed. |
+| 2 | Eight pictures of the login page | The persistent browser profile's session cookie had expired. Nothing checked who was signed in. |
+| 3 | An always-dark admin page, filed as `admin-light.png` | `page.addInitScript()` **accumulates**. Called once per target on a shared page, every earlier theme still ran on every later navigation. |
+
+None of the three raised anything. All three were caught by opening the
+files and looking.
+
+### What the rig owes you
+
+```js
+// 1. One page per target. addInitScript accumulates on a shared page.
+const page = await context.newPage();
+await page.addInitScript((mode) => localStorage.setItem("theme", mode), target.theme);
+
+// 2. Prove you are who you think you are, every target.
+const me = await page.evaluate(() => fetch("/api/auth/me", { credentials: "include" })
+  .then((r) => (r.ok ? r.json() : null)));
+if (!me) await logIn(page);
+if (new URL(page.url()).pathname === "/login") throw new Error(`bounced: ${target.path}`);
+
+// 3. Assert the theme you asked for is the theme that rendered.
+const applied = await page.evaluate(() => ({
+  mode: document.documentElement.classList.contains("dark") ? "dark" : "light",
+  named: document.querySelector("[data-theme]")?.getAttribute("data-theme") ?? null,
+}));
+if (applied.mode !== target.theme) throw new Error(`${target.file}: got ${applied.mode}`);
+```
+
+Reduced motion settles entrances. It does **not** settle a `fetch`, a
+count-up, or a chart's own draw animation — those need the network quiet
+plus a beat. And an `IntersectionObserver` only fires for viewports the
+page actually passed through: jumping straight to the bottom skips every
+observer in the middle, which then reveal on the way back up, mid-shutter.
+Walk the height in viewport-sized steps.
+
+### Frame on elements, not pixels
+
+A magic scroll offset crops whatever happens to be at that offset. The
+first attempt at a mid-page section sliced a card in half and landed in the
+middle of a paragraph. Scroll the section itself into place:
+
+```js
+await page.evaluate((label) => {
+  const eyebrow = [...document.querySelectorAll("*")]
+    .find((el) => !el.children.length && el.textContent?.trim() === label);
+  const section = eyebrow?.closest("section") ?? eyebrow;
+  if (!section) throw new Error(`no section for ${label}`);   // fail, don't shoot
+  window.scrollTo(0, window.scrollY + section.getBoundingClientRect().top - HEADER_H);
+}, "Cadeia de rastreio");
+```
+
+Match the DOM's own casing — an eyebrow uppercased by `text-transform`
+still holds `Cadeia de rastreio` in `textContent`, and a selector written
+against the rendered capitals silently finds nothing.
+
+---
+
 ## Probe, do not squint
 
 A screenshot cannot tell you whether a theme applied or a class exists. Ask
@@ -103,6 +172,13 @@ rule turns this silent failure into a loud one.
 4. **Is the data degenerate?** A flat line, a single-slice donut and a
    one-bar list are a *data* problem wearing a design problem's clothes. No
    amount of styling fixes a chart with one value in it. Say so.
+5. **Is the toggle even the theme input?** Before filing "this page ignores
+   the theme" as a bug, read the shell. One session burned several probes
+   on an admin page that rendered dark while `:root` carried no `.dark` and
+   `--canvas` resolved light — the layout pinned `data-theme="grafite"` by
+   route, on purpose, and the toggle was never meant to reach it. A theme
+   can come from a class, an attribute, a route, or the OS. Find which
+   before calling it broken.
 
 ---
 
