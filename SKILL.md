@@ -65,20 +65,6 @@ Measured element counts using each: PostHog 164, Stripe 99, Fibery 94,
 Cerebrium 85, Linear 54. A page with zero masks and zero blend modes will
 read as flat no matter how carefully its fade durations are tuned.
 
-These numbers are not hand-collected. `scripts/probe.mjs` is the rig that
-produced them, and it still runs — point it at any URL to measure a site
-this table does not cover, or to check a claim before repeating it:
-
-```
-npm install
-node scripts/probe.mjs https://example.com --cohort analytics
-```
-
-It writes a bundle per site (record, raw capture, motion traces, six
-scroll frames and a contact sheet) under `captures/`. Use it rather than
-asserting a number from memory; when a measurement contradicts this table,
-the capture is the authority and the table is what needs editing.
-
 ## Read the mode's reference file, then work
 
 - `motion` → `references/recipes-motion.md`
@@ -102,15 +88,9 @@ container reports every row visible and every assertion still passes.
 Each of those shipped, green, in a real project — and each was caught in
 the first thirty seconds of looking at the page.
 
-And when you capture, remember that `screenshot()` has no failure mode: it
-writes a valid PNG of whatever was on screen, so a capture of the wrong
-thing is indistinguishable from a result. Make the rig assert — who is
-signed in, which theme rendered, whether the section exists — and look at
-every file it produces.
-
-`references/verification.md` has the procedure: capturing a page *at rest*
-so scroll-triggered content is not photographed at `opacity: 0`, and the
-three ways a capture run silently produced eight plausible, wrong PNGs.
+`references/verification.md` has the procedure, including how to capture a
+page *at rest* so scroll-triggered content is not photographed at
+`opacity: 0`.
 
 Report honestly what the look showed. "I could not verify this visually"
 is an acceptable sentence. "Done" without having looked is not.
@@ -127,6 +107,4 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Big hero, then five short sections" | The median reference page is 9,329px over 8–16 bands. Thin pages read as unfinished. |
 | "Tests pass, so it works" | Tests passed on a dead virtualizer and 41 CSS classes that compiled to nothing. Look at the page. |
 | "It animates on scroll, I'll screenshot it" | A full-page capture never scrolls; your content is photographed at `opacity: 0`. See `verification.md`. |
-| "The capture ran, so I have the screenshots" | `screenshot()` cannot fail. It wrote a PNG of the login page, or of a half-loaded hero, and it looks like a result. Assert in the rig; open every file. |
-| "The page ignores the theme — that's a bug" | Read the shell first. Themes come from a class, an attribute, a route, or the OS; a route-pinned theme is a decision, not a fault. |
 | "Reduced motion is an edge case" | WCAG 2.3.3. Vestibular reactions include migraine and nausea. 19 of 28 production sites handle it. |
