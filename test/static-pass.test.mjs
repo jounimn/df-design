@@ -41,6 +41,21 @@ test('counts sections and ground changes', async () => {
   assert.ok(r.groundChanges >= 1);
 });
 
+// Regression: probing linear.app returned accentColor "rgba(0, 0, 0, 0)" because
+// the picker took the first button in DOM order — a 32px transparent icon toggle —
+// and the transparent value was PUBLISHED, not quarantined.
+test('skips a transparent icon button and finds the real CTA', async () => {
+  const r = await probe('cta-decoy.html');
+  assert.equal(r.accentColor, 'rgb(94, 106, 210)');
+  assert.equal(r.ctaRadiusPx, 8);
+  assert.ok(r.ctaSmallerDimPx > 32, `picked the 32px decoy: ${r.ctaSmallerDimPx}px`);
+});
+
+test('reports an unknown accent rather than a transparent one when nothing qualifies', async () => {
+  const r = await probe('heroless-canvas.html');
+  assert.equal(r.accentColor, 'unknown');
+});
+
 test('a heroless page yields hero: null and is still fully measured', async () => {
   const r = await probe('heroless-canvas.html');
   assert.equal(r.hero, null);

@@ -45,6 +45,13 @@ export function validateRecord(raw) {
     reject('groundColor', 'ground sampled as fully transparent; the sampler must walk to a painted ancestor');
   }
 
+  // Same rule, same reason. The ground check alone let a transparent accent
+  // through as a published value on a real site — a validator that knows
+  // transparency is invalid must apply that everywhere colour is sampled.
+  if (isTransparent(raw.accentColor)) {
+    reject('accentColor', 'accent sampled as fully transparent; the CTA picker selected an unpainted control');
+  }
+
   if (raw.fontFaceCount === 0 && (raw.renderedTextLength ?? 0) > 0) {
     reject('fontFaceCount', 'page rendered text but reported zero loaded faces');
   }
