@@ -63,6 +63,11 @@ A few rules run through all of it:
   researches past the first acceptable reference.
 - **The approved identity binds every surface.** Landing, app, admin, DevOps,
   docs and 404 are one product. Density adapts; identity does not.
+- **One surface at a time.** On a project with several surfaces (landing,
+  admin, ops, 404), Claude finishes one before starting the next: its own
+  spec, the author's approval, the build and a look at the result. Surface
+  specs never borrow each other's premises; what is shared lives in the
+  identity brief.
 - **The author picks the loading tier.** Claude recommends the cheapest tier
   that fully delivers the identity, then offers fast, medium and high
   expensive loading, each described and costed for this project, plus a
@@ -106,8 +111,12 @@ flowchart TD
     AS --> T{"Loading tier<br/>author's choice, images priced"}
     T --> B["Identity brief<br/>binding on every surface"]
     B --> PL["Plan, then review<br/>against the generic<br/>motion includes icons and images"]
-    PL --> BU["Build: landing, app,<br/>admin, docs, 404"]
-    BU --> C["Consistency check<br/>across surfaces"]
+    PL --> SS["Surface spec<br/>one surface at a time"]
+    SS --> SA{"Author approves<br/>this surface?"}
+    SA -->|no| SS
+    SA -->|yes| BU["Build this surface,<br/>then verify it"]
+    BU -->|next surface| SS
+    BU -->|all surfaces done| C["Consistency check<br/>across surfaces"]
     C --> V["Verification gate<br/>look at the rendered pages"]
 
     classDef ref fill:#f4f4f4,stroke:#999,color:#222

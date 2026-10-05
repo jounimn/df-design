@@ -229,7 +229,7 @@ the author does not want a file:
 # Identity: <name>
 Conditions:    <step 0: scope, constraints and notes from the invocation, verbatim where short>
 Intent:        <what the site must communicate, in the author's words>
-Practical:     <languages and locale, flows (ordering, booking, payment, cut-offs, limits), users and devices per surface>
+Practical:     <facts only: languages and locale, flows (ordering, booking, payment, cut-offs, limits), users and devices per surface; what they mean for a surface's design goes in that surface's spec>
 Grammar:       <type / colour / geometry / surface / motion, one line each>
 Origin:        <the references kept from the research log, with their class>
 Never:         <the drifts this identity forbids, e.g. "generic SaaS card grid">
@@ -237,6 +237,18 @@ Icons:         <the one set, its stroke and size logic, and why it fits (icons-a
 Images:        <author's answer on stock images; if yes: sources, treatment, which pages; asset record path (images.md §5)>
 Loading tier:  <fast / medium / high / custom, as chosen by the author (audition.md §4), and what justifies it>
 Surfaces:      <every surface in scope: landing, app, admin, docs, 404...; name out-of-scope surfaces as untouched>
+```
+
+When more than one surface is in scope, keep a **surface ledger** under the
+brief and update it as work moves. Only one row may be in progress at a
+time (`SKILL.md`, "One surface at a time"):
+
+```markdown
+| Surface | Spec | Approved by author | Implemented | Verified |
+|---|---|---|---|---|
+| landing | docs/surfaces/landing.md | yes, 2026-10-06 | yes | yes, looked at 1440 + 390 |
+| admin   | docs/surfaces/admin.md   | waiting          | no  | no  |
+| 404     | not started              | no               | no  | no  |
 ```
 
 Implementation must not drift toward generic conventions. "Archival
@@ -274,6 +286,12 @@ through type, colour tokens, spacing, component shapes, icons, borders,
 background treatment, motion language, navigation, motifs and microcopy.
 
 **Expression can change. Identity cannot.**
+
+The surfaces are built **one at a time**, each from its own approved spec
+(`SKILL.md`, "One surface at a time"). What this section describes, the
+shared identity adapted per surface, lives in the identity brief. What a
+single surface needs (its users, devices, flows and density) lives only in
+that surface's spec.
 
 - **Technical surfaces** (admin, backend, DevOps, debugging) put
   usability, density, accessibility and clarity first. They **adapt** the
