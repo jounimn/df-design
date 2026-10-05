@@ -35,7 +35,7 @@ Emulate reduced motion instead. Every entrance then renders at its resting
 state, which is also a free check that the reduced-motion contract works.
 
 ```js
-import { chromium } from "@playwright/test";
+import { chromium } from "playwright";   // the skill ships `playwright`, not `@playwright/test`
 
 const ctx = await chromium.launch().then((b) => b.newContext({
   viewport: { width: 1440, height: 900 },
@@ -48,6 +48,19 @@ await page.screenshot({ path: out, fullPage: true });
 ```
 
 If a blank band persists *with* reduced motion on, it is a real bug.
+
+**Lazy images are the other blank.** `loading="lazy"` images below the fold
+are not fetched by a full-page capture either, because the page never
+scrolls. Scroll through the page once before capturing, then wait for the
+images:
+
+```js
+const h = await page.evaluate(() => document.documentElement.scrollHeight);
+for (let y = 0; y < h; y += 400) { await page.evaluate((y) => scrollTo(0, y), y); await page.waitForTimeout(50); }
+await page.evaluate(() => scrollTo(0, 0));
+await page.evaluate(() => Promise.all([...document.images].map((i) =>
+  i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; }))));
+```
 
 For an app shell bounded to the viewport (`h-screen` + an inner
 `overflow-y-auto`), `fullPage` adds nothing — the document is 900px and the

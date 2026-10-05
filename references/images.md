@@ -40,6 +40,21 @@ the loading tier, pick the actual images, give them one treatment (§4) and
 record them (§5). Their weight goes into the tier message (`audition.md`
 §4).
 
+Tell the author what was picked, in one message, before the tier message:
+
+```
+Images: <how many, from where, and the licence in plain words: "free for
+  commercial use, no credit line"; that each file was checked for a
+  watermark at full size>. They appear on <pages>, treated <the identity's
+  treatment>. <Pages with no images, and why.>
+Icons: <the set, its licence in plain words, the stroke, and where icons
+  are used>.
+Weight: <the images' total size at the sizes the page uses>.
+```
+
+If the author said no to stock images, the Images line says so and names
+the placeholders that hold the space for their own photos.
+
 ---
 
 ## 2. Sources that pass
@@ -47,7 +62,7 @@ record them (§5). Their weight goes into the tier message (`audition.md`
 | Source | Best for | Licence | Use only |
 |---|---|---|---|
 | **StockSnap.io** | General photography | CC0 | The site's own "Free Download" button |
-| **Burst** (Shopify) | Products, small business, food, retail | Burst Photo License | Anything on burst.shopify.com |
+| **Burst** (Shopify, now served at shopify.com/stock-photos) | Products, small business, food, retail | Burst Photo License | Items whose licence link reads "Photo License: Burst" (`/licenses/shopify-some-rights-reserved`). Some items on the site are Creative Commons instead; check each item's link |
 | **Kaboompics** | Interiors, lifestyle, food, flat lays, colour-matched sets | Kaboompics Standard License | The free download |
 | **Unsplash** | Widest range, high quality | Unsplash License | Images whose button says "Download free"; **never** Unsplash+ (+ badge, lock icon, watermarked preview) |
 | **Pexels** | Photography and video | Pexels License | Results on pexels.com; skip the sponsored iStock row and anything linking off-site |

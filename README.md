@@ -15,7 +15,18 @@ the directory.
 
 ## Use the skill
 
-Every run opens with two answers, declared before anything else happens:
+Anything you write when calling the skill is read first, as **step 0**, and
+binds the whole run: scope, constraints, early answers and notes.
+
+```
+/df-design only rework the main page, keep the logo and the green
+```
+
+That run touches the main page and nothing else. Research, auditions,
+assets, the loading tier and the consistency check are all limited to it,
+and clashes with untouched pages are reported as notes, not fixed.
+
+Then every run opens with two answers, declared before anything else happens:
 
 ```
 path:  audition   # compare candidate identities as small HTML pages, choose, then build
@@ -78,6 +89,7 @@ reading the identity the site already has.
 
 ```mermaid
 flowchart TD
+    Z["Step 0: invocation note<br/>scope · constraints · notes<br/>binds every stage"] --> A
     A["Brief from the author"] --> G{"Path and mode<br/>+ practical requirements<br/>+ may I use stock images?"}
     G --> I["Author intent and<br/>reference classification"]
     I --> L["Library search<br/>sector default → shortlist → cuts"]
@@ -364,6 +376,7 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `references/recipes-motion.md` | Fourteen implementations, each traced to the site that ships it, ending in the reduced-motion contract. |
 | `references/verification.md` | How to confirm the work is real. Read this one even if you skip the rest. |
 | `scripts/probe.mjs` | The prober CLI. |
+| `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle. |
 | `test/` | 36 tests and the HTML fixtures they run against. |
 

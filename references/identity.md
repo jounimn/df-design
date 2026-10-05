@@ -78,7 +78,8 @@ eyeball what can be measured.
 In priority order — judgement, not arithmetic:
 
 1. **Explicit author intent.** What the author wants the project to
-   communicate.
+   communicate, including the conditions written when calling the skill
+   (`SKILL.md`, step 0).
 2. **Existing project and brand constraints.** Brand, required identity,
    design system, technical limits.
 3. **Author-supplied `IDENTITY` references.**
@@ -129,6 +130,14 @@ When proposing candidates, draw at least one from the subject's own world
 (`recipes-design.md` §5): its instruments, documents, packaging and
 vocabulary. Draw at least one from the library that the author would not
 have reached on their own. Three is the usual number; never one.
+
+**Fixed elements bind every candidate.** A constraint from step 0 ("keep
+the logo", "keep our green") appears in all three, unchanged. Design each
+candidate *around* it: a Georgia wordmark inside a condensed-poster identity
+needs a deliberate frame, not an apology. If a candidate cannot hold the
+fixed element without fighting it, replace that candidate, or show the
+conflict to the author openly so they can decide whether to relax the
+constraint.
 
 The candidate closest to the author's intent is its **most specific
 reading**, not its generic one. "Old newsletter" becomes a particular
@@ -218,14 +227,16 @@ the author does not want a file:
 
 ```markdown
 # Identity: <name>
+Conditions:    <step 0: scope, constraints and notes from the invocation, verbatim where short>
 Intent:        <what the site must communicate, in the author's words>
+Practical:     <languages and locale, flows (ordering, booking, payment, cut-offs, limits), users and devices per surface>
 Grammar:       <type / colour / geometry / surface / motion, one line each>
 Origin:        <the references kept from the research log, with their class>
 Never:         <the drifts this identity forbids, e.g. "generic SaaS card grid">
 Icons:         <the one set, its stroke and size logic, and why it fits (icons-and-assets.md §0)>
 Images:        <author's answer on stock images; if yes: sources, treatment, which pages; asset record path (images.md §5)>
 Loading tier:  <fast / medium / high / custom, as chosen by the author (audition.md §4), and what justifies it>
-Surfaces:      <every surface it must cover: landing, app, admin, docs, 404...>
+Surfaces:      <every surface in scope: landing, app, admin, docs, 404...; name out-of-scope surfaces as untouched>
 ```
 
 Implementation must not drift toward generic conventions. "Archival
@@ -251,6 +262,11 @@ Project
 These are different technical responsibilities. They are not different
 products. The exception is a project that really does ship several
 independent brands, and then the author says so.
+
+**Scope is the author's call.** When step 0 limits the run to some surfaces
+("only the main page"), this section applies to those surfaces. The
+rest stay untouched, and any clash with them is reported as a note, not
+fixed (`SKILL.md`, step 0).
 
 The purposes differ: marketing, product use, operations, infrastructure,
 recovery. The **visual language does not**. Each surface keeps the identity
@@ -288,7 +304,7 @@ surface. Separately styled apps are how products fragment.
 
 ## 10. Consistency check — before calling anything done
 
-Run this across **every** surface, on the rendered pages
+Run this across **every surface in scope** (step 0), on the rendered pages
 (`verification.md`), not the source:
 
 - [ ] **Identity:** still the approved brief, with no drift toward the generic
@@ -306,6 +322,9 @@ Run this across **every** surface, on the rendered pages
       every page read as part of the same website?
 
 If any answer is no, name the inconsistency and fix it before reporting.
+When the clash is with a surface **outside** the scope, do not fix it: list
+it as a note for the author, with what it would take to bring that surface
+in line.
 
 ---
 
