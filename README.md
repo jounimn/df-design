@@ -52,9 +52,11 @@ A few rules run through all of it:
   researches past the first acceptable reference.
 - **The approved identity binds every surface.** Landing, app, admin, DevOps,
   docs and 404 are one product. Density adapts; identity does not.
-- **Cheapest viable loading tier first.** Fast (CSS/SVG), medium (fonts,
-  small motion libs, heavy imagery), high (WebGL, 3D, video). A heavier tier
-  has to be justified.
+- **The author picks the loading tier.** Claude recommends the cheapest tier
+  that fully delivers the identity, then offers fast, medium and high
+  expensive loading, each described and costed for this project, plus a
+  fourth "custom / unrestricted" choice if the author declines the
+  recommendation. A heavier tier has to be justified in the identity brief.
 
 In `both`, the order is fixed: **identity → structure → motion.** Motion
 applied to a generic layout produces a generic layout that moves.

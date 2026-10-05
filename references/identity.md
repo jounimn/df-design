@@ -130,6 +130,12 @@ When proposing candidates, draw at least one from the subject's own world
 vocabulary. Draw at least one from the library that the author would not
 have reached on their own. Three is the usual number; never one.
 
+The candidate closest to the author's intent is its **most specific
+reading**, not its generic one. "Old newsletter" becomes a particular
+newsletter with its own medium, era and place, such as a duplicated parish
+sheet, not "a broadsheet". This matters most when the intent lands on a
+look that generators default to (`recipes-design.md` §7).
+
 ---
 
 ## 5. Asking the author for the identity
@@ -216,7 +222,7 @@ Intent:        <what the site must communicate, in the author's words>
 Grammar:       <type / colour / geometry / surface / motion, one line each>
 Origin:        <the references kept from the research log, with their class>
 Never:         <the drifts this identity forbids, e.g. "generic SaaS card grid">
-Loading tier:  <fast / medium / high, see audition.md, and what justifies it>
+Loading tier:  <fast / medium / high / custom, as chosen by the author (audition.md §4), and what justifies it>
 Surfaces:      <every surface it must cover: landing, app, admin, docs, 404...>
 ```
 
@@ -291,7 +297,7 @@ Run this across **every** surface, on the rendered pages
 - [ ] **Motion:** reinforces the identity rather than decorating; reduced-motion honoured
 - [ ] **Density:** appropriate per surface, with the same rhythm underneath
 - [ ] **Technical surfaces:** admin, DevOps and error pages visibly the same product
-- [ ] **Loading:** every library above the fast tier is justified in the brief
+- [ ] **Loading:** the build stays within the tier the author chose; every library above the fast tier is justified in the brief
 - [ ] **References:** informed by them, not copied from them
 - [ ] **The blind test:** shown without URLs, filenames or context, would
       every page read as part of the same website?

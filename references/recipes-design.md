@@ -71,6 +71,12 @@ text. It is a signature, not a typeface choice.
 Dovetail sets `112px` type on `80px` leading — line-height *below* 1. At
 display size, leading under 1.05 is normal and above 1.2 looks unset.
 
+The values above are the measured benchmark for product sites. **Do not
+paste them into a different identity.** A newsletter, a menu card or a
+Victorian page takes its scale from its own grammar: the masthead size, the
+ratio and the tracking of its period and medium. Use the benchmark to check
+that a hero reads as a hero, not as the answer.
+
 ### Measure: how long a line runs
 
 Long lines lose the reader on the jump back to the next line. Short lines
@@ -154,6 +160,14 @@ A uniform 12–16px on everything is a template tell.
 A short page is not restraint, it is an unfinished argument. If there are
 six bands of three lines each, the problem is that the page has nothing to
 say yet — not that it needs a bigger hero.
+
+**These numbers are the benchmark for product sites with a lot to explain**,
+the niche that was measured. They are not a quota. Scale the page to the
+subject: a software platform argues across 8–16 bands, while a small shop,
+a menu or a personal page may be complete in four or five. **Never add a band
+to reach a count.** Every band answers a question the reader actually has.
+If a band exists because the checklist said "8+", cut it. The failure the
+benchmark guards against is thin bands, not few bands.
 
 **Switch the ground between chapters.** ClickHouse uses 3 distinct section
 backgrounds, Cube 4, Stripe 4, dbt 3. Greptile drops from warm gray to dark
@@ -286,6 +300,13 @@ not spend the freedom on these:
 Each one is legitimate for some brief. The problem is reaching for it on
 every brief. That makes it a default, not a choice.
 
+**When the brief points at one of these looks, take its most specific
+reading.** "Old newsletter" can be a generic broadsheet, or a duplicated
+stencil sheet, a parish bulletin or a typed notice on the shop door. The
+generic broadsheet is the one every generator produces. Recommend a
+specific variant first, one with its own medium, era and place, and keep
+the generic version only when the author asked for exactly that.
+
 ---
 
 ## 8. Plan, review, then build
@@ -305,11 +326,14 @@ for a *similar* brief with a different subject. Every part of the plan that
 would come out the same is a default, not a choice. Revise it, and say what
 changed and why. Check the §7 list. Only then write code.
 
-**Spend boldness in one place.** One element is the memorable thing (a
-type treatment, an image, an interaction, a colour field), and everything
-around it is quiet and disciplined. Two loud ideas cancel each other. Before
-calling a page done, remove one accessory: the decoration that serves
-nothing in the brief.
+**Spend boldness in one place, and count it.** One element is the memorable
+thing (a type treatment, an image, an interaction, a colour field), and
+everything around it is quiet and disciplined. Two loud ideas cancel each
+other. In the review, list every element on the page that competes for the
+first look: an oversized nameplate, a full-bleed colour band, a coloured
+box, a large image, an animated moment. **The list must have one entry.**
+Name the one, and turn the rest down until they no longer compete. Then
+remove one accessory: the decoration that serves nothing in the brief.
 
 **Open with the subject's most characteristic thing.** The hero is the
 first thing anyone sees. Choose its form deliberately (a headline, an image,
@@ -358,7 +382,7 @@ microcopy on every surface (admin and 404 included) uses the same one.
 - [ ] Hero at or above ~56px with tracking at or tighter than -0.02em (the measured benchmark; an identity's own grammar can override it)
 - [ ] One loud colour; everything else quiet; semantic colours separate from it
 - [ ] Neutrals deliberately biased, not pure grey
-- [ ] Page has 8+ bands and switches ground at least once
+- [ ] Page length fits the subject: every band answers a real question, none is thin, none was added to reach a count (§3)
 - [ ] No dead half at 1440px
 - [ ] At least one device drawn from the subject's own world
 - [ ] Every structural device encodes something true

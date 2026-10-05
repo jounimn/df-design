@@ -105,23 +105,58 @@ The measured finding (`benchmarks.md`) supports starting cheap: premium
 pages are built mostly from **masks, clip paths and blend modes**, which
 are fast-tier CSS, not from heavy libraries.
 
-### How to present it
+### The tier is the author's choice, not yours
 
-1. **Recommend the cheapest tier that faithfully reproduces the approved
-   identity.** Say what it achieves.
-2. If that tier cannot do it, say **exactly what it cannot do** ("the
-   identity needs a live refracting glass object; CSS cannot refract") and
-   name the next tier up.
-3. Let the author choose:
-   1. Fast expensive loading (recommended when viable)
-   2. Medium expensive loading
-   3. High expensive loading
-   4. Custom / unrestricted. Offer this prominently only when the author
-      declines the recommended path.
+You recommend; **the author decides**. Deciding the tier silently, even
+correctly, skips the author's choice. Never write a tier into the identity
+brief that the author has not picked.
+
+**When:**
+
+- **Audition path:** label each audition with the tier it needs, one line
+  on the index page ("B: fast tier, CSS and SVG only"). After the author
+  picks an identity, send the tier message below before writing the brief.
+- **Design path:** send the tier message together with the identity
+  direction, before implementation.
+- **Motion mode:** send it before choosing any motion library.
+
+**The tier message.** Keep the four tier names exactly as written. Fill in
+every slot for *this* project. A generic
+description of the tiers is not a filled slot.
+
+```
+Loading cost: how heavy the site is to load. Pick one:
+
+1. Fast expensive loading (recommended): <what this identity looks and does at this tier,
+   concretely, e.g. "the newsprint layout, live loaf counts and the
+   countdown, all in CSS and a little plain JavaScript">.
+   Cost: <rough weight, e.g. "~150 KB first load, works without JavaScript">.
+2. Medium expensive loading: <what it adds for this project, e.g. "a page-turn animation
+   between sections and photo-heavy loaf pages">.
+   Cost: <e.g. "+40 KB of script, heavier images">.
+3. High expensive loading: <what it adds, e.g. "a 3D loaf you can turn">.
+   Cost: <e.g. "+300 KB of script, needs a fallback on older phones">.
+
+<If the cheapest tier cannot fully deliver the identity: say exactly what
+it cannot do and which tier can. Otherwise: "Fast does everything this
+identity needs.">
+```
+
+Only when the author declines the recommendation, offer the fourth choice
+explicitly:
+
+```
+4. Custom / unrestricted: no limit. Tell me which effects you want, and I'll tell you
+   what each one costs.
+```
+
+If an option would add nothing for this identity, say so in its line
+("Medium: nothing this identity needs"). Do not invent features to fill a
+tier.
 
 Never pick a heavier library because it is popular, fashionable,
-feature-rich or technically impressive. Record the chosen tier and its
-justification in the identity brief. Every surface inherits it, so the
+feature-rich or technically impressive. Record **the author's choice** and
+its justification in the identity brief. Every surface inherits it, so the
 404 does not ship Three.js because the landing page does.
 
 Whatever the tier, the reduced-motion contract (`recipes-motion.md` §14)

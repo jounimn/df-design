@@ -66,8 +66,9 @@ stages of one workflow run:
 ```
 Author intent  →  Identity definition  →  Reference & identity research
       →  [Playwright decision]  →  Design direction  →  HTML audition*
-      →  Author selection*  →  Identity brief  →  Implementation
-      →  Consistency validation  →  Verification gate
+      →  Author selection*  →  Loading tier (author's choice)
+      →  Identity brief  →  Implementation  →  Consistency validation
+      →  Verification gate
                                          * audition path only
 ```
 
@@ -75,7 +76,7 @@ Author intent  →  Identity definition  →  Reference & identity research
 |---|---|
 | Intent, references, identity, research, identity brief, multi-surface consistency | `references/identity.md` |
 | Candidate identities, the search engine of every direction | `references/identity-library.md` |
-| Playwright decision, HTML auditions, loading-cost tiers | `references/audition.md` |
+| Playwright decision, HTML auditions, the loading-tier message to the author | `references/audition.md` |
 | Building it | `references/recipes-design.md` / `references/recipes-motion.md` (`both`: design first) |
 | Icons, illustration, textures | `references/icons-and-assets.md` |
 | Looking at it | `references/verification.md` |
@@ -96,8 +97,11 @@ The rules that govern every stage:
 - **The approved identity is binding** on every surface: landing, app,
   admin, DevOps, docs, 404. Expression adapts per surface. The identity
   does not.
-- **Cheapest viable loading tier first.** Heavy libraries need a reason in
-  the brief.
+- **The author picks the loading tier.** Recommend the cheapest tier that
+  fully delivers the identity, then send the tier message
+  (`audition.md` §4): fast, medium and high expensive loading, each costed
+  for this project, with custom offered if the author declines. Heavy
+  libraries need a reason in the brief.
 
 ### Order of operations in `both`
 
@@ -184,6 +188,7 @@ is an acceptable sentence. "Done" without having looked is not.
 | "The audition should be production-ready" | An audition answers "is this the identity?" Small, same content in each, no backend. |
 | "The admin and 404 are just utility pages" | Same product, same identity, adapted density. A stock admin panel is a different product. |
 | "Three.js will make it feel premium" | Cheapest viable tier first. Masks and blends are CSS. |
+| "Fast tier obviously fits; I'll just use it" | Recommending is yours, choosing is the author's. Send the tier message. |
 | "They said rebrand, so tokens and type" | A rebrand changes structure. Swapping tokens on an unchanged layout is a reskin — name it that, or do the real thing. |
 | "The motion spec says 400ms ease-out, so I'm done" | Parameters are not a design. What *moves*, and why, is the design. |
 | "The plan is obvious, I'll go straight to code" | Write the plan, then ask what you'd have made for a similar brief. Whatever comes out the same is a default. `recipes-design.md` §8. |
