@@ -129,7 +129,7 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `references/audition.md` | The Playwright decision, HTML auditions, loading-cost tiers. |
 | `references/icons-and-assets.md` | Commercially safe icon and asset sets, licence traps, sizing icons against type. |
 | `references/benchmarks.md` | The measurements. Aggregates, per-site data, easing curves and durations actually shipped. |
-| `references/recipes-design.md` | Eight sections of working code: type roles, colour ladders, page structure, chrome vocabulary, anti-slop. |
+| `references/recipes-design.md` | Ten sections: type roles and measure, colour ladders, page structure, chrome vocabulary, subject-derived identity, layout, anti-slop, the plan-and-review pass, words as design, and the checklist. |
 | `references/recipes-motion.md` | Fourteen implementations, each traced to the site that ships it, ending in the reduced-motion contract. |
 | `references/verification.md` | How to confirm the work is real. Read this one even if you skip the rest. |
 | `scripts/probe.mjs` | The prober CLI. |

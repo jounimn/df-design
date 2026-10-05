@@ -27,11 +27,17 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Archival newsprint
 - **Grammar:** newspaper column grid, condensed headline faces, rules
   between columns, datelines, halftone imagery, off-white newsprint ground,
-  black ink with a single spot colour.
+  black ink with a single spot colour. Columns run 35–45ch
+  (`recipes-design.md` §1, Measure).
 - **Says:** record, authority, history, "the story of this place".
 - **Fits:** bakeries and food with history, local institutions, media, archives, changelogs. **Misfits:** futuristic products.
 - **Trap:** pastiche fonts that are unreadable at body size; fake
-  aging textures. Use a real text serif and real rules.
+  aging textures. Use a real text serif and real rules. **The broadsheet is
+  also one of the commonest AI-generated defaults** (hairline rules, zero
+  radius, dense columns; `recipes-design.md` §7). Propose it only when the
+  brief or the subject really is a record of something. Then make it
+  specific: a real masthead with an edition and a dateline drawn from the
+  subject, not a generic "The Daily ___".
 - **Load:** fast to medium.
 - **Seen at:** wsj.com: column rules, serif heads, stipple hedcut portraits *(own read)*; ft.com: salmon newsprint ground with black ink *(own read)*; theonion.com: parody broadsheet conventions on the web.
 - **Search:** awwwards.com/websites/newspaper/; Fonts In Use "newspapers" topic; trends.daisyui.com/trend/punk-zine/ (rougher cousin); lovable.dev "broadsheet template" (a counter-example: the blackletter-masthead pastiche the Trap warns about); Society for News Design (snd.org) awards.

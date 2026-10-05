@@ -186,6 +186,8 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Three.js will make it feel premium" | Cheapest viable tier first. Masks and blends are CSS. |
 | "They said rebrand, so tokens and type" | A rebrand changes structure. Swapping tokens on an unchanged layout is a reskin — name it that, or do the real thing. |
 | "The motion spec says 400ms ease-out, so I'm done" | Parameters are not a design. What *moves*, and why, is the design. |
+| "The plan is obvious, I'll go straight to code" | Write the plan, then ask what you'd have made for a similar brief. Whatever comes out the same is a default. `recipes-design.md` §8. |
+| "25 of 28 ship mono, so mono on every label" | Mono labels real data. On every eyebrow and meta line it is template chrome. `recipes-design.md` §1, §7. |
 | "Inter is clean and safe" | 4 of 28 sites use it for display. Safe is the diagnosis, not the defence. |
 | "More animation will make it feel premium" | The measured answer is masks and blends, not more keyframes. |
 | "Big hero, then five short sections" | The median reference page is 9,329px over 8–16 bands. Thin pages read as unfinished. |
