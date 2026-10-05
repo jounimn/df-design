@@ -222,6 +222,8 @@ Intent:        <what the site must communicate, in the author's words>
 Grammar:       <type / colour / geometry / surface / motion, one line each>
 Origin:        <the references kept from the research log, with their class>
 Never:         <the drifts this identity forbids, e.g. "generic SaaS card grid">
+Icons:         <the one set, its stroke and size logic, and why it fits (icons-and-assets.md §0)>
+Images:        <author's answer on stock images; if yes: sources, treatment, which pages; asset record path (images.md §5)>
 Loading tier:  <fast / medium / high / custom, as chosen by the author (audition.md §4), and what justifies it>
 Surfaces:      <every surface it must cover: landing, app, admin, docs, 404...>
 ```
@@ -293,7 +295,8 @@ Run this across **every** surface, on the rendered pages
 - [ ] **Type:** same faces and hierarchy logic on every surface
 - [ ] **Colour:** one token system, semantic colours consistent
 - [ ] **Components:** buttons, inputs, cards and nav from one vocabulary
-- [ ] **Icons:** one set, one stroke, one size logic (`icons-and-assets.md`)
+- [ ] **Icons:** one set, one stroke, one size logic, present in every surface's controls, forms and status (`icons-and-assets.md` §0)
+- [ ] **Images:** only if the author said yes; every one free, commercial, no credit, no watermark in the shipped file; one treatment across the set; recorded (`images.md`)
 - [ ] **Motion:** reinforces the identity rather than decorating; reduced-motion honoured
 - [ ] **Density:** appropriate per surface, with the same rhythm underneath
 - [ ] **Technical surfaces:** admin, DevOps and error pages visibly the same product

@@ -12,6 +12,38 @@ legal advice — **check the repository's own LICENSE file before you ship**.
 That check costs thirty seconds and is the whole difference between an
 asset you own the right to use and one you do not.
 
+Photographs and illustrations are in `images.md`.
+
+---
+
+## 0. Icons are mandatory
+
+**Every project picks one icon set and uses it.** This is not a question
+for the author. It is decided in the Assets stage, right after the author
+chooses an identity, and recorded in the identity brief (`identity.md` §8).
+Going "words only" leaves controls without the affordances people scan
+for. It is not an identity choice.
+
+Where icons are required, on every surface:
+
+- **Navigation and controls:** menu, close, back, search, language switch, external link, download
+- **Form affordances:** select, date, quantity steppers, password reveal, error and success states
+- **Status:** confirmed, pending, sold out, offline, warning; always beside a word, never instead of one
+- **Admin and dense surfaces:** table actions, filters, sort, row status
+
+Where they are still not wanted is the decorative feature grid (§4, "The
+restraint finding"). Mandatory icons are functional, not ornamental.
+
+**The set must fit the identity**, so choose it during research, not by
+habit. A typewritten newsletter wants a thin, plain stroke (Phosphor Light,
+Iconoir); a Bauhaus museum wants geometric solids (Phosphor Bold or Fill);
+a dense developer tool wants Lucide or Tabler at 1.5px. When no set fits a
+strongly historical identity, draw the dozen glyphs the product needs in
+one grid and one stroke, and treat them as the set.
+
+Icons also belong in the motion plan (`recipes-motion.md` §15): they move
+when their meaning changes.
+
 ---
 
 ## 1. The sets you can ship commercially
@@ -166,6 +198,7 @@ consistent, and keep the licence note in the file header.
 
 | Thought | Reality |
 |---|---|
+| "This identity is typographic, so no icons" | Icons are mandatory in controls, forms, status and admin. Pick a set that fits, or draw one (§0). |
 | "It's free to download, so it's free to use" | Free download, attribution-required, and non-commercial are three different things. Open the LICENSE. |
 | "Font Awesome is the standard" | Font Awesome Free is CC BY 4.0 — you owe a credit line. Lucide and Phosphor owe nothing. |
 | "Simple Icons is CC0, so I can use their logo" | CC0 waives copyright, not trademark. Check brand guidelines, not the licence. |

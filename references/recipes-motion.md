@@ -361,6 +361,131 @@ in Motion, or `matchMedia("(prefers-reduced-motion: reduce)")`. Linear ships
 
 ---
 
+## 15. Assets in motion: icons and images are part of the choreography
+
+In `motion` and `both` modes, the motion plan **must include the project's
+assets**: the icon set always, since icons are mandatory
+(`icons-and-assets.md`), and the images when the author approved them
+(`images.md`). A page where the type and layout move but the icons and
+photographs sit dead looks unfinished. The opposite failure is worse: a
+stock Ken Burns zoom on every photo is decoration, not identity.
+
+Choose the asset motion during research, the same way as the identity.
+What does this subject's world do with its images and symbols? A newsletter
+stamps; a lab diagram draws itself; a darkroom print develops; a shop sign
+flips. Then pick from the moves below the one or two that say it. Each move
+must answer "what does this restate?", like §13.
+
+### Icons: state, not decoration
+
+Icons move when **their meaning changes**. They never loop for attention.
+
+```css
+/* Draw-on: a check that is written, not faded. Lucide/Phosphor paths are strokes. */
+.icon-draw path {
+  stroke-dasharray: var(--len, 24);
+  stroke-dashoffset: var(--len, 24);
+  transition: stroke-dashoffset 420ms var(--ease-weighted);
+}
+.is-done .icon-draw path { stroke-dashoffset: 0; }
+
+/* Morph between two states of one control (menu ↔ close, play ↔ pause):
+   cross-fade two glyphs from the SAME set, rotated through the change. */
+.icon-swap { display: grid; }
+.icon-swap > svg { grid-area: 1 / 1; transition: opacity 180ms, transform 240ms var(--ease-weighted); }
+.icon-swap > svg:last-child { opacity: 0; transform: rotate(-45deg) scale(.8); }
+.is-open .icon-swap > svg:first-child { opacity: 0; transform: rotate(45deg) scale(.8); }
+.is-open .icon-swap > svg:last-child  { opacity: 1; transform: none; }
+```
+
+```js
+// Measure real path lengths once so the draw-on is exact for every glyph.
+document.querySelectorAll('.icon-draw path').forEach((p) =>
+  p.style.setProperty('--len', Math.ceil(p.getTotalLength())));
+```
+
+Good uses: a status icon drawing on when an order is confirmed, a nav icon
+morphing on open, a stamp icon pressing in (`scale(1.15) → 1` with the
+signature curve) when a state changes. Bad uses: bouncing arrows, spinning
+decorative glyphs, an icon per feature that wiggles on scroll.
+
+### Images: reveal through the identity's own device
+
+An image enters the way its medium would. A mask or clip does the work
+(the measured finding: masks, not more keyframes):
+
+```css
+/* Print / newsletter: the image is inked in, top to bottom, like a press pass. */
+.img-ink { clip-path: inset(0 0 100% 0); transition: clip-path 900ms var(--ease-weighted); }
+.img-ink.in-view { clip-path: inset(0 0 0 0); }
+
+/* Darkroom / photography: develops from paper white, contrast arriving last. */
+.img-develop { filter: grayscale(1) contrast(.4) brightness(1.6); transition: filter 1400ms ease-out; }
+.img-develop.in-view { filter: none; }
+
+/* Halftone / technical: dots grow until they overlap and the photo is whole.
+   At an 8px cell, a 6px radius covers the cell corners (5.66px). */
+@property --dot { syntax: "<length>"; inherits: false; initial-value: 0px; }
+.img-halftone {
+  mask-image: radial-gradient(circle, #000 var(--dot), transparent calc(var(--dot) + .5px));
+  mask-size: 8px 8px;
+  transition: --dot 900ms var(--ease-weighted);
+}
+.img-halftone.in-view { --dot: 6px; }
+
+/* One treatment, every image: a duotone in the identity's ink and paper, applied in CSS
+   so a new photo joins the set without an editing pass.
+   Multiply onto the paper turns highlights into paper; lighten with the ink turns
+   shadows into ink. The ink must be darker than the paper in every channel. */
+.img-duotone { position: relative; isolation: isolate; background: rgb(var(--canvas)); }
+.img-duotone img { display: block; filter: grayscale(1) contrast(1.1); mix-blend-mode: multiply; }
+.img-duotone::after { content: ""; position: absolute; inset: 0; background: rgb(var(--brand)); mix-blend-mode: lighten; pointer-events: none; }
+```
+
+Trigger reveals on entering the viewport (`IntersectionObserver` adding
+`.in-view`, or `animation-timeline: view()` as in §10). They play
+**once**, never again on every scroll back.
+
+Rules:
+
+- **Transform, opacity, filter, clip-path and mask only.** Never animate
+  `width`, `height` or `top` on an image; it reflows the page. Set `width`
+  and `height` attributes so nothing jumps when the image loads.
+- **No continuous zoom or pan on content images.** A slow ambient move is
+  allowed on at most one hero image, and only when the identity calls for it.
+- **Never put `loading="lazy"` on an image that starts fully hidden by its
+  own clip or mask.** Chromium can treat a fully clipped image as never
+  visible, so it never loads, and the reveal waits forever. This shipped
+  broken in the Faísca example build until it was looked at. Either load
+  reveal images eagerly (`decoding="async"`), or put the clip on a wrapper,
+  observe the wrapper, and only then set the image's `src`. Add `.in-view`
+  after `img.decode()` resolves, or the mask opens onto an empty box:
+
+```js
+const io = new IntersectionObserver((entries) => entries.forEach(async (e) => {
+  if (!e.isIntersecting) return;
+  io.unobserve(e.target);
+  const img = e.target.querySelector('img');
+  if (img.dataset.src) img.src = img.dataset.src;   // wrapper pattern: load on approach
+  try { await img.decode(); } catch {}                // reveal only a painted image
+  e.target.classList.add('in-view');
+}), { rootMargin: '200px 0px' });
+document.querySelectorAll('.img-ink, .img-develop, .img-halftone').forEach((el) => io.observe(el));
+```
+- **Reduced motion:** images and icons show in their final state at once.
+  Add them to the resting-state rule in §14:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  .img-ink { clip-path: none !important; }
+  .img-develop { filter: none !important; }
+  .img-halftone { mask-image: none !important; }
+  .icon-draw path { stroke-dashoffset: 0 !important; }
+}
+```
+
+---
+
 ## Checklist before calling motion done
 
 - [ ] One signature curve, named, used for ~80% of transitions
@@ -371,4 +496,6 @@ in Motion, or `matchMedia("(prefers-reduced-motion: reduce)")`. Linear ships
 - [ ] Nothing important is gated behind a scroll the user may not perform
 - [ ] Total stagger for any group under 500ms
 - [ ] `tabular-nums` on any animating figure
+- [ ] The motion plan includes the icons, and the images when approved (§15); each move restates something from the identity
+- [ ] Image reveals play once, after decode, animating only transform, opacity, filter, clip-path or mask
 - [ ] **The rendered page has been looked at** — see `verification.md`

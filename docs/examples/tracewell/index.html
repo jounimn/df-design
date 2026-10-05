@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracewell</title>
+<meta name="description" content="Tracewell: open-source distributed tracing for backend engineers. df-design example, path=design mode=motion.">
+<!--
+  df-design: path=design mode=motion — Tracewell's brand is settled (near-black, one signal orange,
+  Söhne → grotesk fallback, JetBrains Mono for data, 4px corners); this page adds the motion plan only.
+  Display/UI face: Schibsted Grotesk (SIL OFL) standing in for Söhne. Both descend from the
+  Akzidenz-Grotesk line; Schibsted keeps the closed apertures and flat terminals Söhne has, where
+  Inter Tight / Geist read rounder and more neo-grotesque.
+  Icons: Lucide (lucide-static v1.52.0, ISC), inlined, stroke-width 1.5. See assets.md.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#0B0D10; --panel:#101318; --line:#1D2229; --line-2:#2A3039;
+  --ink:#E9EBEE; --ink-2:#A3AAB4; --ink-3:#6B737E;
+  --brand:#FF6A1A; --brand-rgb:255 106 26; --ink-rgb:233 235 238;
+  --radius:4px;
+  --sans:"Schibsted Grotesk","Söhne",ui-sans-serif,system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* Signature curve: Linear's weighted ease. ~80% of transitions use it. */
+  --ease-weighted:cubic-bezier(0.32,0.72,0,1);
+  --dur-feedback:.15s; --dur-content:.3s;
+  color-scheme:dark;
+}
+/* Dark-only brand: these tokens are its single theme. */
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:400 16px/1.55 var(--sans);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+.ico{width:1em;height:1em;flex:none;stroke-width:1.5;transform:translateY(-.5px)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:.55em;height:44px;padding:0 18px;border-radius:var(--radius);
+  font:500 15px/1 var(--sans);letter-spacing:-.005em;border:1px solid transparent;cursor:pointer;
+  transition:background-color var(--dur-feedback) var(--ease-weighted),border-color var(--dur-feedback) var(--ease-weighted),transform var(--dur-feedback) var(--ease-weighted)}
+.btn:active{transform:translateY(1px)}
+.btn .ico{font-size:15px}
+.btn-primary{background:var(--brand);color:#0B0D10}
+.btn-primary:hover{background:#FF7D38}
+.btn-primary .ico{transition:transform var(--dur-content) var(--ease-weighted)}
+.btn-primary:hover .ico{transform:translate(3px,-.5px)}
+.btn-ghost{border-color:var(--line-2);color:var(--ink)}
+.btn-ghost:hover{border-color:#47505C;background:#12161B}
+:focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+
+/* ---------- nav ---------- */
+.nav{position:relative;z-index:3;border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.mark{display:flex;align-items:center;gap:10px;font:600 17px/1 var(--sans);letter-spacing:-.02em}
+.mark svg{width:20px;height:20px}
+.nav-links{display:flex;gap:28px;font-size:14px;color:var(--ink-2)}
+.nav-links a:hover{color:var(--ink)}
+.nav-right{display:flex;gap:10px;align-items:center}
+.nav-right .btn{height:34px;padding:0 12px;font-size:13.5px}
+.nav-right .btn .ico{font-size:13.5px}
+.star-count{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);padding-left:10px;margin-left:2px;border-left:1px solid var(--line-2);height:16px;display:inline-flex;align-items:center}
+
+/* ---------- hero ---------- */
+.hero{position:relative;overflow:hidden;isolation:isolate;border-bottom:1px solid var(--line)}
+/* Ambient field: Hex's masked dot grid (§5) as the static base, Linear's firing dots (§2) on top,
+   the whole field faded at the edges by one radial mask so it never fights the copy. */
+.field{position:absolute;inset:0;z-index:-1;pointer-events:none;
+  -webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 46%,#000 25%,transparent 78%);
+          mask-image:radial-gradient(ellipse 72% 70% at 50% 46%,#000 25%,transparent 78%)}
+.field-base{position:absolute;inset:0;background:rgb(var(--ink-rgb) / .2);
+  -webkit-mask-image:radial-gradient(circle at center,#000 1px,transparent 1.5px);
+          mask-image:radial-gradient(circle at center,#000 1px,transparent 1.5px);
+  -webkit-mask-size:32px 32px;mask-size:32px 32px}
+.field i{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--ink);opacity:0;
+  animation:span-fire var(--t,7s) var(--ease-weighted) infinite;animation-delay:var(--d)}
+@keyframes span-fire{0%,62%,100%{opacity:0}68%{opacity:1}}
+
+.hero-inner{position:relative;padding-top:128px;padding-bottom:176px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font:500 13px/1 var(--sans);color:var(--ink-2);
+  padding:7px 12px 7px 10px;border:1px solid var(--line-2);border-radius:var(--radius);background:rgb(11 13 16 / .7)}
+.eyebrow b{font:500 11.5px/1 var(--mono);color:var(--brand);letter-spacing:.02em}
+h1{margin:28px auto 0;max-width:13ch;font:600 80px/1 var(--sans);letter-spacing:-.045em;text-wrap:balance}
+.sub{margin:24px auto 0;max-width:52ch;font-size:18.5px;line-height:1.55;color:var(--ink-2);text-wrap:pretty}
+.ctas{margin-top:36px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.install{margin:28px auto 0;display:inline-flex;align-items:center;gap:14px;height:40px;padding:0 6px 0 14px;
+  border:1px solid var(--line);border-radius:var(--radius);background:rgb(16 19 24 / .85);font:400 13.5px/1 var(--mono);color:var(--ink-2)}
+.install .ps{color:var(--ink-3)}
+.install code{font:inherit;color:var(--ink)}
+
+/* Copy → check: one control, two glyphs from the same set, rotated through the change (§15). */
+.copy{display:grid;place-items:center;width:30px;height:30px;border-radius:var(--radius);border:0;background:transparent;color:var(--ink-2);cursor:pointer;
+  transition:background-color var(--dur-feedback) var(--ease-weighted),color var(--dur-feedback) var(--ease-weighted)}
+.copy:hover{background:#1A1F26;color:var(--ink)}
+.icon-swap{display:grid}
+.icon-swap>svg{grid-area:1/1;width:15px;height:15px;stroke-width:1.5;transition:opacity 180ms,transform 240ms var(--ease-weighted)}
+.icon-swap>svg:last-child{opacity:0;transform:rotate(-45deg) scale(.8);color:var(--brand)}
+.is-copied .icon-swap>svg:first-child{opacity:0;transform:rotate(45deg) scale(.8)}
+.is-copied .icon-swap>svg:last-child{opacity:1;transform:none}
+
+/* One request crossing the services: a masked orange hairline, screen-blended (§5, §9). */
+.request{position:absolute;left:0;right:0;bottom:72px;height:28px;pointer-events:none}
+.request .wire{position:absolute;left:0;right:0;top:0;height:1px;overflow:hidden;mix-blend-mode:screen;
+  background:linear-gradient(to right,transparent,rgb(var(--brand-rgb) / .38) 20%,rgb(var(--brand-rgb) / .38) 80%,transparent);
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%);
+          mask-image:linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%)}
+.request .pulse{position:absolute;top:0;left:0;width:22%;height:1px;
+  background:linear-gradient(to right,transparent,var(--brand) 70%,#FFD2B8 96%,transparent);
+  transform:translateX(-100%);animation:request 5.2s var(--ease-weighted) infinite}
+@keyframes request{0%{transform:translateX(-100%)}72%,100%{transform:translateX(460%)}}
+.hop{position:absolute;top:-3px;width:7px;height:7px;margin-left:-3.5px;border:1px solid var(--line-2);background:var(--ground);border-radius:1px}
+.hop span{position:absolute;top:14px;left:50%;transform:translateX(-50%);font:400 11px/1 var(--mono);color:var(--ink-3);white-space:nowrap}
+
+/* ---------- how it works ---------- */
+.how{padding:128px 0 136px}
+.how .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:72px;align-items:start}
+.kicker{font:500 13px/1 var(--sans);color:var(--brand);letter-spacing:.01em}
+h2{margin:16px 0 0;font:600 48px/1.04 var(--sans);letter-spacing:-.035em;text-wrap:balance}
+.steps{list-style:none;margin:44px 0 0;padding:0;border-top:1px solid var(--line)}
+.steps li{display:grid;grid-template-columns:44px 1fr;padding:22px 0;border-bottom:1px solid var(--line)}
+.steps .n{font:500 12.5px/1.7 var(--mono);color:var(--ink-3)}
+.steps h3{margin:0;font:600 17px/1.35 var(--sans);letter-spacing:-.01em}
+.steps p{margin:6px 0 0;color:var(--ink-2);font-size:15px;line-height:1.55}
+.steps code{font:400 13px/1 var(--mono);color:var(--ink);background:#151A20;padding:2px 5px;border-radius:3px}
+
+.stat{margin-top:36px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.stat-label{font-size:13.5px;color:var(--ink-2);width:100%}
+.stat-label .mono{font-size:12.5px;color:var(--ink)}
+.counter{font:500 56px/1 var(--mono);letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.counter small{font-size:22px;letter-spacing:0;color:var(--ink-2);margin-left:4px}
+.delta{font:400 13px/1 var(--mono);color:var(--brand)}
+
+/* Waterfall panel */
+.trace{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden;view-timeline:--wf block}
+/* Linear's corner glow (§3): a mask, not a background, anchored top-left. */
+.trace::before{content:"";position:absolute;inset:0;background:var(--brand);opacity:.07;pointer-events:none;
+  -webkit-mask-image:radial-gradient(320px 220px at 0% 0%,#000 0%,rgb(0 0 0 / .5) 35%,transparent 70%);
+          mask-image:radial-gradient(320px 220px at 0% 0%,#000 0%,rgb(0 0 0 / .5) 35%,transparent 70%)}
+.trace-head{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line);font:400 12.5px/1 var(--mono);color:var(--ink-2);flex-wrap:wrap}
+.trace-head .method{color:var(--ink)}
+.trace-head .id{color:var(--ink-3)}
+.trace-head .tot{margin-left:auto;color:var(--ink)}
+.scale{display:grid;grid-template-columns:132px 1fr 64px 18px;gap:0 14px;padding:10px 18px 4px;font:400 11px/1 var(--mono);color:var(--ink-3)}
+.scale .ticks{display:flex;justify-content:space-between}
+.rows{list-style:none;margin:0;padding:6px 0 14px}
+.row{display:grid;grid-template-columns:132px 1fr 64px 18px;gap:0 14px;align-items:center;padding:7px 18px;font:400 12.5px/1.2 var(--mono)}
+.row .svc{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .svc em{display:block;font-style:normal;color:var(--ink-3);font-size:11px;margin-top:3px}
+.row .svc{padding-left:calc(var(--depth,0) * 10px)}
+.track{position:relative;height:18px;
+  background:linear-gradient(to right,var(--line) 1px,transparent 1px) 0 0/25% 100%}
+.bar{position:absolute;top:4px;bottom:4px;left:var(--x);width:var(--w);border-radius:2px;background:#5B6573;transform-origin:left center}
+.row.root .bar{background:#3A424D}
+.row.slow .bar{background:var(--brand)}
+.row .ms{text-align:right;color:var(--ink-2)}
+.row.slow .ms{color:var(--brand)}
+.status{display:grid;place-items:center;color:var(--ink-3);font-size:15px}
+.status .ico{width:15px;height:15px}
+.row.slow .status{color:var(--brand)}
+.trace-foot{display:flex;gap:10px;align-items:center;padding:12px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
+.trace-foot .ico{color:var(--brand);font-size:14px}
+
+/* Span bars draw left-to-right, one after another.
+   Finished state is the default; motion is layered on only where supported (§10). */
+.bar{transform:none}
+.status{opacity:1}
+@supports (animation-timeline: view()){
+  @media (prefers-reduced-motion:no-preference){
+    .bar{animation:bar-draw linear both;animation-timeline:--wf;animation-timing-function:var(--ease-weighted);
+      animation-range:entry calc(40% + var(--i) * 6%) entry calc(70% + var(--i) * 6%)}
+    .status{animation:stamp linear both;animation-timeline:--wf;animation-timing-function:var(--ease-weighted);
+      animation-range:entry calc(62% + var(--i) * 6%) entry calc(80% + var(--i) * 6%)}
+  }
+}
+@keyframes bar-draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes stamp{from{opacity:0;transform:scale(1.25)}to{opacity:1;transform:none}}
+/* IntersectionObserver fallback: time-based, 55ms stagger x 6 = 330ms total (< 500ms). */
+.io .bar{transform:scaleX(0);transition:transform .55s var(--ease-weighted);transition-delay:calc(var(--i) * 55ms)}
+.io .status{opacity:0;transform:scale(1.25);transition:opacity .25s,transform .3s var(--ease-weighted);transition-delay:calc(var(--i) * 55ms + 300ms)}
+.io .in-view .bar{transform:none}
+.io .in-view .status{opacity:1;transform:none}
+
+/* ---------- footer ---------- */
+footer{border-top:1px solid var(--line);padding:32px 0 40px;font-size:13.5px;color:var(--ink-3)}
+footer .wrap{display:flex;gap:24px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+footer nav{display:flex;gap:22px}
+footer a:hover{color:var(--ink)}
+
+/* ---------- small screens ---------- */
+@media (max-width:900px){
+  .how .wrap{grid-template-columns:1fr;gap:56px}
+  .nav-links{display:none}
+}
+@media (max-width:640px){
+  .wrap{padding:0 16px}
+  .hero-inner{padding-top:80px;padding-bottom:140px}
+  h1{font-size:46px;letter-spacing:-.04em}
+  .sub{font-size:16.5px}
+  .btn{height:44px}
+  .ctas .btn{flex:1 1 100%;justify-content:center}
+  .install{font-size:12.5px;max-width:100%}
+  .hop span{display:none}
+  .request{bottom:56px}
+  .how{padding:88px 0 96px}
+  h2{font-size:36px}
+  .counter{font-size:48px}
+  .nav-right .btn-ghost .label{display:none}
+  .scale,.row{grid-template-columns:92px 1fr 46px 15px;gap:0 10px;padding-left:12px;padding-right:12px}
+  .row{font-size:11.5px}
+  .trace-head{padding:12px}
+  .trace-foot{padding:12px}
+}
+
+/* ---------- reduced motion: the floor, then every resting state (§14) ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  /* Field keeps its texture; a few dots rest lit so it still reads as live services. */
+  .field i{animation:none!important;opacity:var(--rest,0)!important}
+  /* The request rests mid-flight, past the third hop. */
+  .request .pulse{animation:none!important;transform:translateX(165%)!important}
+  .bar,.status,.io .bar,.io .status{animation:none!important;opacity:1!important;transform:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="mark" href="#" aria-label="Tracewell home">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="3" width="18" height="2.5" rx="1" fill="#E9EBEE"/><rect x="5" y="8.75" width="10" height="2.5" rx="1" fill="#FF6A1A"/><rect x="9" y="14.5" width="6" height="2.5" rx="1" fill="#6B737E"/></svg>
+      tracewell
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#how">How it works</a><a href="#">Docs</a><a href="#">Integrations</a><a href="#">Changelog</a>
+    </nav>
+    <div class="nav-right">
+      <a class="btn btn-ghost" href="#" aria-label="Star Tracewell on GitHub, 4,218 stars">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>
+        <span class="label">Star</span><span class="star-count">4.2k</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="field" aria-hidden="true"><div class="field-base"></div></div>
+
+  <div class="wrap hero-inner">
+    <span class="eyebrow"><b>v0.9</b> OpenTelemetry-native, Apache-2.0</span>
+    <h1>See every request, end to end.</h1>
+    <p class="sub">Tracewell follows a request through every service it touches and shows you exactly where the milliseconds went. Open source, self-hosted, one line to instrument.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#how">Start tracing
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+      <a class="btn btn-ghost" href="#">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></svg>
+        Read the docs</a>
+    </div>
+    <div class="install">
+      <span class="ps" aria-hidden="true">$</span><code id="cmd">npm i @tracewell/sdk</code>
+      <button class="copy" type="button" aria-label="Copy install command">
+        <span class="icon-swap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="request" aria-hidden="true">
+    <div class="wire"><div class="pulse"></div></div>
+    <i class="hop" style="left:14%"><span>edge</span></i>
+    <i class="hop" style="left:32%"><span>auth</span></i>
+    <i class="hop" style="left:50%"><span>orders</span></i>
+    <i class="hop" style="left:68%"><span>payments</span></i>
+    <i class="hop" style="left:86%"><span>postgres</span></i>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="wrap">
+    <div>
+      <div class="kicker">How it works</div>
+      <h2>One trace. Every hop. Nothing guessed.</h2>
+      <ol class="steps">
+        <li><span class="n">01</span><div><h3>Instrument once</h3><p>Add <code>@tracewell/sdk</code> and call <code>trace.init()</code>. HTTP, gRPC, queues and SQL are wrapped for you.</p></div></li>
+        <li><span class="n">02</span><div><h3>Propagate context</h3><p>W3C <code>traceparent</code> headers ride along every hop, so each service adds its span to the same trace.</p></div></li>
+        <li><span class="n">03</span><div><h3>Read the waterfall</h3><p>Every span is drawn where its time went. Slow spans are flagged against their own p99, not a global threshold.</p></div></li>
+      </ol>
+      <div class="stat">
+        <span class="stat-label">p99 for <span class="mono">orders.load-cart</span> after the cache fix</span>
+        <span class="counter" aria-label="38 milliseconds"><span id="p99" aria-hidden="true">38</span><small aria-hidden="true">ms</small></span>
+        <span class="delta">&darr; 41 ms vs. last deploy</span>
+      </div>
+    </div>
+
+    <figure class="trace" style="margin:0" aria-label="Trace waterfall for GET /checkout, 212 milliseconds, one slow span in payments">
+      <div class="trace-head">
+        <span class="method">GET /checkout</span><span class="id">trace 7f3a9c&hellip;e21</span><span class="tot">212 ms</span>
+      </div>
+      <div class="scale" aria-hidden="true"><span>service</span><span class="ticks"><span>0</span><span>106</span><span>212 ms</span></span><span></span><span></span></div>
+      <ol class="rows">
+        <li class="row root" style="--i:0"><span class="svc">edge-gateway<em>GET /checkout</em></span><span class="track"><span class="bar" style="--x:0%;--w:100%"></span></span><span class="ms">212</span><span class="status" title="ok"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
+        <li class="row" style="--i:1;--depth:1"><span class="svc">auth<em>verify-token</em></span><span class="track"><span class="bar" style="--x:1.9%;--w:8.5%"></span></span><span class="ms">18</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
+        <li class="row" style="--i:2;--depth:1"><span class="svc">orders<em>load-cart</em></span><span class="track"><span class="bar" style="--x:11.3%;--w:17.9%"></span></span><span class="ms">38</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
+        <li class="row" style="--i:3;--depth:1"><span class="svc">inventory<em>reserve</em></span><span class="track"><span class="bar" style="--x:30.2%;--w:12.3%"></span></span><span class="ms">26</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
+        <li class="row slow" style="--i:4;--depth:1"><span class="svc">payments<em>charge</em></span><span class="track"><span class="bar" style="--x:43.4%;--w:45.3%"></span></span><span class="ms">96</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="slow"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span></li>
+        <li class="row" style="--i:5;--depth:2"><span class="svc">postgres<em>INSERT</em></span><span class="track"><span class="bar" style="--x:66%;--w:17%"></span></span><span class="ms">36</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
+        <li class="row" style="--i:6;--depth:1"><span class="svc">notify<em>enqueue</em></span><span class="track"><span class="bar" style="--x:90.6%;--w:6.6%"></span></span><span class="ms">14</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
+      </ol>
+      <figcaption class="trace-foot">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        payments.charge took 96 ms, 2.1&times; its p99. 45% of this request.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>tracewell &middot; Apache-2.0 &middot; built in the open</span>
+    <nav aria-label="Footer"><a href="#">Docs</a><a href="#">GitHub</a><a href="#">Discord</a><a href="#">Security</a></nav>
+  </div>
+</footer>
+
+<script>
+(()=>{const d=document,R=matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* firing dots: sparse cells on the 32px grid, irregular delays (§2) */
+const f=d.querySelector(".field"),w=f.clientWidth,h=f.clientHeight,c=w/32|0,r=h/32|0,n=c*r,k=Math.min(140,n/7|0);
+for(let i=0;i<k;i++){const j=(i*977+i*i*31)%n,e=d.createElement("i");
+e.style.cssText=`left:${(j%c)*32+14.5}px;top:${(j/c|0)*32+14.5}px;--d:-${(i*977)%7000}ms;--t:${5+(i*613)%4000/1000}s;--rest:${i%9?0:.7}`;f.appendChild(e)}
+/* copy -> check */
+const b=d.querySelector(".copy");b.onclick=()=>{navigator.clipboard?.writeText(d.getElementById("cmd").textContent).catch(()=>{});
+b.parentNode.classList.add("is-copied");b.setAttribute("aria-label","Copied");clearTimeout(b.t);
+b.t=setTimeout(()=>{b.parentNode.classList.remove("is-copied");b.setAttribute("aria-label","Copy install command")},1600)};
+/* waterfall fallback + p99 counter (§10, §12) */
+const t=d.querySelector(".trace"),p=d.getElementById("p99");
+if(!R&&!CSS.supports("animation-timeline: view()"))d.documentElement.classList.add("io");
+if(R)return;p.textContent="0";
+new IntersectionObserver((es,o)=>es.forEach(x=>{if(!x.isIntersecting)return;o.disconnect();t.classList.add("in-view");
+const t0=performance.now(),go=s=>{const q=Math.min(1,(s-t0)/900);p.textContent=Math.round(38*(1-Math.pow(1-q,4)));q<1&&requestAnimationFrame(go)};requestAnimationFrame(go)}),{threshold:.4}).observe(t)})();
+</script>
+</body>
+</html>

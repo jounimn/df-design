@@ -50,6 +50,10 @@ say.** Identity questions do not replace these, and every surface depends on
 the answers. Ask only about what is missing:
 
 - **Content and assets:** logo, photography, copy, menu or catalogue, prices
+- **Stock images, always asked:** "May I use free stock images (free for
+  commercial use, no credit line, no watermark) where you have no photos of
+  your own?" Yes, no, or only for some pages. Icons are not asked about;
+  they are always used (`icons-and-assets.md` §0).
 - **Language(s)** and locale: currency, date formats, legal notices
 - **Flows:** how ordering, booking or sign-up actually works, payment methods, cut-offs, stock limits
 - **Users and devices** for each surface: who uses the admin, on a phone or a counter tablet
@@ -66,11 +70,18 @@ stages of one workflow run:
 ```
 Author intent  →  Identity definition  →  Reference & identity research
       →  [Playwright decision]  →  Design direction  →  HTML audition*
-      →  Author selection*  →  Loading tier (author's choice)
-      →  Identity brief  →  Implementation  →  Consistency validation
-      →  Verification gate
+      →  Author selection*  →  Assets (icon set + approved images)
+      →  Loading tier (author's choice)  →  Identity brief
+      →  Implementation  →  Consistency validation  →  Verification gate
                                          * audition path only
 ```
+
+Assets are split across three points. **Ask** about stock images in the
+first message. **Shortlist** image sources and icon sets that fit each
+candidate during research. **Pick** the actual images and the one icon set
+in the Assets stage, after the identity is chosen and before the loading
+tier, because images are most of a page's weight and the tier message has
+to price them.
 
 | Stage | Read |
 |---|---|
@@ -78,7 +89,8 @@ Author intent  →  Identity definition  →  Reference & identity research
 | Candidate identities, the search engine of every direction | `references/identity-library.md` |
 | Playwright decision, HTML auditions, the loading-tier message to the author | `references/audition.md` |
 | Building it | `references/recipes-design.md` / `references/recipes-motion.md` (`both`: design first) |
-| Icons, illustration, textures | `references/icons-and-assets.md` |
+| Icons (mandatory), illustration, textures | `references/icons-and-assets.md` |
+| Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |
 
 In `motion` mode the identity stages shrink to one: read the identity the
@@ -102,6 +114,10 @@ The rules that govern every stage:
   (`audition.md` §4): fast, medium and high expensive loading, each costed
   for this project, with custom offered if the author declines. Heavy
   libraries need a reason in the brief.
+- **Icons always; stock images only with the author's yes.** Every image
+  must be free for commercial use, need no credit line, and carry no
+  watermark in the file that ships. In `motion` and `both`, icons and
+  approved images are part of the motion plan (`recipes-motion.md` §15).
 
 ### Order of operations in `both`
 
@@ -199,5 +215,9 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Tests pass, so it works" | Tests passed on a dead virtualizer and 41 CSS classes that compiled to nothing. Look at the page. |
 | "It animates on scroll, I'll screenshot it" | A full-page capture never scrolls; your content is photographed at `opacity: 0`. See `verification.md`. |
 | "Reduced motion is an edge case" | WCAG 2.3.3. Vestibular reactions include migraine and nausea. 19 of 28 production sites handle it. |
+| "No photos yet, so I'll drop in some stock" | Ask first. Then only images that are free for commercial use, need no credit and ship with no watermark. `images.md`. |
+| "It was on a free stock site, so it's free" | Paid, watermarked results are mixed into free stock searches. Check the item, not the site. `images.md`. |
+| "Typographic identity, so no icons" | Icons are mandatory in controls, forms, status and admin. Pick a set that fits the identity. |
+| "Motion is for the layout; the images just sit there" | In `motion` and `both`, icons and images are in the motion plan. `recipes-motion.md` §15. |
 | "The icons are free, I downloaded them" | Free download, attribution-required and non-commercial are three different things. `icons-and-assets.md`. |
 | "An icon per feature item will carry the section" | Three columns, three circled icons, three paragraphs is the template tell. None of the thirty measured sites do it. |

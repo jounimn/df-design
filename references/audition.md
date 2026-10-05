@@ -42,7 +42,8 @@ Each audition contains, and only contains:
 - the colour system in use (not a swatch sheet)
 - two or three example components: a button, a card or list row, an input
 - mock content and data
-- imagery or honest placeholders (a labelled box, not a stock photo pretending to be final)
+- imagery: the author's own, or stock images that pass `images.md` **if the author said yes**, treated the identity's way; otherwise honest labelled placeholders
+- icons from the set that fits this candidate, in the nav and the components (icons are mandatory)
 - a hint of the identity's interaction or motion, if it has one
 
 ```
@@ -119,6 +120,10 @@ brief that the author has not picked.
 - **Design path:** send the tier message together with the identity
   direction, before implementation.
 - **Motion mode:** send it before choosing any motion library.
+
+**Price the images.** Images are usually most of a page's weight, so the
+Assets stage (`images.md`) comes first, and each tier's cost line includes
+the images it implies.
 
 **The tier message.** Keep the four tier names exactly as written. Fill in
 every slot for *this* project. A generic

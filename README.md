@@ -58,6 +58,11 @@ A few rules run through all of it:
   fourth "custom / unrestricted" choice if the author declines the
   recommendation. A heavier tier has to be justified in the identity brief.
 
+- **Icons always; stock images only with the author's yes.** Every image must
+  be free for commercial use, need no credit line and carry no watermark in
+  the file that ships. In `motion` and `both`, the icons and images are part
+  of the motion plan.
+
 In `both`, the order is fixed: **identity → structure → motion.** Motion
 applied to a generic layout produces a generic layout that moves.
 
@@ -73,10 +78,10 @@ reading the identity the site already has.
 
 ```mermaid
 flowchart TD
-    A["Brief from the author"] --> G{"Path and mode<br/>+ practical requirements"}
+    A["Brief from the author"] --> G{"Path and mode<br/>+ practical requirements<br/>+ may I use stock images?"}
     G --> I["Author intent and<br/>reference classification"]
     I --> L["Library search<br/>sector default → shortlist → cuts"]
-    L --> R["Research<br/>past the first good reference, rejects logged"]
+    L --> R["Research<br/>past the first good reference, rejects logged<br/>+ shortlist image sources and icon sets"]
     R --> P{"Playwright<br/>allowed?"}
     P -->|yes| PR["Probe references"]
     P -->|no| NB["Non-browser tooling;<br/>author does the looking"]
@@ -84,10 +89,11 @@ flowchart TD
     NB --> D
     D -.audition path.-> AU["HTML auditions<br/>same content, tier labelled"]
     AU -.-> S["Author selects,<br/>combines or rejects"]
-    S -.-> T
-    D -->|design path| T{"Loading tier<br/>author's choice"}
+    S -.-> AS
+    D -->|design path| AS["Assets<br/>one icon set (mandatory)<br/>+ approved images: free, commercial,<br/>no credit, no watermark"]
+    AS --> T{"Loading tier<br/>author's choice, images priced"}
     T --> B["Identity brief<br/>binding on every surface"]
-    B --> PL["Plan, then review<br/>against the generic"]
+    B --> PL["Plan, then review<br/>against the generic<br/>motion includes icons and images"]
     PL --> BU["Build: landing, app,<br/>admin, docs, 404"]
     BU --> C["Consistency check<br/>across surfaces"]
     C --> V["Verification gate<br/>look at the rendered pages"]
@@ -103,7 +109,8 @@ flowchart TD
 | Intent, references, research, identity brief, consistency | `references/identity.md` |
 | Library search | `references/identity-library.md` → `references/identities/*.md` |
 | Playwright, auditions, loading tier | `references/audition.md` |
-| Plan and build | `references/recipes-design.md`, `references/recipes-motion.md`, `references/icons-and-assets.md` |
+| Assets: icons (mandatory), stock images (author's choice) | `references/icons-and-assets.md`, `references/images.md` |
+| Plan and build, including icons and images in the motion | `references/recipes-design.md`, `references/recipes-motion.md` |
 | Verification | `references/verification.md` |
 
 ### The repository
@@ -120,6 +127,7 @@ flowchart LR
             RD["recipes-design.md"]
             RM["recipes-motion.md"]
             IC["icons-and-assets.md"]
+            IMG["images.md"]
             VER["verification.md"]
             BEN["benchmarks.md"]
         end
@@ -129,7 +137,7 @@ flowchart LR
         LIBS["scripts/lib/<br/>static pass · motion inventory<br/>property and scroll trace<br/>archetype · validate · bundle"]
         TST["test/<br/>36 tests, local fixtures"]
     end
-    SK --> ID & AUD & LIB & RD & RM & IC & VER
+    SK --> ID & AUD & LIB & RD & RM & IC & IMG & VER
     LIB --> FAM
     RD & RM --> BEN
     PRB --> LIBS
@@ -149,10 +157,12 @@ during a job to measure reference sites and the page it built.
 ## Examples
 
 Four briefs from different niches, each covering a different path and mode.
-These are condensed from real runs of the skill on 2026-10-05. They were
-dry runs: the agent planned up to the point of writing code and fetched no
-URLs, so anything said about a reference site is a hypothesis it would
-check with the prober first.
+Each example below was then **built as an audition-sized page** with the skill: real icons, and stock images only where that brief's author said yes, every one free for commercial use, credit-free and watermark-free. The screenshot is the rendered page at rest.
+The plans are condensed from real runs of the skill on 2026-10-05. The
+planning runs fetched no reference URLs, so anything said about a reference
+site is a hypothesis the skill would check with the prober first. The pages
+use placeholder names, addresses and figures, and the legal deadlines in the
+Moreira & Vaz example need checking against the Labour Code before real use.
 
 | | Niche | Path / mode | Reference supplied |
 |---|---|---|---|
@@ -162,6 +172,10 @@ check with the prober first.
 | Faísca | Culture and education: children's science museum | audition / both | a video of a toy brand's site |
 
 ### Miolo — a bakery that should feel like an old neighbourhood newsletter
+
+<a href="docs/examples/miolo/full.jpg"><img src="docs/examples/miolo/hero.jpg" alt="Miolo: a typed parish-bulletin bakery page with a violet stamp on stock counts" width="100%"></a>
+
+<sub>Built with the skill: [full page](docs/examples/miolo/full.jpg) · [mobile](docs/examples/miolo/mobile.jpg) · [HTML](docs/examples/miolo/index.html) · [asset record](docs/examples/miolo/assets.md)</sub>
 
 > "I'm opening a small sourdough bakery in Porto called Miolo… landing page,
 > online pre-order, a simple admin page for today's orders. I want it to
@@ -191,6 +205,10 @@ check with the prober first.
 
 ### Tracewell — motion for a settled developer-tool brand
 
+<a href="docs/examples/tracewell/full.jpg"><img src="docs/examples/tracewell/hero.jpg" alt="Tracewell: dark developer-tool hero with a masked dot grid and a request hairline" width="100%"></a>
+
+<sub>Built with the skill: [full page](docs/examples/tracewell/full.jpg) · [mobile](docs/examples/tracewell/mobile.jpg) · [mid-motion frame](docs/examples/tracewell/motion.jpg) · [HTML](docs/examples/tracewell/index.html) · [asset record](docs/examples/tracewell/assets.md)</sub>
+
 > "Open-source distributed tracing… settled brand: near-black, one
 > signal-orange accent, Söhne + JetBrains Mono, 4px corners. The landing
 > page feels dead. Add motion to the hero and 'how it works'. Keep it fast.
@@ -212,6 +230,10 @@ check with the prober first.
   graph (+150–300 KB, needs a fallback).
 
 ### Moreira & Vaz — a law firm on the workers' side
+
+<a href="docs/examples/moreira-vaz/full.jpg"><img src="docs/examples/moreira-vaz/hero.jpg" alt="Moreira & Vaz: a rights-handbook homepage with a situation index" width="100%"></a>
+
+<sub>Built with the skill: [full page](docs/examples/moreira-vaz/full.jpg) · [mobile](docs/examples/moreira-vaz/mobile.jpg) · [HTML](docs/examples/moreira-vaz/index.html) · [asset record](docs/examples/moreira-vaz/assets.md)</sub>
 
 > "A 12-lawyer employment-law firm in Lisbon. We represent workers, not
 > companies. Our current site looks like every other law firm: navy, a
@@ -240,6 +262,10 @@ check with the prober first.
   meu caso". Error: "Escreva o que aconteceu, mesmo em poucas palavras".
 
 ### Faísca — rebrand and motion for a children's science museum
+
+<a href="docs/examples/faisca/full.jpg"><img src="docs/examples/faisca/hero.jpg" alt="Faísca: an experiment-sheet homepage with a pendulum diagram" width="100%"></a>
+
+<sub>Built with the skill: [full page](docs/examples/faisca/full.jpg) · [mobile](docs/examples/faisca/mobile.jpg) · [mid-motion frame](docs/examples/faisca/motion.jpg) · [HTML](docs/examples/faisca/index.html) · [asset record](docs/examples/faisca/assets.md)</sub>
 
 > "A hands-on science museum for kids 6–12 in Coimbra… homepage, ticket
 > booking, a schools page, an internal front-desk bookings page, 404. Kids
@@ -330,7 +356,9 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `references/identity-library.md` | Index of the identity gallery: the search engine for candidate directions. |
 | `references/identities/` | The gallery itself, one file per family. |
 | `references/audition.md` | The Playwright decision, HTML auditions, loading-cost tiers. |
-| `references/icons-and-assets.md` | Commercially safe icon and asset sets, licence traps, sizing icons against type. |
+| `references/icons-and-assets.md` | Icons are mandatory: one set per project, chosen to fit the identity. Commercially safe sets, licence traps, sizing icons against type. |
+| `references/images.md` | Stock images, only with the author's yes: sources that are free, commercial, credit-free and watermark-free, the traps inside them, searching for the identity, one treatment, weight, and the asset record. |
+| `docs/examples/` | The four README examples as built pages, with their screenshots and asset records. |
 | `references/benchmarks.md` | The measurements. Aggregates, per-site data, easing curves and durations actually shipped. |
 | `references/recipes-design.md` | Ten sections: type roles and measure, colour ladders, page structure, chrome vocabulary, subject-derived identity, layout, anti-slop, the plan-and-review pass, words as design, and the checklist. |
 | `references/recipes-motion.md` | Fourteen implementations, each traced to the site that ships it, ending in the reduced-motion contract. |
