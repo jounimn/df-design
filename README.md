@@ -15,17 +15,46 @@ the directory.
 
 ## Use the skill
 
+Every run opens with two answers, declared before anything else happens:
+
 ```
-/df-design motion     # animation only — identity is settled, not yours to change
-/df-design design     # identity and structure — no animation
-/df-design both       # a rebrand — identity first, then structure, then motion
+path:  audition   # compare candidate identities as small HTML pages, choose, then build
+       design     # build directly; the identity is still defined and written down first
+
+mode:  motion     # animation only — identity is settled, not yours to change
+       design     # identity and structure — no animation
+       both       # a rebrand — identity first, then structure, then motion
 ```
 
-The mode is **mandatory** and declared before anything else happens. That is
-not ceremony. The failure this skill exists to prevent is delivering a
+That is not ceremony. The failure this skill exists to prevent is delivering a
 finish-level change when someone asked for a structural one — new tokens and
 type on the same layout, handed over as "a rebrand". If the request does not
-make the mode obvious, Claude asks instead of guessing.
+make either answer obvious, Claude asks instead of guessing.
+
+Path and mode are not generator switches. They select stages of one workflow:
+
+```
+Author intent → Identity definition → Reference & identity research
+  → Playwright decision → Design direction → HTML audition → Author selection
+  → Identity brief → Implementation → Consistency validation → Verification
+```
+
+A few rules run through all of it:
+
+- **A reference is not an identity.** A link, a screenshot or a video shows
+  what the project *could* be. Claude classifies what each reference
+  demonstrates (layout, typography, interaction, an alternative presentation,
+  and so on) and weighs it below the author's stated intent.
+- **The identity library is the search engine.** `references/identity-library.md`
+  indexes a gallery of named visual identities. Each has its grammar, what it
+  says, fit, trap, loading cost, live sites that ship it, and search leads.
+  Claude uses it to propose directions the author would not have reached, then
+  researches past the first acceptable reference.
+- **The approved identity binds every surface.** Landing, app, admin, DevOps,
+  docs and 404 are one product. Density adapts; identity does not.
+- **Cheapest viable loading tier first.** Fast (CSS/SVG), medium (fonts,
+  small motion libs, heavy imagery), high (WebGL, 3D, video). A heavier tier
+  has to be justified.
 
 In `both`, the order is fixed: **identity → structure → motion.** Motion
 applied to a generic layout produces a generic layout that moves.
@@ -93,7 +122,12 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 
 | Path | What it is |
 |---|---|
-| `SKILL.md` | The instruction payload: mode gate, headline numbers, verification gate, red flags. |
+| `SKILL.md` | The instruction payload: path and mode gate, workflow, headline numbers, verification gate, red flags. |
+| `references/identity.md` | Author intent, reference classification and weighting, research depth, the identity brief, cross-surface consistency. |
+| `references/identity-library.md` | Index of the identity gallery: the search engine for candidate directions. |
+| `references/identities/` | The gallery itself, one file per family. |
+| `references/audition.md` | The Playwright decision, HTML auditions, loading-cost tiers. |
+| `references/icons-and-assets.md` | Commercially safe icon and asset sets, licence traps, sizing icons against type. |
 | `references/benchmarks.md` | The measurements. Aggregates, per-site data, easing curves and durations actually shipped. |
 | `references/recipes-design.md` | Eight sections of working code: type roles, colour ladders, page structure, chrome vocabulary, anti-slop. |
 | `references/recipes-motion.md` | Fourteen implementations, each traced to the site that ships it, ending in the reduced-motion contract. |
@@ -181,6 +215,12 @@ recipe. "Premium = 400ms, ease-out, no overshoot" is what produces
 `opacity: 0 → 1` plus an 8px rise and a straight face — that is the failure
 this skill was written against, and it creeps back every time a recipe gets
 summarised instead of written out.
+
+**Adding identities.** They go in the right family file under
+`references/identities/` and get a row in the index. Each one needs a
+grammar, a fit/misfit, a trap, a loading tier and at least one **live site that
+ships it**. A style name with no grammar and no example is a mood word, and
+mood words are what generic pages are built from.
 
 **Adding to `verification.md`.** Each entry should have cost something to
 learn. Every row in that file is a real failure that shipped past a green
