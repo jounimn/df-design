@@ -24,8 +24,25 @@ frames, and the identity library. Research still happens. The verification
 gate is still mandatory, but **the author** opens the files and reports
 back; say exactly what to look at.
 
-Do not ask before the research stage. The question is about how to look at
-things, and only matters once there is something to look at.
+For auditions this means: build them anyway, then send them **marked
+unverified**, with a short checklist, and ask the author to look **before
+choosing**. A choice made between pages that render broken is a choice
+between bugs. Put first on the checklist whatever the code cannot prove,
+because these fail silently:
+
+- **Decorations that carry meaning:** strike-throughs, underlines, stamps
+  and highlights drawn with pseudo-elements or masks. If one fails to draw,
+  the sentence can say the opposite. ("Do lado ~~da empresa~~ de quem
+  trabalha" rendered without its strike reads "on the company's side".)
+- **Fonts:** did the display face load, or did a fallback replace it?
+- **The phone width:** anything cut off or overlapping at 390px?
+- **Icons:** do they show, at the right size, beside their words?
+
+If the author volunteered the answer earlier ("no browser tools" in their
+first reply), it is settled. Do not ask again (`SKILL.md`, step 0).
+
+Otherwise, do not ask before the research stage. The question is about how
+to look at things, and only matters once there is something to look at.
 
 ---
 
@@ -42,7 +59,8 @@ Each audition contains, and only contains:
 - the colour system in use (not a swatch sheet)
 - two or three example components: a button, a card or list row, an input
 - mock content and data
-- imagery or honest placeholders (a labelled box, not a stock photo pretending to be final)
+- imagery: the author's own, or stock images that pass `images.md` **if the author said yes**, treated the identity's way; otherwise honest labelled placeholders
+- icons from the set that fits this candidate, in the nav and the components (icons are mandatory)
 - a hint of the identity's interaction or motion, if it has one
 
 ```
@@ -55,7 +73,10 @@ auditions/
 
 **Same content in every audition.** Use the same headline, the same nav
 items and the same mock data, so the only variable is the identity. When
-content differs, the author compares copy instead of identities.
+content differs, the author compares copy instead of identities. An
+identity may add its own *devices* (a masthead line, a countdown band, a
+stamp), but not new *content*: no extra claims, sections or products that
+the other candidates lack.
 
 **Unmistakably different.** If two candidates could be mistaken for each
 other at a glance, one of them is not a candidate. Replace it.
@@ -79,6 +100,21 @@ audition. Keep each file small enough to read in one sitting.
 
 Verify each one anyway (`verification.md`). An audition that renders
 broken misleads the choice.
+
+Then run the audition check, with the author's answer to the stock-image
+question:
+
+```bash
+node scripts/check-auditions.mjs auditions/ <yes|no> auditions/captures/
+```
+
+It confirms an index and at least two candidates exist, and that every
+page renders at 1440 and 390 with no errors, no horizontal scroll and icons
+present. If the author said **no**, it confirms no raster image appears.
+If **yes**, it confirms every image shown is recorded with a source URL and
+a licence that needs no credit, and that each source page answers. It
+cannot see a watermark or a missing strike-through. Looking at the
+captures is still yours.
 
 ### After the author chooses
 
@@ -119,6 +155,10 @@ brief that the author has not picked.
 - **Design path:** send the tier message together with the identity
   direction, before implementation.
 - **Motion mode:** send it before choosing any motion library.
+
+**Price the images.** Images are usually most of a page's weight, so the
+Assets stage (`images.md`) comes first, and each tier's cost line includes
+the images it implies.
 
 **The tier message.** Keep the four tier names exactly as written. Fill in
 every slot for *this* project. A generic

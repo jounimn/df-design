@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faísca Museu de Ciência</title>
+<meta name="description" content="Faísca, museu de ciência para mexer, em Coimbra. Dos 6 aos 12 anos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,700;1,400&family=Atkinson+Hyperlegible+Mono:wght@400;600&display=swap" rel="stylesheet">
+<!--
+  Icons: Tabler Icons v3.49.0 (outline), MIT License, (c) 2020-2026 Paweł Kuna.
+  https://github.com/tabler/tabler-icons — paths copied verbatim, inlined.
+  Photos: see assets.md (Wikimedia Commons, CC0 / public domain).
+-->
+<style>
+:root {
+  /* Paper, ink and one signal colour. Channels so alpha works: rgb(var(--x) / a) */
+  --canvas: 236 239 234;       /* #ECEFEA manual paper, biased green-grey */
+  --surface: 246 247 243;      /* #F6F7F3 */
+  --surface-muted: 224 229 223;/* #E0E5DF */
+  --line: 196 203 194;         /* #C4CBC2 */
+  --line-strong: 120 130 124;
+  --ink: 22 31 29;             /* #161F1D */
+  --ink-muted: 66 78 74;       /* #424E4A */
+  --ink-subtle: 104 116 111;
+  --signal: 255 194 26;        /* #FFC21A Faísca yellow: the ONE loud colour */
+  --on-signal: 22 31 29;
+  --plate-paper: 236 239 234;  /* plates stay paper in both themes */
+  --plate-ink: 22 31 29;
+
+  --f-display: "Lexend", system-ui, sans-serif;
+  --f-text: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --f-data: "Atkinson Hyperlegible Mono", ui-monospace, monospace;
+
+  /* The one spring: damped, zeta 0.6, overshoots ~9.5% once and settles. 600 ms. */
+  --spring: linear(0, 0.028, 0.101, 0.204, 0.322, 0.447, 0.568, 0.682, 0.783, 0.87, 0.941, 0.997, 1.038, 1.067, 1.085, 1.093, 1.095, 1.09, 1.083, 1.072, 1.061, 1.049, 1.038, 1.027, 1.018, 1.01, 1.004, 0.999, 0.995, 0.993, 0.992, 0.991, 0.991, 0.992, 0.992, 0.993, 0.995, 0.996, 0.997, 0.998, 1);
+  --dur-spring: 600ms;
+  /* Named exception: the plate wipe and the diagram pen do not bounce; ink does not overshoot. */
+  --ease-print: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --gutter: clamp(16px, 4vw, 56px);
+  --radius: 4px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: 18 23 22; --surface: 26 33 32; --surface-muted: 34 43 41;
+    --line: 48 59 56; --line-strong: 110 122 117;
+    --ink: 233 236 230; --ink-muted: 176 186 181; --ink-subtle: 134 146 141;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas: 18 23 22; --surface: 26 33 32; --surface-muted: 34 43 41;
+  --line: 48 59 56; --line-strong: 110 122 117;
+  --ink: 233 236 230; --ink-muted: 176 186 181; --ink-subtle: 134 146 141;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: rgb(var(--canvas)); color: rgb(var(--ink));
+  font: 400 1.0625rem/1.55 var(--f-text); letter-spacing: -0.005em;
+  overflow-x: clip;
+}
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; }
+p { text-wrap: pretty; margin: 0; }
+h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 800; }
+.data { font-family: var(--f-data); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.wrap { max-width: 1320px; margin-inline: auto; padding-inline: var(--gutter); }
+.ico { width: 1.15em; height: 1.15em; flex: none; transform: translateY(-0.5px); }
+.ico path { stroke-width: 2; }
+:focus-visible { outline: 3px solid rgb(var(--signal)); outline-offset: 3px; }
+
+/* ---------- buttons: the ticket presses in on the spring ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: .6em;
+  font: 600 1rem/1 var(--f-display); letter-spacing: -0.01em;
+  padding: .95em 1.3em; border-radius: var(--radius); border: 2px solid rgb(var(--ink));
+  background: rgb(var(--signal)); color: rgb(var(--on-signal)); text-decoration: none; cursor: pointer;
+  box-shadow: 3px 3px 0 rgb(var(--ink));
+  transition: transform var(--dur-spring) var(--spring), box-shadow var(--dur-spring) var(--spring);
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 rgb(var(--ink)); }
+.btn:active, .btn.is-pressed { transform: translate(3px, 3px); box-shadow: 0 0 0 rgb(var(--ink)); transition-duration: 90ms; }
+.btn .ico { transition: transform var(--dur-spring) var(--spring); }
+.btn:active .ico, .btn.is-pressed .ico { transform: scale(.72) rotate(-8deg); transition-duration: 90ms; }
+.btn.ghost { background: transparent; color: rgb(var(--ink)); box-shadow: none; }
+.btn.small { padding: .7em 1em; font-size: .9rem; box-shadow: 2px 2px 0 rgb(var(--ink)); }
+
+/* ---------- header ---------- */
+.top { border-bottom: 1px solid rgb(var(--line)); }
+.top .wrap { display: flex; align-items: center; gap: 24px; min-height: 68px; }
+.mark { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font: 800 1.45rem/1 var(--f-display); letter-spacing: -0.04em; }
+.mark svg { width: 26px; height: 26px; }
+.nav { display: flex; gap: 22px; margin-left: auto; font-size: .95rem; }
+.nav a { text-decoration: none; color: rgb(var(--ink-muted)); }
+.nav a:hover { color: rgb(var(--ink)); text-decoration: underline; text-underline-offset: 4px; }
+.lang { display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgb(var(--line-strong)); border-radius: var(--radius); padding: 4px 6px 4px 8px; color: rgb(var(--ink-muted)); }
+.lang button { font: 600 .8rem/1 var(--f-data); background: none; border: 0; padding: 5px 6px; border-radius: 2px; color: inherit; cursor: pointer; }
+.lang button[aria-pressed="true"] { background: rgb(var(--ink)); color: rgb(var(--canvas)); }
+
+/* ---------- hero ---------- */
+.hero { position: relative; padding-block: clamp(40px, 6vw, 88px) clamp(48px, 7vw, 104px); }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: center; }
+.sheet-no { display: flex; gap: 14px; align-items: baseline; font-size: .85rem; color: rgb(var(--ink-subtle)); margin-bottom: 22px; }
+.sheet-no b { font-weight: 600; color: rgb(var(--ink)); }
+.hero h1 { font-size: clamp(3rem, 7.4vw, 7rem); line-height: .94; letter-spacing: -0.045em; }
+.hero h1 span { display: block; }
+.hero .sub { margin-top: 26px; max-width: 34ch; font-size: clamp(1.1rem, 1.5vw, 1.3rem); color: rgb(var(--ink-muted)); }
+.hero .act { margin-top: 34px; display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: center; }
+.facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: .95rem; color: rgb(var(--ink-muted)); }
+.facts li { display: flex; gap: 10px; align-items: center; }
+
+.fig { position: relative; }
+.fig-cap { display: flex; gap: 10px; font-size: .82rem; color: rgb(var(--ink-subtle)); border-top: 1px solid rgb(var(--line-strong)); padding-top: 8px; margin-top: 10px; }
+.fig-cap b { color: rgb(var(--ink)); font-weight: 600; white-space: nowrap; }
+.diagram { color: rgb(var(--ink)); }
+.diagram .thin { stroke-width: 1; }
+.diagram text { font: 600 11px var(--f-data); fill: currentColor; stroke: none; }
+.diagram .callout circle { fill: rgb(var(--canvas)); }
+.pendulum-arm { transform-box: view-box; transform-origin: 200px 40px; animation: swing 1.42s cubic-bezier(.37,0,.63,1) infinite alternate; }
+@keyframes swing { from { transform: rotate(-11deg); } to { transform: rotate(11deg); } }
+.bob { fill: rgb(var(--signal)); }
+
+/* ---------- section heads ---------- */
+.band { padding-block: clamp(64px, 8vw, 120px); }
+.head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 64px; align-items: end; margin-bottom: clamp(32px, 4vw, 56px); }
+.head h2 { font-size: clamp(2.2rem, 4.4vw, 3.8rem); line-height: 1; letter-spacing: -0.035em; }
+.head p { color: rgb(var(--ink-muted)); max-width: 52ch; }
+
+/* ---------- exhibits: field-guide entries that tip like a lever ---------- */
+.entries { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 2.4vw, 36px); list-style: none; margin: 0; padding: 0; }
+.entry {
+  position: relative; background: rgb(var(--surface)); border: 1px solid rgb(var(--line-strong)); border-radius: var(--radius);
+  padding: 14px 14px 22px; transform-origin: 100% 100%;
+  transition: transform var(--dur-spring) var(--spring);
+}
+.entry::after { /* the fulcrum the card tips on */
+  content: ""; position: absolute; right: -1px; bottom: -11px; width: 14px; height: 10px;
+  background: rgb(var(--ink)); clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+.entry:hover, .entry:focus-within { transform: rotate(-1.6deg); }
+.entry-no { display: flex; justify-content: space-between; align-items: baseline; font-size: .82rem; color: rgb(var(--ink-subtle)); margin-bottom: 10px; }
+.entry-no b { font: 800 1.5rem/1 var(--f-display); color: rgb(var(--ink)); letter-spacing: -0.03em; }
+.plate { position: relative; isolation: isolate; aspect-ratio: 4 / 3; overflow: hidden; background: rgb(var(--plate-paper)); border-radius: 2px; }
+.plate img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.15) brightness(1.05); mix-blend-mode: multiply; }
+.plate::after { content: ""; position: absolute; inset: 0; background: rgb(var(--plate-ink)); mix-blend-mode: lighten; pointer-events: none; }
+.plate .inset {
+  position: absolute; right: 10px; bottom: 10px; z-index: 2; width: 42%;
+  background: rgb(var(--plate-paper)); border: 1px solid rgb(var(--plate-ink)); padding: 6px; color: rgb(var(--plate-ink));
+}
+.plate .inset text { font-size: 10px; }
+.label { margin-top: 18px; display: grid; gap: 10px; }
+.label h3 { font-size: 1.45rem; line-height: 1.1; letter-spacing: -0.02em; }
+.label p { font-size: .98rem; color: rgb(var(--ink-muted)); max-width: 46ch; }
+.label dl { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; font-size: .8rem; color: rgb(var(--ink-subtle)); }
+.label dl div { display: flex; gap: 6px; }
+.label dt { margin: 0; } .label dd { margin: 0; color: rgb(var(--ink)); }
+
+/* image reveal: the plate is printed onto the sheet, top to bottom, then its diagram is drawn */
+.js .plate.reveal img { clip-path: inset(0 0 100% 0); transition: clip-path 900ms var(--ease-print); }
+.js .plate.reveal.in-view img { clip-path: inset(0 0 0 0); }
+.js .draw path, .js .draw line, .js .draw circle.line, .js .draw polyline {
+  stroke-dasharray: var(--len, 300); stroke-dashoffset: var(--len, 300);
+  transition: stroke-dashoffset 900ms var(--ease-print) 500ms;
+}
+.js .in-view .draw path, .js .in-view .draw line, .js .in-view .draw circle.line, .js .in-view .draw polyline { stroke-dashoffset: 0; }
+
+/* ---------- visit steps: an experiment running ---------- */
+.visit { background: rgb(var(--surface-muted)); border-block: 1px solid rgb(var(--line)); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; position: relative; counter-reset: s; }
+.steps::before { content: ""; position: absolute; left: 28px; right: 28px; top: 27px; height: 2px; background: rgb(var(--ink)); }
+.step { position: relative; padding-right: 28px; }
+.step .n {
+  position: relative; width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgb(var(--ink)); background: rgb(var(--canvas));
+  display: grid; place-items: center; font: 800 1.5rem/1 var(--f-display);
+}
+.step .n .tick { position: absolute; right: -8px; top: -8px; width: 26px; height: 26px; border-radius: 50%; background: rgb(var(--signal)); border: 2px solid rgb(var(--ink)); display: grid; place-items: center; }
+.step .n .tick svg { width: 16px; height: 16px; color: rgb(var(--on-signal)); }
+.step h3 { margin-top: 22px; font-size: 1.3rem; line-height: 1.15; letter-spacing: -0.02em; }
+.step p { margin-top: 8px; font-size: .98rem; color: rgb(var(--ink-muted)); max-width: 30ch; }
+.step .t { margin-top: 12px; font-size: .85rem; color: rgb(var(--ink)); }
+.js .step .n { transform: scale(.4); opacity: 0; transition: transform var(--dur-spring) var(--spring), opacity 200ms linear; transition-delay: calc(var(--i) * 140ms); }
+.js .step h3, .js .step p, .js .step .t { opacity: 0; transition: opacity 300ms linear; transition-delay: calc(var(--i) * 140ms + 120ms); }
+.js .step .tick { transform: scale(0); transition: transform var(--dur-spring) var(--spring); transition-delay: calc(var(--i) * 140ms + 300ms); }
+.js .step .tick path { stroke-dasharray: 22; stroke-dashoffset: 22; transition: stroke-dashoffset 380ms var(--ease-print); transition-delay: calc(var(--i) * 140ms + 420ms); }
+.js .steps.in-view .step .n { transform: none; opacity: 1; }
+.js .steps.in-view .step h3, .js .steps.in-view .step p, .js .steps.in-view .step .t { opacity: 1; }
+.js .steps.in-view .step .tick { transform: none; }
+.js .steps.in-view .step .tick path { stroke-dashoffset: 0; }
+
+/* ---------- prices: a ticket stub ---------- */
+.prices .wrap { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
+.stub {
+  position: relative; background: rgb(var(--surface)); border: 2px solid rgb(var(--ink)); border-radius: var(--radius);
+  display: grid; grid-template-columns: minmax(0, 1fr) 150px;
+  /* punched notches top and bottom on the perforation */
+  -webkit-mask: radial-gradient(circle 12px at calc(100% - 150px) 0, #0000 98%, #000) top / 100% 51% no-repeat,
+                radial-gradient(circle 12px at calc(100% - 150px) 100%, #0000 98%, #000) bottom / 100% 51% no-repeat;
+          mask: radial-gradient(circle 12px at calc(100% - 150px) 0, #0000 98%, #000) top / 100% 51% no-repeat,
+                radial-gradient(circle 12px at calc(100% - 150px) 100%, #0000 98%, #000) bottom / 100% 51% no-repeat;
+}
+.stub .main { padding: 26px 28px 28px; }
+.stub .side { border-left: 2px dashed rgb(var(--ink)); padding: 26px 18px; display: grid; align-content: space-between; gap: 18px; font-size: .78rem; color: rgb(var(--ink-muted)); }
+.stub .side b { display: block; white-space: nowrap; color: rgb(var(--ink)); font-size: .95rem; margin-top: 4px; }
+.price-rows { list-style: none; margin: 0; padding: 0; }
+.price-rows li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: baseline; padding: 16px 0; border-bottom: 1px solid rgb(var(--line)); }
+.price-rows li:first-child { padding-top: 0; }
+.price-rows .who { display: flex; gap: 10px; align-items: center; font: 600 1.2rem/1.2 var(--f-display); letter-spacing: -0.015em; }
+.price-rows .who small { display: block; font: 400 .9rem/1.3 var(--f-text); color: rgb(var(--ink-muted)); letter-spacing: 0; margin-top: 3px; }
+.price-rows .eur { font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 600; }
+.stub .btn { margin-top: 24px; }
+.hours h3 { display: flex; align-items: center; gap: 10px; font-size: 1.3rem; letter-spacing: -0.02em; }
+.hours table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 1rem; }
+.hours th { text-align: left; font-weight: 400; color: rgb(var(--ink-muted)); padding: 12px 0; border-bottom: 1px solid rgb(var(--line)); }
+.hours td { text-align: right; padding: 12px 0; border-bottom: 1px solid rgb(var(--line)); }
+.hours .note { margin-top: 18px; font-size: .95rem; color: rgb(var(--ink-muted)); max-width: 40ch; }
+.hours .where { margin-top: 26px; display: flex; gap: 10px; align-items: flex-start; font-size: .98rem; }
+
+/* ---------- schools: the dark chapter ---------- */
+.schools { background: rgb(22 31 29); color: rgb(233 236 230); }
+.schools .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px 64px; align-items: start; }
+.schools h2 { display: flex; align-items: center; gap: 16px; font-size: clamp(2.2rem, 4.4vw, 3.8rem); letter-spacing: -0.035em; line-height: 1; }
+.schools h2 .ico { width: .8em; height: .8em; color: rgb(var(--signal)); }
+.schools p { color: rgb(176 186 181); max-width: 50ch; }
+.schools ul { list-style: none; margin: 0 0 28px; padding: 0; }
+.schools li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgb(64 76 72); }
+.schools li .data { color: rgb(255 194 26); }
+.schools .btn { box-shadow: 3px 3px 0 rgb(233 236 230); border-color: rgb(233 236 230); }
+.schools .btn:active { box-shadow: none; }
+
+/* ---------- footer ---------- */
+.foot { padding-block: 40px 56px; font-size: .9rem; color: rgb(var(--ink-muted)); }
+.foot .wrap { display: flex; flex-wrap: wrap; gap: 18px 40px; align-items: center; }
+.foot span { display: inline-flex; gap: 8px; align-items: center; }
+.foot .mark { font-size: 1.1rem; color: rgb(var(--ink)); }
+.foot .end { margin-left: auto; }
+
+/* ---------- small screens ---------- */
+@media (max-width: 900px) {
+  .nav { display: none; }
+  .top .wrap { gap: 12px; }
+  .top .lang { margin-left: auto; }
+  .hero .wrap, .head, .prices .wrap, .schools .wrap { grid-template-columns: minmax(0, 1fr); }
+  .hero .fig { max-width: 420px; }
+  .entries { grid-template-columns: minmax(0, 1fr); }
+  .steps { grid-template-columns: minmax(0, 1fr); gap: 34px; }
+  .steps::before { left: 27px; right: auto; top: 28px; bottom: 28px; width: 2px; height: auto; }
+  .step { display: grid; grid-template-columns: 56px minmax(0, 1fr); column-gap: 20px; padding-right: 0; }
+  .step .n { grid-row: 1 / span 3; }
+  .step h3 { margin-top: 4px; }
+  .foot .end { margin-left: 0; }
+}
+@media (max-width: 520px) {
+  .top .btn.small span { display: none; }
+  .sheet-no { flex-direction: column; gap: 4px; }
+  .stub { grid-template-columns: minmax(0, 1fr); -webkit-mask: none; mask: none; }
+  .stub .side { border-left: 0; border-top: 2px dashed rgb(var(--ink)); grid-template-columns: 1fr 1fr; }
+  .stub .main { padding: 22px 18px; }
+}
+
+/* ---------- reduced motion: springs are instant, the pendulum hangs at rest ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important; transition-delay: 0s !important; scroll-behavior: auto !important;
+  }
+  .pendulum-arm { animation: none !important; transform: none !important; }
+  .entry:hover, .entry:focus-within { transform: none; }
+  .js .plate.reveal img { clip-path: none !important; }
+  .js .draw path, .js .draw line, .js .draw circle.line, .js .draw polyline, .js .step .tick path { stroke-dashoffset: 0 !important; }
+  .js .step .n, .js .step .tick { transform: none !important; opacity: 1 !important; }
+  .js .step h3, .js .step p, .js .step .t { opacity: 1 !important; }
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="#">
+      <svg viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M13 2v6M13 18v6M2 13h6M18 13h6M5.2 5.2l3.5 3.5M17.3 17.3l3.5 3.5M5.2 20.8l3.5-3.5M17.3 8.7l3.5-3.5"/><circle cx="13" cy="13" r="2.2" fill="rgb(255 194 26)" stroke-width="1.6"/></svg>
+      faísca
+    </a>
+    <nav class="nav" aria-label="Principal" data-en-label="Main">
+      <a href="#experiencias" data-en="Exhibits">Experiências</a>
+      <a href="#visita" data-en="Your visit">A visita</a>
+      <a href="#precos" data-en="Prices and hours">Preços e horário</a>
+      <a href="#escolas" data-en="Schools">Escolas</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Língua">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6.371c0 4.418 -2.239 6.629 -5 6.629"/><path d="M4 6.371h7"/><path d="M5 9c0 2.144 2.252 3.908 6 4"/><path d="M12 20l4 -9l4 9"/><path d="M19.1 18h-6.2"/><path d="M6.694 3l.793 .582"/></svg>
+      <button type="button" data-lang="pt" aria-pressed="true">PT</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <a class="btn small" href="#precos" aria-label="Comprar bilhetes">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l0 2"/><path d="M15 11l0 2"/><path d="M15 17l0 2"/><path d="M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2"/></svg>
+      <span data-en="Buy tickets">Comprar bilhetes</span>
+    </a>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="sheet-no"><span class="data"><b data-en="Sheet 01">Folha 01</b></span><span data-en="Hands-on science museum, ages 6 to 12, Coimbra">Museu de ciência para mexer, dos 6 aos 12 anos, Coimbra</span></p>
+      <h1><span data-en="Touch.">Toca.</span> <span data-en="Test.">Testa.</span> <span data-en="Discover.">Descobre.</span></h1>
+      <p class="sub" data-en="Forty experiments you do with your own hands. Nothing behind glass, and every exhibit tells you why it works.">Quarenta experiências para fazer com as próprias mãos. Nada atrás de vidro, e cada peça explica porque funciona.</p>
+      <div class="act">
+        <a class="btn" href="#precos">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l0 2"/><path d="M15 11l0 2"/><path d="M15 17l0 2"/><path d="M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2"/></svg>
+          <span data-en="Buy tickets">Comprar bilhetes</span>
+        </a>
+        <ul class="facts">
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg><span><span data-en="Tue to Sun from">Ter a dom, a partir das</span> <span class="data">10:00</span></span></li>
+          <li><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0"/></svg><span>Rua da Sofia 59, Coimbra</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <figure class="fig" style="margin:0">
+      <svg class="diagram" viewBox="0 0 400 420" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-labelledby="f1t">
+        <title id="f1t">Diagrama de um pêndulo simples a oscilar: fio de 2 metros, período de 2,84 segundos.</title>
+        <!-- support beam, hatched -->
+        <path d="M110 40h180"/>
+        <path class="thin" d="M120 40l-12 -14M140 40l-12 -14M160 40l-12 -14M180 40l-12 -14M200 40l-12 -14M220 40l-12 -14M240 40l-12 -14M260 40l-12 -14M280 40l-12 -14"/>
+        <!-- rest line and swing arc -->
+        <path class="thin" stroke-dasharray="4 6" d="M200 40v320"/>
+        <path class="thin" stroke-dasharray="4 6" d="M144.7 324.7A290 290 0 0 0 255.3 324.7"/>
+        <path class="thin" d="M200 96a56 56 0 0 1 10.6 1"/>
+        <text x="210" y="118">θ</text>
+        <!-- length dimension -->
+        <path class="thin" d="M84 40v290M78 40h12M78 330h12"/>
+        <text x="74" y="190" text-anchor="end">L = 2,00 m</text>
+        <!-- the swinging arm -->
+        <g class="pendulum-arm">
+          <path d="M200 40v290"/>
+          <circle class="bob" cx="200" cy="330" r="24"/>
+          <circle cx="200" cy="330" r="24"/>
+          <path class="thin" d="M190 322a12 12 0 0 1 10 -4"/>
+        </g>
+        <circle cx="200" cy="40" r="5" fill="currentColor"/>
+        <!-- callouts -->
+        <g class="callout"><path class="thin" d="M206 40l58 -14"/><circle cx="276" cy="23" r="12"/><text x="272" y="27">1</text></g>
+        <g class="callout"><path class="thin" d="M320 160l-60 20"/><circle cx="332" cy="156" r="12"/><text x="328" y="160">2</text></g>
+        <g class="callout"><path class="thin" d="M228 344l70 28"/><circle cx="310" cy="377" r="12"/><text x="306" y="381">3</text></g>
+        <text x="40" y="408" class="formula">T = 2π √(L/g) ≈ 2,84 s</text>
+      </svg>
+      <figcaption class="fig-cap"><b class="data" data-en="Fig. 1">Fig. 1</b><span data-en="Simple pendulum: 1 pivot, 2 string, 3 bob. This one swings at its real period.">Pêndulo simples: 1 eixo, 2 fio, 3 massa. Este oscila ao seu período real.</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band" id="experiencias">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-en="Exhibits">Experiências</h2>
+      <p data-en="Every exhibit has a number and a wall label: what to do, what to look for, and the idea behind it. Three of the forty, as they appear on the floor.">Cada peça tem um número e uma legenda na parede: o que fazer, o que observar e a ideia por trás. Três das quarenta, tal como estão na sala.</p>
+    </div>
+    <ol class="entries">
+      <li class="entry">
+        <p class="entry-no"><b class="data">N.º 07</b><span data-en="Room 2, Magnetism">Sala 2, Magnetismo</span></p>
+        <div class="plate reveal">
+          <img src="img/limalha-iman.jpg" width="500" height="512" decoding="async" alt="Limalha de ferro sobre papel, a desenhar as linhas de campo entre dois ímanes." data-en-alt="Iron filings on paper tracing the field lines between two magnets.">
+          <svg class="inset diagram draw" viewBox="0 0 160 100" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+            <path d="M54 44h52v12h-52z"/><path d="M80 44v12"/>
+            <path d="M54 48C30 20 130 20 106 48"/><path d="M54 46C20 0 140 0 106 46"/>
+            <path d="M54 52C30 80 130 80 106 52"/><path d="M54 54C20 100 140 100 106 54"/>
+            <path d="M54 50H18"/><path d="M106 50h36"/>
+            <text x="62" y="54" style="font-size:9px">N</text><text x="92" y="54" style="font-size:9px">S</text>
+          </svg>
+        </div>
+        <div class="label">
+          <h3 data-en="The field you cannot see">O campo que não se vê</h3>
+          <p data-en="Shake the filings over the magnet and the invisible field draws itself. Turn one magnet round and watch the lines push apart.">Espalha a limalha sobre o íman e o campo invisível desenha-se sozinho. Vira um dos ímanes e vê as linhas afastarem-se.</p>
+          <dl><div><dt data-en="Ages">Idade</dt><dd class="data">6+</dd></div><div><dt data-en="Time">Tempo</dt><dd class="data">5 min</dd></div></dl>
+        </div>
+      </li>
+      <li class="entry">
+        <p class="entry-no"><b class="data">N.º 12</b><span data-en="Room 3, Light">Sala 3, Luz</span></p>
+        <div class="plate reveal">
+          <img src="img/prisma-espectro.jpg" width="960" height="639" decoding="async" alt="Prisma de vidro a separar um feixe de luz branca num espectro." data-en-alt="A glass prism splitting a beam of white light into a spectrum.">
+          <svg class="inset diagram draw" viewBox="0 0 160 100" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M50 88L80 22L110 88Z"/>
+            <path d="M4 66L66 54"/><path d="M66 54L96 60"/>
+            <path d="M96 60L156 46"/><path d="M96 60L156 58"/><path d="M96 60L156 70"/><path d="M96 60L156 82"/>
+            <text x="118" y="42" style="font-size:8px">vermelho</text><text x="122" y="96" style="font-size:8px">violeta</text>
+          </svg>
+        </div>
+        <div class="label">
+          <h3 data-en="White is every colour">O branco são todas as cores</h3>
+          <p data-en="Aim the beam at the prism. Each colour bends by a different amount, so white light opens into a spectrum on the table.">Aponta o feixe ao prisma. Cada cor desvia-se de forma diferente, e a luz branca abre-se num espectro em cima da mesa.</p>
+          <dl><div><dt data-en="Ages">Idade</dt><dd class="data">6+</dd></div><div><dt data-en="Time">Tempo</dt><dd class="data">8 min</dd></div></dl>
+        </div>
+      </li>
+      <li class="entry">
+        <p class="entry-no"><b class="data">N.º 21</b><span data-en="Room 4, Electricity">Sala 4, Eletricidade</span></p>
+        <div class="plate reveal">
+          <img src="img/circuito-placa.jpg" width="500" height="375" decoding="async" alt="Placa de ensaio com fios, resistências e um microcontrolador montados à mão." data-en-alt="A breadboard with wires, resistors and a microcontroller assembled by hand.">
+          <svg class="inset diagram draw" viewBox="0 0 160 100" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+            <path d="M20 50V16h52"/><path d="M98 16h42v68H20V58"/>
+            <path d="M10 50h20"/><path d="M14 58h12"/>
+            <path d="M72 16l22 -10"/><circle class="line" cx="96" cy="16" r="2.4"/>
+            <circle class="line" cx="140" cy="50" r="11"/><path d="M132 42l16 16M148 42l-16 16"/>
+            <text x="34" y="66" style="font-size:8px">+ 4,5 V</text>
+          </svg>
+        </div>
+        <div class="label">
+          <h3 data-en="Close the circuit">Fecha o circuito</h3>
+          <p data-en="Battery, wire, switch, bulb. Build the loop on the bench and the light comes on only when the path is complete.">Pilha, fio, interruptor, lâmpada. Monta o percurso na bancada e a luz só acende quando o caminho está fechado.</p>
+          <dl><div><dt data-en="Ages">Idade</dt><dd class="data">8+</dd></div><div><dt data-en="Time">Tempo</dt><dd class="data">12 min</dd></div></dl>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="band visit" id="visita">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-en="How the visit works">Como é a visita</h2>
+      <p data-en="About two and a half hours from the door to the workshop. The order is the same every day.">Cerca de duas horas e meia da porta à oficina. A ordem é a mesma todos os dias.</p>
+    </div>
+    <ol class="steps">
+      <li class="step" style="--i:0">
+        <div class="n">1<span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg></span></div>
+        <h3 data-en="Wristband at the desk">Pulseira na receção</h3>
+        <p data-en="Show the ticket on your phone and every visitor gets a wristband. Coats and bags go in the lockers.">Mostra o bilhete no telemóvel e cada visitante recebe uma pulseira. Casacos e mochilas ficam nos cacifos.</p>
+        <p class="t data">10 min</p>
+      </li>
+      <li class="step" style="--i:1">
+        <div class="n">2<span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg></span></div>
+        <h3 data-en="Four rooms, any order">Quatro salas, por qualquer ordem</h3>
+        <p data-en="Magnetism, light, sound and electricity. Every exhibit can be touched, and a guide in a yellow coat is in each room.">Magnetismo, luz, som e eletricidade. Tudo se pode tocar, e há um monitor de bata amarela em cada sala.</p>
+        <p class="t data">≈ 90 min</p>
+      </li>
+      <li class="step" style="--i:2">
+        <div class="n">3<span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg></span></div>
+        <h3 data-en="Live demonstration">Demonstração ao vivo</h3>
+        <p data-en="Twenty minutes in the main hall: the giant pendulum, a cloud in a bottle, a spark you can hear.">Vinte minutos no salão: o pêndulo gigante, uma nuvem numa garrafa, uma faísca que se ouve.</p>
+        <p class="t data">11:30, 15:00, 16:30</p>
+      </li>
+      <li class="step" style="--i:3">
+        <div class="n">4<span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"/></svg></span></div>
+        <h3 data-en="Workshop to take home">Oficina para levar</h3>
+        <p data-en="Each child builds a compass or a spinning top and takes it home with the experiment sheet.">Cada criança monta uma bússola ou um pião e leva-o para casa com a folha da experiência.</p>
+        <p class="t data">30 min</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="band prices" id="precos">
+  <div class="wrap">
+    <div>
+      <div class="head" style="grid-template-columns:1fr;margin-bottom:28px"><h2 data-en="Prices">Preços</h2></div>
+      <div class="stub">
+        <div class="main">
+          <ul class="price-rows">
+            <li><span class="who"><span><span data-en="Child">Criança</span><small data-en="6 to 12 years">dos 6 aos 12 anos</small></span></span><span class="eur data">6 €</span></li>
+            <li><span class="who"><span><span data-en="Adult">Adulto</span><small data-en="13 and over">a partir dos 13</small></span></span><span class="eur data">9 €</span></li>
+            <li><span class="who"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/></svg><span><span data-en="Family 2+2">Família 2+2</span><small data-en="two adults, two children">dois adultos, duas crianças</small></span></span><span class="eur data">26 €</span></li>
+          </ul>
+          <a class="btn" href="#" data-press>
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l0 2"/><path d="M15 11l0 2"/><path d="M15 17l0 2"/><path d="M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2"/></svg>
+            <span data-en="Buy tickets">Comprar bilhetes</span>
+          </a>
+        </div>
+        <div class="side">
+          <div><span data-en="Booking ref.">Ref. da reserva</span><b class="data">FX-2610-0427</b></div>
+          <div><span data-en="Valid">Válido</span><b class="data">1 <span data-en="day">dia</span></b></div>
+        </div>
+      </div>
+    </div>
+    <div class="hours">
+      <h3><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg><span data-en="Opening hours">Horário</span></h3>
+      <table>
+        <tr><th data-en="Tuesday to Friday">Terça a sexta</th><td class="data">10:00–18:00</td></tr>
+        <tr><th data-en="Weekends and holidays">Fins de semana e feriados</th><td class="data">10:00–19:00</td></tr>
+        <tr><th data-en="Monday">Segunda</th><td data-en="Closed">Encerrado</td></tr>
+      </table>
+      <p class="note" data-en="Last entry one hour before closing. Children under 12 visit with an adult.">Última entrada uma hora antes de fechar. Crianças até aos 12 anos entram com um adulto.</p>
+      <p class="where"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0"/></svg><span>Rua da Sofia 59, 3000-389 Coimbra<br><span data-en="5 min walk from Coimbra-A station">A 5 min a pé da estação Coimbra-A</span></span></p>
+    </div>
+  </div>
+</section>
+
+<section class="band schools" id="escolas">
+  <div class="wrap">
+    <div>
+      <h2><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 9l-10 -4l-10 4l10 4l10 -4v6"/><path d="M6 10.6v5.4a6 3 0 0 0 12 0v-5.4"/></svg><span data-en="For schools">Para escolas</span></h2>
+      <p style="margin-top:22px" data-en="Class visits on weekday mornings, with a teacher's guide for each school year that follows the national curriculum for primary school.">Visitas de turma nas manhãs de dias úteis, com um guião do professor por ano de escolaridade, alinhado com as Aprendizagens Essenciais do 1.º e 2.º ciclo.</p>
+    </div>
+    <div>
+      <ul>
+        <li><span data-en="Per pupil">Por aluno</span><span class="data">4 €</span></li>
+        <li><span data-en="Teachers and helpers">Professores e acompanhantes</span><span class="data" data-en="free">grátis</span></li>
+        <li><span data-en="Group size">Tamanho do grupo</span><span class="data">12–28</span></li>
+      </ul>
+      <a class="btn" href="mailto:escolas@faisca.pt" data-press>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 9l-10 -4l-10 4l10 4l10 -4v6"/><path d="M6 10.6v5.4a6 3 0 0 0 12 0v-5.4"/></svg>
+        <span data-en="Book a class visit">Marcar visita de turma</span>
+      </a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span class="mark">faísca</span>
+    <span><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0"/></svg>Rua da Sofia 59, Coimbra</span>
+    <span><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg><span data-en="Tue to Sun from">Ter a dom, a partir das</span>&nbsp;<span class="data">10:00</span></span>
+    <span class="data">+351 239 000 000</span>
+    <span class="end" data-en="Example page. Photos are stand-ins from Wikimedia Commons (CC0 and public domain).">Página de exemplo. Fotografias provisórias do Wikimedia Commons (CC0 e domínio público).</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Measure every diagram stroke once so the pen draws exactly its own length.
+  document.querySelectorAll('.draw path, .draw line, .draw circle.line').forEach((p) => {
+    try { p.style.setProperty('--len', Math.ceil(p.getTotalLength()) + 1); } catch (e) {}
+  });
+
+  // Reveal once: plates after their image decodes, steps when the list arrives.
+  const show = (el) => el.classList.add('in-view');
+  const io = 'IntersectionObserver' in window && !reduce ? new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      io.unobserve(e.target);
+      const img = e.target.querySelector('img');
+      if (img && img.decode) img.decode().then(() => show(e.target), () => show(e.target));
+      else show(e.target);
+    });
+  }, { threshold: 0.3 }) : null;
+  document.querySelectorAll('.plate.reveal, .steps').forEach((el) => io ? io.observe(el) : show(el));
+
+  // Ticket presses in on pointer down, springs back on release (also for keyboard).
+  document.querySelectorAll('.btn').forEach((b) => {
+    const on = () => b.classList.add('is-pressed');
+    const off = () => b.classList.remove('is-pressed');
+    b.addEventListener('pointerdown', on); ['pointerup', 'pointerleave', 'blur'].forEach((t) => b.addEventListener(t, off));
+    b.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') on(); });
+    b.addEventListener('keyup', off);
+  });
+
+  // PT | EN
+  const nodes = [...document.querySelectorAll('[data-en]')];
+  nodes.forEach((n) => { n.dataset.pt = n.textContent; });
+  const alts = [...document.querySelectorAll('[data-en-alt]')];
+  alts.forEach((n) => { n.dataset.ptAlt = n.alt; });
+  const setLang = (l) => {
+    document.documentElement.lang = l === 'en' ? 'en' : 'pt-PT';
+    nodes.forEach((n) => { n.textContent = l === 'en' ? n.dataset.en : n.dataset.pt; });
+    alts.forEach((n) => { n.alt = l === 'en' ? n.dataset.enAlt : n.dataset.ptAlt; });
+    document.querySelectorAll('[data-lang]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
+    try { localStorage.setItem('faisca-lang', l); } catch (e) {}
+  };
+  document.querySelectorAll('[data-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
+  try { const s = localStorage.getItem('faisca-lang'); if (s === 'en') setLang('en'); } catch (e) {}
+})();
+</script>
+</body>
+</html>

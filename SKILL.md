@@ -9,11 +9,51 @@ Design and motion for the web, built from measurements of real production
 sites rather than from taste assertions, and built around a **deliberate
 identity** rather than a generic template.
 
+## Step 0: the invocation note binds the whole run
+
+Anything the author writes when calling the skill (`/df-design <text>`, or
+the sentence that triggered it) is a **standing condition**, not a passing
+comment. Read it before anything else and record it as **Conditions**:
+
+- **Scope:** which surfaces are in play. "Only rework the main page" means
+  the main page and nothing else.
+- **Constraints:** what must not change ("keep the logo", "no new fonts",
+  "stay on Tailwind").
+- **Answers given early:** a path, a mode, a reference, a deadline. Do not
+  ask again what the note already settled. The same holds for any answer
+  the author gives before its stage ("no browser tools" in their first
+  reply): it is settled, and the later question is skipped.
+- **Notes and preferences:** taste, tone and worries ("it feels dead",
+  "the client hates purple"). These feed the author's intent (`identity.md` §3).
+
+**A scope condition binds every stage of the workflow** for this run:
+
+| Stage | Bound to the scope |
+|---|---|
+| Requirements | Ask only what the scoped surfaces need |
+| Research and library search | Candidates for the scoped surfaces only |
+| Auditions | Show the scoped page only |
+| Assets | Icons and images for the scoped surfaces only; the stock-image question covers only them |
+| Loading tier | Priced for the scoped surfaces only |
+| Identity brief | `Surfaces:` lists only the scope; out-of-scope surfaces are named as untouched |
+| Build | Touch nothing outside the scope: no shared token, component or global stylesheet change that would alter another surface, unless the author agrees |
+| Consistency check | Run on the scoped surfaces. Where the new page now clashes with an untouched surface, **report it as a note** for the author ("the 404 still uses the old navy; out of scope") and do not fix it |
+
+Conditions outrank the skill's defaults. If a condition conflicts with a
+rule here (for example "no icons"), say so once, plainly, and follow the
+author. The one exception is the four image rules in `images.md` (free,
+commercial, no credit, no watermark): those protect the author legally and
+are not waived by a preference.
+
+In the first message, restate the conditions in one line so the author can
+correct a misreading: "I'll rework only the homepage and leave every other
+page as it is."
+
 ## MANDATORY: open with two answers
 
 **This skill does not begin until both are settled**: answered by the
-author or obvious from the request, before reading files, before research,
-before a single rule of CSS.
+author, by the invocation note, or obvious from the request, before reading
+files, before research, before a single rule of CSS.
 
 **1. Path: audition or design?** Ask the author unless they have already
 said:
@@ -33,7 +73,7 @@ said:
 
 Once both are known, record them as one status line:
 
-`df-design: path=<audition|design> mode=<motion|design|both> — <one line on what that covers here>`
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> — <conditions from step 0, one line>`
 
 The status line is for the record and for developers. **Ask the author in
 their own words.** A bakery owner gets "Would you like to see three short
@@ -50,6 +90,10 @@ say.** Identity questions do not replace these, and every surface depends on
 the answers. Ask only about what is missing:
 
 - **Content and assets:** logo, photography, copy, menu or catalogue, prices
+- **Stock images, always asked:** "May I use free stock images (free for
+  commercial use, no credit line, no watermark) where you have no photos of
+  your own?" Yes, no, or only for some pages. Icons are not asked about;
+  they are always used (`icons-and-assets.md` §0).
 - **Language(s)** and locale: currency, date formats, legal notices
 - **Flows:** how ordering, booking or sign-up actually works, payment methods, cut-offs, stock limits
 - **Users and devices** for each surface: who uses the admin, on a phone or a counter tablet
@@ -64,13 +108,20 @@ The path and mode are not switches that pick a generator. They set which
 stages of one workflow run:
 
 ```
-Author intent  →  Identity definition  →  Reference & identity research
+Step 0 conditions  →  Author intent  →  Identity definition  →  Reference & identity research
       →  [Playwright decision]  →  Design direction  →  HTML audition*
-      →  Author selection*  →  Loading tier (author's choice)
-      →  Identity brief  →  Implementation  →  Consistency validation
-      →  Verification gate
+      →  Author selection*  →  Assets (icon set + approved images)
+      →  Loading tier (author's choice)  →  Identity brief
+      →  Implementation  →  Consistency validation  →  Verification gate
                                          * audition path only
 ```
+
+Assets are split across three points. **Ask** about stock images in the
+first message. **Shortlist** image sources and icon sets that fit each
+candidate during research. **Pick** the actual images and the one icon set
+in the Assets stage, after the identity is chosen and before the loading
+tier, because images are most of a page's weight and the tier message has
+to price them.
 
 | Stage | Read |
 |---|---|
@@ -78,7 +129,8 @@ Author intent  →  Identity definition  →  Reference & identity research
 | Candidate identities, the search engine of every direction | `references/identity-library.md` |
 | Playwright decision, HTML auditions, the loading-tier message to the author | `references/audition.md` |
 | Building it | `references/recipes-design.md` / `references/recipes-motion.md` (`both`: design first) |
-| Icons, illustration, textures | `references/icons-and-assets.md` |
+| Icons (mandatory), illustration, textures | `references/icons-and-assets.md` |
+| Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |
 
 In `motion` mode the identity stages shrink to one: read the identity the
@@ -94,14 +146,18 @@ The rules that govern every stage:
 - **Do not stop at the first good reference.** Research until the
   direction is backed by the strongest material available, and log what
   you rejected.
-- **The approved identity is binding** on every surface: landing, app,
-  admin, DevOps, docs, 404. Expression adapts per surface. The identity
-  does not.
+- **The approved identity is binding** on every surface in scope: landing,
+  app, admin, DevOps, docs, 404, unless step 0 narrowed the scope.
+  Expression adapts per surface. The identity does not.
 - **The author picks the loading tier.** Recommend the cheapest tier that
   fully delivers the identity, then send the tier message
   (`audition.md` §4): fast, medium and high expensive loading, each costed
   for this project, with custom offered if the author declines. Heavy
   libraries need a reason in the brief.
+- **Icons always; stock images only with the author's yes.** Every image
+  must be free for commercial use, need no credit line, and carry no
+  watermark in the file that ships. In `motion` and `both`, icons and
+  approved images are part of the motion plan (`recipes-motion.md` §15).
 
 ### Order of operations in `both`
 
@@ -178,6 +234,8 @@ is an acceptable sentence. "Done" without having looked is not.
 
 | Thought | Reality |
 |---|---|
+| "They said 'just the homepage', but the shared header needs the new tokens too" | Step 0 scope binds the run. Changing shared tokens changes other pages. Ask first, or scope the change to the page. |
+| "Their note was just a comment" | What the author writes when calling the skill is a condition for the whole run. Record it in step 0. |
 | "I'll pick the mode as I go" | Path and mode are the first thing said, every time. They scope everything after. |
 | "I'll send the author the `path=` line" | That line is for the record. Ask the author in plain words. |
 | "Identity first; the practical details can wait" | Payment, languages, stock and devices shape every surface. Ask in the first message. |
@@ -199,5 +257,9 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Tests pass, so it works" | Tests passed on a dead virtualizer and 41 CSS classes that compiled to nothing. Look at the page. |
 | "It animates on scroll, I'll screenshot it" | A full-page capture never scrolls; your content is photographed at `opacity: 0`. See `verification.md`. |
 | "Reduced motion is an edge case" | WCAG 2.3.3. Vestibular reactions include migraine and nausea. 19 of 28 production sites handle it. |
+| "No photos yet, so I'll drop in some stock" | Ask first. Then only images that are free for commercial use, need no credit and ship with no watermark. `images.md`. |
+| "It was on a free stock site, so it's free" | Paid, watermarked results are mixed into free stock searches. Check the item, not the site. `images.md`. |
+| "Typographic identity, so no icons" | Icons are mandatory in controls, forms, status and admin. Pick a set that fits the identity. |
+| "Motion is for the layout; the images just sit there" | In `motion` and `both`, icons and images are in the motion plan. `recipes-motion.md` §15. |
 | "The icons are free, I downloaded them" | Free download, attribution-required and non-commercial are three different things. `icons-and-assets.md`. |
 | "An icon per feature item will carry the section" | Three columns, three circled icons, three paragraphs is the template tell. None of the thirty measured sites do it. |
