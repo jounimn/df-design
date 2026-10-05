@@ -42,6 +42,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Seen at:** polestar.com — minimal Scandinavian grid; rivian.com — adventure landscapes and product film; lucidmotors.com — luxury interior photography.
 - **Search:** awwwards automotive; godly.website car; "EV launch website"; fontsinuse.com automotive.
 
+### Bakery / food shop
+- **Grammar:** the product photographed close and often (crumb, crust, trays, hands), a short daily-changing menu with prices, opening hours and address in the first screen, an order or pre-order action in the header, one warm accent (crust ochre, flour cream, a deep shop colour). The type carries the voice: monospaced and wide-tracked (Tartine), heritage serif (Poilâne), large serif over product pattern (Bread Ahead).
+- **Says:** made today, by people, nearby; worth a detour.
+- **Fits:** bakeries, patisseries, delis, grocers, cafés that bake, food producers with a shop. **Misfits:** large chains selling convenience, where the warmth reads as fake.
+- **Trap:** the generic bakery site: darkened full-bleed photo of bread or floury hands, "Welcome to…" in a script or serif, warm brown everything, a photo slider, a PDF menu, a cookie banner over the hero. Also: a JS loader that shows a blank screen before the bread. The best escape through **one strong voice**, either in type (Tartine's monospace) or in the founder and craft (Poilâne's film), and by putting *today* (what is baked, what is left, when orders close) above the photograph.
+- **Load:** medium (photography and video). Fast is possible when type and illustration carry it.
+- **Seen at:** https://tartinebakery.com (monospaced wide-tracked voice, ochre order button, darkened hero photo); https://www.poilane.com (heritage serif wordmark, founder-led baking film as hero, e-boutique); https://www.breadahead.com (large serif headline over a grid of the product itself); https://www.e5bakehouse.com (the generic default: template nav, photo slider, cookie banner over the hero).
+- **Search:** "artisan bakery website" on Siteinspire, Land-book, Godly; "bakery branding" on Behance and BP&O (bpando.org); Fonts In Use "bakery"; "boulangerie site web"; "padaria artesanal" for Portuguese references.
+
 ### Beauty / skincare
 - **Grammar:** two poles: apothecary restraint (Aesop: serif/sans from packaging, amber tones, slow transitions) vs social-native pink and gloss (Glossier, Rhode). Texture swatch macro shots, ingredient lists.
 - **Says:** ritual, efficacy, taste.

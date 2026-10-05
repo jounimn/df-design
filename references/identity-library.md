@@ -246,7 +246,7 @@ them as free-text searches, not curated lists.
 | Wabi-sabi | calm, impermanence, honesty of material | ceramics, tea, craft, mindfulness, architecture | fast to medium |
 | Western and Americana heritage | durability, frontier self-reliance, craft, heritage | boots, workwear, whiskey, outdoor, BBQ, ranch hospitality, country music | medium |
 
-### Industry archetypes — `identities/industry.md` (39)
+### Industry archetypes — `identities/industry.md` (40)
 
 | Identity | Says | Fits | Load |
 |---|---|---|---|
@@ -254,6 +254,7 @@ them as free-text searches, not curated lists.
 | AI lab | serious stewards of powerful technology; human, not sci-fi | model labs, AI research orgs, safety/policy | fast |
 | Architecture studio | rigour, spatial thinking, built work | architecture firms, landscape, urbanism, engineering studios | medium |
 | Automotive / EV launch | engineered future, calm confidence, design object | EVs, mobility, premium hardware | high |
+| Bakery / food shop | made today, by people, nearby; worth a detour | bakeries, patisseries, delis, grocers, cafés that bake, food producers with a shop | medium |
 | Beauty / skincare | ritual, efficacy, taste | skincare, fragrance, cosmetics, wellness retail | medium |
 | Climate tech | measurable, credible, optimistic climate action | carbon accounting, removal, energy, ag-tech | medium |
 | Coffee roaster | craft, traceability, connoisseurship | roasters, cafés, specialty tea, chocolate | fast |
