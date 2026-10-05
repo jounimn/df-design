@@ -112,7 +112,9 @@ Step 0 conditions  →  Author intent  →  Identity definition  →  Reference 
       →  [Playwright decision]  →  Design direction  →  HTML audition*
       →  Author selection*  →  Assets (icon set + approved images)
       →  Loading tier (author's choice)  →  Identity brief
-      →  Implementation  →  Consistency validation  →  Verification gate
+      →  Implementation, one surface at a time:
+           [surface spec → author approves → build → verify] → next surface
+      →  Consistency validation  →  Verification gate
                                          * audition path only
 ```
 
@@ -158,6 +160,72 @@ The rules that govern every stage:
   must be free for commercial use, need no credit line, and carry no
   watermark in the file that ships. In `motion` and `both`, icons and
   approved images are part of the motion plan (`recipes-motion.md` §15).
+
+## MANDATORY: one surface at a time
+
+When the work covers more than one surface (landing, app, admin, ops,
+docs, 404), **work on one surface at a time, and move to the next only when
+the current surface's spec has been approved by the author and
+implemented.** Approved and not built is not done. Built and not approved
+is not done. Ideas, sketches and plans for other surfaces do not count as
+progress on them.
+
+**Which surface is current.** The author names it, or it is read from the
+project: the route, file or component being edited, the branch, the last
+surface the author discussed. The author's word wins over the worktree. If
+the two disagree, or neither makes it clear, ask before writing anything.
+
+**The loop, per surface:**
+
+1. **Surface spec.** Write a short spec for this surface only: who uses it,
+   on what device, its content and flows, its density, and how it carries
+   the identity (`identity.md` §9). Keep it in its own place (e.g.
+   `docs/surfaces/<surface>.md`, or a clearly titled message).
+2. **Author approves it.** An explicit yes on *this* spec. Approval of the
+   identity brief is not approval of a surface spec, and silence is not
+   approval.
+3. **Build it.** Only what the approved spec says.
+4. **Verify it.** Look at the rendered surface (the verification gate) and
+   report what the look showed.
+5. **Mark it done** in the surface ledger (`identity.md` §8). Only then
+   start the next surface's spec.
+
+**Never mix premises between surfaces.** Each spec holds only its own
+surface's assumptions. The admin's "counter tablet, dense table" is not the
+landing page's premise, and the landing page's "first-time visitor on a
+phone" is not the admin's. Anything that truly applies to every surface
+(type, colour tokens, icon set, voice) belongs in the identity brief, where
+the author approves it once. Never carry it over from one surface spec into
+another.
+
+**Ideas for other surfaces go on a "Later" list** at the end of the current
+spec, and nothing is built from them until that surface's own turn. If
+working on one surface shows that a shared token or component must change,
+stop, tell the author, and change it through the brief, not quietly from
+inside the current surface.
+
+**Exception, only on the author's word.** If the author explicitly asks
+for several surfaces at once (a step 0 condition), do it, but still keep a
+separate spec and a separate ledger row for each. A loose phrase ("start
+with the landing, and do the admin while you're at it") is an **order**,
+not a request for parallel work: say back the order you will follow, offer
+the parallel option in one line, and work one at a time unless the author
+confirms it. A condition the author gives mid-run binds the same way as a
+step 0 note.
+
+What this rule does **not** forbid:
+
+- **Asking every surface's practical questions in the first message**
+  (users, devices, flows). That is gathering facts, not working on those
+  surfaces. The facts go in the brief's Practical line; what they mean for
+  a surface's design is decided only in that surface's spec.
+- **Creating the shared token file and component vocabulary** while
+  building the first surface, **as long as they come only from the identity
+  brief**. Anything a surface needs beyond the brief is a brief change,
+  asked of the author, not a token added along the way.
+- **A consistency check per surface.** After each surface is verified,
+  check it against the brief and the surfaces already built. The full
+  `identity.md` §10 check runs once, after the last surface.
 
 ### Order of operations in `both`
 
@@ -236,6 +304,10 @@ is an acceptable sentence. "Done" without having looked is not.
 |---|---|
 | "They said 'just the homepage', but the shared header needs the new tokens too" | Step 0 scope binds the run. Changing shared tokens changes other pages. Ask first, or scope the change to the page. |
 | "Their note was just a comment" | What the author writes when calling the skill is a condition for the whole run. Record it in step 0. |
+| "While I'm here, I'll sketch the admin too" | One surface at a time. Note it on the Later list; build nothing for another surface until its own spec is approved. |
+| "The brief was approved, so the surface specs are too" | Approval of the identity brief is not approval of a surface spec. Ask for a yes on each. |
+| "The landing's assumptions obviously hold for the admin" | Each surface has its own premises. Shared ones belong in the brief, approved there. |
+| "The 404 spec is approved, so I can start the next page" | Approved is not implemented. Build and verify it first, then move on. |
 | "I'll pick the mode as I go" | Path and mode are the first thing said, every time. They scope everything after. |
 | "I'll send the author the `path=` line" | That line is for the record. Ask the author in plain words. |
 | "Identity first; the practical details can wait" | Payment, languages, stock and devices shape every surface. Ask in the first message. |
