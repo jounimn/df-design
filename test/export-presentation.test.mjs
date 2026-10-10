@@ -104,3 +104,28 @@ test('the watermark is actually drawn into the preview slides, not the final one
 test('the author files are not modified', () => {
   assert.ok(!hasWatermark(fs.readFileSync(path.join(marked.dir, 'presentation.html'), 'utf8')));
 });
+
+test('a later export with spec none removes the stale preview/', async () => {
+  const f = copyPresentationFixture();
+  try {
+    await exportPresentation(f.dir, 'text:Teste', { browser });
+    assert.ok(fs.existsSync(path.join(f.dir, 'preview')));
+    await exportPresentation(f.dir, 'none', { browser });
+    assert.ok(!fs.existsSync(path.join(f.dir, 'preview')));
+    assert.ok(fs.existsSync(path.join(f.dir, 'final', 'presentation.pdf')));
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('a section with its own inline height is still forced to 1080 (the checker, not the export, reports the overflow)', async () => {
+  const f = copyPresentationFixture();
+  try {
+    const file = path.join(f.dir, 'presentation.html');
+    fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace('<section data-section="opening">', '<section data-section="opening" style="height:1400px">'));
+    await exportPresentation(f.dir, 'none', { browser });
+    assert.deepEqual(png(f.dir, 'final', 'slides', '01-opening.png'), { width: 1920, height: 1080 });
+  } finally {
+    f.cleanup();
+  }
+});

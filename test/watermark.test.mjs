@@ -6,7 +6,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {
-  parseWatermarkSpec, textPatternSvg, watermarkLayer, injectWatermark, stripWatermark, hasWatermark,
+  parseWatermarkSpec, textPatternSvg, watermarkLayer, injectWatermark, stripWatermark, hasWatermark, imageDataUri,
 } from '../scripts/lib/watermark.mjs';
 
 const cli = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'watermark.mjs');
@@ -171,4 +171,18 @@ test('only a real opacity suffix is an opacity; anything else stays in the text'
   assert.equal(parseWatermarkSpec('text:x@.1').opacity, 0.1);
   assert.throws(() => parseWatermarkSpec('text:x@1'));
   assert.throws(() => parseWatermarkSpec('text:x@0.5'));
+});
+
+test('imageDataUri reads a file relative to cwd or a base dir and refuses what it cannot embed', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'wm-uri-'));
+  try {
+    fs.writeFileSync(path.join(tmp, 'logo.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+    fs.writeFileSync(path.join(tmp, 'notes.txt'), 'x');
+    assert.ok(imageDataUri('logo.svg', tmp).startsWith('data:image/svg+xml;base64,'));
+    assert.ok(imageDataUri(path.join(tmp, 'logo.svg'), '.').startsWith('data:image/svg+xml;base64,'));
+    assert.throws(() => imageDataUri('nope.svg', tmp), /not found/);
+    assert.throws(() => imageDataUri('notes.txt', tmp), /not supported/);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
 });

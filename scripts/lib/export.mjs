@@ -3,32 +3,23 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { parseWatermarkSpec, watermarkLayer, injectWatermark } from './watermark.mjs';
+import { parseWatermarkSpec, watermarkLayer, injectWatermark, imageDataUri } from './watermark.mjs';
 
 const SLIDE = { width: 1920, height: 1080 };
 const MOCKUP_LONG_SIDE = 3000;
-const IMAGE_MIME = { '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif' };
 
 // Injected at render time; the author's file is never edited.
 // Social artboards keep their size even inside a flex row; they are not slides, so they stay out of the PDF.
-const EXPORT_CSS = `
-section[data-section] { width: ${SLIDE.width}px; height: ${SLIDE.height}px; overflow: hidden; box-sizing: border-box; break-after: page; page-break-after: always; }
-[data-social="square"] { flex: none; width: 1080px; height: 1080px; overflow: hidden; box-sizing: border-box; }
-[data-social="story"] { flex: none; width: 1080px; height: 1920px; overflow: hidden; box-sizing: border-box; }
+export const EXPORT_CSS = `
+section[data-section] { width: ${SLIDE.width}px !important; height: ${SLIDE.height}px !important; overflow: hidden !important; box-sizing: border-box; break-after: page; page-break-after: always; }
+[data-social="square"] { flex: none; width: 1080px !important; height: 1080px !important; overflow: hidden !important; box-sizing: border-box; }
+[data-social="story"] { flex: none; width: 1080px !important; height: 1920px !important; overflow: hidden !important; box-sizing: border-box; }
 @page { size: ${SLIDE.width}px ${SLIDE.height}px; margin: 0; }
 @media print { html, body { margin: 0 !important; } }
 `;
 
 const pad = (n) => String(n).padStart(2, '0');
 const safeName = (s) => String(s).trim().replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^-+|-+$/g, '');
-
-function imageDataUri(file, dir) {
-  const found = [path.resolve(file), path.resolve(dir, file)].find((p) => fs.existsSync(p));
-  if (!found) throw new Error(`watermark image not found: ${file}`);
-  const mime = IMAGE_MIME[path.extname(found).toLowerCase()];
-  if (!mime) throw new Error(`watermark image type not supported: ${found}`);
-  return `data:${mime};base64,${fs.readFileSync(found).toString('base64')}`;
-}
 
 // The saved HTML lives one folder down (final/ or preview/), so it needs <base href="../"> to find the author's assets.
 function savedHtml(source, layer) {
@@ -122,6 +113,8 @@ export async function exportPresentation(dir, spec, { browser }) {
   const layer = parsed ? watermarkLayer(parsed, parsed.type === 'image+text' ? { imageDataUri: imageDataUri(parsed.image, dir) } : {}) : null;
 
   const outputs = [];
+  // A later export without a watermark must not leave an older preview/ behind.
+  if (!parsed) fs.rmSync(path.resolve(dir, 'preview'), { recursive: true, force: true });
   for (const mode of parsed ? ['final', 'preview'] : ['final']) {
     const outDir = path.resolve(dir, mode);
     fs.rmSync(outDir, { recursive: true, force: true });

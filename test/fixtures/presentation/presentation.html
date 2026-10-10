@@ -11,9 +11,16 @@
     .row { display: flex; gap: 48px; align-items: flex-start; }
     .m { overflow: hidden; background: #d9cdb8; }
     .m img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .poster { width: 600px; height: 800px; }
-    .card { width: 900px; height: 500px; }
-    .artboards { display: flex; gap: 48px; padding: 48px; background: #fff; }
+    .poster { width: 540px; height: 720px; max-width: 100%; }
+    .card { width: 640px; height: 360px; max-width: 100%; }
+    .artboards { display: flex; flex-wrap: wrap; gap: 48px; padding: 48px; background: #fff; }
+    @media (max-width: 900px) {
+      section { padding: 32px 20px; }
+      .row { flex-direction: column; }
+      .poster, .card { height: auto; }
+      .poster { aspect-ratio: 3 / 4; }
+      .card { aspect-ratio: 16 / 9; }
+    }
     [data-social] { background: #1c1a17; color: #f4efe6; font-size: 64px; display: flex; align-items: center; justify-content: center; }
   </style>
 </head>

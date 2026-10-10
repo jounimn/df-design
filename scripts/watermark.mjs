@@ -4,20 +4,10 @@
 // The source folder is never modified. Image files are embedded as data URIs.
 import fs from 'node:fs';
 import path from 'node:path';
-import { parseWatermarkSpec, watermarkLayer, injectWatermark } from './lib/watermark.mjs';
-
-const MIME = { '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif' };
+import { parseWatermarkSpec, watermarkLayer, injectWatermark, imageDataUri } from './lib/watermark.mjs';
 
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) =>
   e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
-
-function imageDataUri(file, srcDir) {
-  const found = [path.resolve(file), path.resolve(srcDir, file)].find((p) => fs.existsSync(p));
-  if (!found) throw new Error(`watermark image not found: ${file}`);
-  const mime = MIME[path.extname(found).toLowerCase()];
-  if (!mime) throw new Error(`watermark image type not supported: ${found}`);
-  return `data:${mime};base64,${fs.readFileSync(found).toString('base64')}`;
-}
 
 const [src, specArg, out] = process.argv.slice(2);
 if (!src || !specArg || !out) {

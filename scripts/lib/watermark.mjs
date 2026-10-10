@@ -1,5 +1,8 @@
 // Protective watermark: a fixed, click-through layer injected into HTML, and stripped back out byte-for-byte.
 // Spec strings: 'none' | 'text:Studio X' | 'image+text:path/logo.svg|Studio X', each with an optional '@0.1' opacity suffix.
+import fs from 'node:fs';
+import path from 'node:path';
+
 export const DEFAULT_OPACITY = 0.12;
 export const MIN_OPACITY = 0.08;
 export const MAX_OPACITY = 0.15;
@@ -73,6 +76,17 @@ export function watermarkLayer(spec, { imageDataUri } = {}) {
   const style = 'position:fixed;inset:0;z-index:2147483647;pointer-events:none;background-repeat:repeat;'
     + `background-image:${layers.join(',')};background-size:${sizes.join(',')};`;
   return `<div data-df-watermark aria-hidden="true" style="${style}"></div>`;
+}
+
+const IMAGE_MIME = { '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.gif': 'image/gif' };
+
+// Reads the spec's image as a data URI. Looks relative to the current directory first, then to baseDir.
+export function imageDataUri(file, baseDir = '.') {
+  const found = [path.resolve(file), path.resolve(baseDir, file)].find((p) => fs.existsSync(p));
+  if (!found) throw new Error(`watermark image not found: ${file}`);
+  const mime = IMAGE_MIME[path.extname(found).toLowerCase()];
+  if (!mime) throw new Error(`watermark image type not supported: ${found}`);
+  return `data:${mime};base64,${fs.readFileSync(found).toString('base64')}`;
 }
 
 export const stripWatermark = (html) => html.replace(BLOCK, '');
