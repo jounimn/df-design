@@ -12,3 +12,6 @@ test('"does not require attribution" does not count', () => assert.equal(licence
 test('"attribution required: no" does not count', () => assert.equal(licenceNeedsCredit('Free licence; attribution required: no'), false));
 test('"credit required: no" does not count', () => assert.equal(licenceNeedsCredit('credit required: no'), false));
 test('CC BY with "attribution not required" still counts', () => assert.equal(licenceNeedsCredit('CC BY 4.0, attribution not required'), true));
+test('a URL between pipes does not swallow the licence column', () => assert.equal(licenceNeedsCredit('|a.jpg|https://x.com/a.jpg|CC BY 4.0|'), true));
+test('"doesn\'t require attribution" does not count', () => assert.equal(licenceNeedsCredit("Pexels License, doesn't require attribution"), false));
+test('"don\'t require credit" does not count', () => assert.equal(licenceNeedsCredit("terms don't require credit"), false));

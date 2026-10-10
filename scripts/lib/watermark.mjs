@@ -13,24 +13,26 @@ export function parseWatermarkSpec(s) {
   if (raw === 'none') return null;
   let opacity = DEFAULT_OPACITY;
   let body = raw;
-  const suffix = raw.match(/@(\d*\.?\d+)$/);
+  // Only a number shaped like an opacity (0.1, .1, 0, 1) after the last @ is a suffix; "Room@2" stays text.
+  const suffix = raw.match(/@(0?\.\d+|[01](?:\.\d+)?)$/);
   if (suffix) {
     opacity = Number(suffix[1]);
-    body = raw.slice(0, suffix.index);
+    body = raw.slice(0, suffix.index).trimEnd();
   }
   if (!(opacity >= MIN_OPACITY && opacity <= MAX_OPACITY)) {
     throw new Error(`watermark opacity ${opacity} is outside ${MIN_OPACITY}–${MAX_OPACITY}`);
   }
   if (body.startsWith('text:')) {
-    const text = body.slice('text:'.length);
+    const text = body.slice('text:'.length).trim();
     if (!text.trim()) throw new Error('watermark text is empty');
     return { type: 'text', text, opacity };
   }
   if (body.startsWith('image+text:')) {
     const rest = body.slice('image+text:'.length);
-    const bar = rest.lastIndexOf('|');
+    // First |, because Windows paths cannot contain one and the text may.
+    const bar = rest.indexOf('|');
     const image = bar < 0 ? '' : rest.slice(0, bar).trim();
-    const text = bar < 0 ? '' : rest.slice(bar + 1);
+    const text = bar < 0 ? '' : rest.slice(bar + 1).trim();
     if (!image || !text.trim()) throw new Error('image+text needs <image>|<text>');
     return { type: 'image+text', image, text, opacity };
   }
@@ -76,10 +78,22 @@ export function watermarkLayer(spec, { imageDataUri } = {}) {
 export const stripWatermark = (html) => html.replace(BLOCK, '');
 export const hasWatermark = (html) => html.includes(OPEN);
 
+// Comments, scripts and styles can hold a literal "</body>" that is not the document's. Matching them in one
+// left-to-right pass lets whichever starts first win, so a comment inside a script (or the reverse) is handled.
+const INERT = /<!--[\s\S]*?-->|<script\b[^>]*>[\s\S]*?<\/script\s*>|<style\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+
+function lastBodyClose(html) {
+  const inert = [...html.matchAll(INERT)].map((m) => [m.index, m.index + m[0].length]);
+  let at = -1;
+  for (const m of html.matchAll(/<\/body\s*>/gi)) {
+    if (!inert.some(([from, to]) => m.index >= from && m.index < to)) at = m.index;
+  }
+  return at;
+}
+
 export function injectWatermark(html, layer) {
   const clean = stripWatermark(html);
   const block = OPEN + layer + CLOSE;
-  let at = -1;
-  for (const m of clean.matchAll(/<\/body>/gi)) at = m.index;
+  const at = lastBodyClose(clean);
   return at < 0 ? clean + block : clean.slice(0, at) + block + clean.slice(at);
 }

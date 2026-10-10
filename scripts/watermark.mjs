@@ -24,15 +24,21 @@ if (!src || !specArg || !out) {
   console.error('Usage: node scripts/watermark.mjs <src-dir> <spec> <out-dir>');
   process.exit(2);
 }
-if (path.resolve(src) === path.resolve(out)) {
-  console.error('out-dir must differ from src-dir: the source is never modified');
+// The source is never modified: out-dir may not be src-dir, an ancestor of it (the copy would overwrite it) or inside it.
+const within = (parent, child) => {
+  const r = path.relative(parent, child);
+  return r === '' || (!r.startsWith('..') && !path.isAbsolute(r));
+};
+if (within(out, src) || within(src, out)) {
+  console.error('out-dir must be a separate folder: not src-dir, not a parent of it, not inside it');
   process.exit(2);
 }
 
+// Everything that can fail (spec, image) fails before anything is copied.
 const spec = parseWatermarkSpec(specArg);
+const layer = spec && watermarkLayer(spec, spec.type === 'image+text' ? { imageDataUri: imageDataUri(spec.image, src) } : {});
 fs.cpSync(src, out, { recursive: true });
 if (spec) {
-  const layer = watermarkLayer(spec, spec.type === 'image+text' ? { imageDataUri: imageDataUri(spec.image, src) } : {});
   const pages = walk(out).filter((f) => /\.html?$/i.test(f));
   for (const f of pages) fs.writeFileSync(f, injectWatermark(fs.readFileSync(f, 'utf8'), layer));
   console.log(`watermarked ${pages.length} page(s) → ${out}`);

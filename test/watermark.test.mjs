@@ -103,3 +103,72 @@ test('CLI embeds the image file as a data uri', () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
 });
+
+test('CLI refuses an out-dir that is an ancestor of src-dir and leaves the source untouched', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'wm-anc-'));
+  try {
+    const parent = path.join(tmp, 'parent');
+    const child = path.join(parent, 'child');
+    fs.mkdirSync(child, { recursive: true });
+    fs.writeFileSync(path.join(child, 'a.html'), html);
+    for (const out of [parent, child, tmp]) {
+      assert.throws(() => execFileSync(process.execPath, [cli, child, 'text:x', out], { stdio: 'pipe' }), `out=${out}`);
+      assert.equal(fs.readFileSync(path.join(child, 'a.html'), 'utf8'), html);
+    }
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+test('CLI refuses an out-dir inside src-dir', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'wm-in-'));
+  try {
+    fs.writeFileSync(path.join(tmp, 'a.html'), html);
+    assert.throws(() => execFileSync(process.execPath, [cli, tmp, 'text:x', path.join(tmp, 'out')], { stdio: 'pipe' }));
+    assert.ok(!fs.existsSync(path.join(tmp, 'out')));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+test('CLI validates the image before copying: a missing image leaves no out-dir', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'wm-noimg-'));
+  try {
+    const src = path.join(tmp, 'src');
+    fs.mkdirSync(src);
+    fs.writeFileSync(path.join(src, 'a.html'), html);
+    const out = path.join(tmp, 'out');
+    assert.throws(() => execFileSync(process.execPath, [cli, src, 'image+text:nope.svg|Studio', out], { stdio: 'pipe' }));
+    assert.ok(!fs.existsSync(out));
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
+test('image+text splits on the first | so the text may contain |', () => {
+  const s = parseWatermarkSpec('image+text:a b/logo.svg|A | B');
+  assert.deepEqual([s.image, s.text], ['a b/logo.svg', 'A | B']);
+});
+
+test('the layer goes before the last </body> outside <script> and comments', () => {
+  const l = watermarkLayer(spec, {});
+  for (const h of [
+    '<body>a</body><script>x="</body>"</script>',
+    '<body>a</body><!-- old </body> -->',
+    '<body>a</body><SCRIPT type="module">const s = `</BODY>`;</SCRIPT><!-- </body> --><style>/* </body> */</style>',
+  ]) {
+    const out = injectWatermark(h, l);
+    assert.ok(out.indexOf('<!--df-watermark-->') < out.indexOf('</body>') || out.indexOf('<!--df-watermark-->') < out.search(/<\/body>/i), h);
+    assert.equal(out.indexOf('<!--df-watermark-->'), h.search(/<\/body>/i), h);
+    assert.equal(stripWatermark(out), h);
+  }
+});
+
+test('only a real opacity suffix is an opacity; anything else stays in the text', () => {
+  const r = parseWatermarkSpec('text:Room@2');
+  assert.deepEqual([r.text, r.opacity], ['Room@2', 0.12]);
+  assert.equal(parseWatermarkSpec('text:Studio X @0.1').text, 'Studio X');
+  assert.equal(parseWatermarkSpec('text:Studio X @0.1').opacity, 0.1);
+  assert.equal(parseWatermarkSpec('text:a@b').text, 'a@b');
+  assert.equal(parseWatermarkSpec('text:x@.1').opacity, 0.1);
+  assert.throws(() => parseWatermarkSpec('text:x@1'));
+  assert.throws(() => parseWatermarkSpec('text:x@0.5'));
+});
