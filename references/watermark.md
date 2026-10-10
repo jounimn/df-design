@@ -99,7 +99,8 @@ The script copies. It never edits the source.
 - The layer is injected into a **copy**, and the copy is what is shown.
 - If a watermark landed on a source file by mistake, restore it before doing
   anything else: `git checkout -- <file>`, or copy the original back. With
-  no original, strip the block (it returns the HTML byte for byte):
+  no original, strip the block (it returns the HTML byte for byte). Run it
+  from the skill's root: the import path is relative.
 
   ```bash
   node -e "import('./scripts/lib/watermark.mjs').then(async m=>{const fs=await import('node:fs');const f=process.argv[1];fs.writeFileSync(f,m.stripWatermark(fs.readFileSync(f,'utf8')))})" <file>
