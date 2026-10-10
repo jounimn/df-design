@@ -56,7 +56,8 @@ page as it is."
 **This skill does not begin until both are settled**: answered by the
 author, by the invocation note, or obvious from the request, before reading
 files, before research, before a single rule of CSS. A third question, the
-watermark, is asked in the same message (below).
+watermark, is asked in the same message but does not block the start
+(question 3, below).
 
 **1. Path: audition or design?** Ask the author unless they have already
 said:
@@ -75,7 +76,9 @@ said:
 | `both` | A rebrand. Identity and motion together. | Start with motion. Identity first, always. |
 
 **3. Watermark: will the work be sold?** Ask in plain words, in the same
-first message, on both paths. Skip it if step 0 already settled it.
+first message, on both paths. Skip it if step 0 already settled it. Unlike
+path and mode, it **does not block the start**: if the author leaves it
+unanswered, record `watermark=none` and do not ask again.
 
 > Will this work be sold to a client? If you like, I can put a watermark on
 > everything I show you — a text pattern, or your image/logo with a text
@@ -86,7 +89,8 @@ If yes, ask for the text (default: the author's studio or name) and, for the
 image variant, the file or permission to use the author's logo. Types,
 opacity, scope and the preview/final split: `references/watermark.md`.
 
-Once these are known, record them as one status line:
+Once path and mode are known (and the watermark answered or defaulted to
+none), record them as one status line:
 
 `df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> — <conditions from step 0, one line>`
 

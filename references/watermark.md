@@ -21,7 +21,8 @@ Ask it with the path and mode questions (`SKILL.md`), in plain words:
 > pattern — repeated across the whole screen at low opacity, and keep a
 > clean copy separately for delivery after payment.
 
-- **No:** record `watermark=none`. Do not offer it again.
+- **No, or no answer:** record `watermark=none`. The question does not
+  block the start. Do not offer it again.
 - **Yes:** ask for the text (default: the author's studio or name). For the
   image variant, ask for the file, or for permission to use the author's
   logo.
@@ -82,7 +83,7 @@ copy changes.
 - **`final/`** is the same files without the layer. It is what the author
   delivers after payment.
 - With `watermark=none`, only `final/` is produced.
-- Both folders hold the same file set. The checker confirms it
+- When both exist, they hold the same file set. The checker confirms it
   (`check-presentation.mjs`).
 
 For auditions and built surfaces, the watermarked copy is the one shown.
@@ -96,9 +97,13 @@ The script copies. It never edits the source.
 
 - The project files, the auditions and the build stay clean.
 - The layer is injected into a **copy**, and the copy is what is shown.
-- If a copy was made by mistake over the source, restore it before doing
-  anything else. `stripWatermark` removes the block and returns the
-  original HTML byte for byte.
+- If a watermark landed on a source file by mistake, restore it before doing
+  anything else: `git checkout -- <file>`, or copy the original back. With
+  no original, strip the block (it returns the HTML byte for byte):
+
+  ```bash
+  node -e "import('./scripts/lib/watermark.mjs').then(async m=>{const fs=await import('node:fs');const f=process.argv[1];fs.writeFileSync(f,m.stripWatermark(fs.readFileSync(f,'utf8')))})" <file>
+  ```
 
 A watermark in the shipped files would be delivered to the paying client.
 That defeats the purpose.
