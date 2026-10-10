@@ -123,6 +123,10 @@ Record the result as the identity brief (`identity.md` §8). From then on,
 implementation is checked against the brief, not against the audition
 file. The audition is evidence, not spec.
 
+Before the assets stage, offer the optional brand presentation: now, at the
+end, or skip. The prompt, the time warning and the Playwright question are
+in `selling-positioning.md` §1.
+
 ---
 
 ## 4. Loading cost: cheapest viable option first

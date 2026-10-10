@@ -26,7 +26,9 @@ That run touches the main page and nothing else. Research, auditions,
 assets, the loading tier and the consistency check are all limited to it,
 and clashes with untouched pages are reported as notes, not fixed.
 
-Then every run opens with two answers, declared before anything else happens:
+Then every run opens with two answers, declared before anything else happens
+(a third question, whether the work will be sold and so needs a watermark,
+rides in the same message but never blocks the start):
 
 ```
 path:  audition   # compare candidate identities as small HTML pages, choose, then build
@@ -47,8 +49,18 @@ Path and mode are not generator switches. They select stages of one workflow:
 ```
 Author intent → Identity definition → Reference & identity research
   → Playwright decision → Design direction → HTML audition → Author selection
+  → [selling-positioning: now / end / skip]*
   → Identity brief → Implementation → Consistency validation → Verification
+                                       * optional detour, see below
 ```
+
+The optional **selling-positioning** detour, offered once the identity is
+chosen, produces a complete logo presentation and the identity's market
+positioning (researched competitors, real mockups, the chosen site shown as
+part of the work) as an HTML presentation, slides, social images and a PDF.
+If the work is being sold, a **protective watermark** (a text pattern, or
+the author's image plus text, at low opacity) goes on everything shown,
+with a clean copy kept for delivery after payment.
 
 A few rules run through all of it:
 

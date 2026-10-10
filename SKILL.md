@@ -37,6 +37,7 @@ comment. Read it before anything else and record it as **Conditions**:
 | Loading tier | Priced for the scoped surfaces only |
 | Identity brief | `Surfaces:` lists only the scope; out-of-scope surfaces are named as untouched |
 | Build | Touch nothing outside the scope: no shared token, component or global stylesheet change that would alter another surface, unless the author agrees |
+| Selling-positioning | Logo system and mockups are brand-wide; the site section shows the scoped surfaces only |
 | Consistency check | Run on the scoped surfaces. Where the new page now clashes with an untouched surface, **report it as a note** for the author ("the 404 still uses the old navy; out of scope") and do not fix it |
 
 Conditions outrank the skill's defaults. If a condition conflicts with a
@@ -92,7 +93,10 @@ opacity, scope and the preview/final split: `references/watermark.md`.
 Once path and mode are known (and the watermark answered or defaulted to
 none), record them as one status line:
 
-`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> — <conditions from step 0, one line>`
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> selling=<now|end|skip> — <conditions from step 0, one line>`
+
+`selling=` is filled when the detour is offered (`selling-positioning.md`
+§1); until then leave it out.
 
 The status line is for the record and for developers. **Ask the author in
 their own words.** A bakery owner gets "Would you like to see three short
@@ -129,13 +133,21 @@ stages of one workflow run:
 ```
 Step 0 conditions  →  Author intent  →  Identity definition  →  Reference & identity research
       →  [Playwright decision]  →  Design direction  →  HTML audition*
-      →  Author selection*  →  Assets (icon set + approved images)
+      →  Author selection*  →  [selling-positioning: now / end / skip]**
+      →  Assets (icon set + approved images)
       →  Loading tier (author's choice)  →  Identity brief
       →  Implementation, one surface at a time:
            [surface spec → author approves → build → verify] → next surface
-      →  Consistency validation  →  Verification gate
+      →  Consistency validation  →  Verification gate  →  [selling-positioning: end]**
                                          * audition path only
+                                        ** optional detour, see below
 ```
+
+`selling-positioning` is not a third path. It is an optional detour,
+recorded as `selling=<now|end|skip>`. In the `audition` path the offer
+follows Author selection. In the `design` path it follows the approval of
+the identity brief. On `end`, the path runs after the verification gate.
+Everything about it: `references/selling-positioning.md`.
 
 Assets are split across three points. **Ask** about stock images in the
 first message. **Shortlist** image sources and icon sets that fit each
@@ -154,6 +166,7 @@ to price them.
 | Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |
 | Watermark: question, layer, preview and final | `references/watermark.md` |
+| Selling-positioning: logo, market, mockups, presentation, export | `references/selling-positioning.md` |
 
 In `motion` mode the identity stages shrink to one: read the identity the
 site already has and keep to it.
@@ -355,4 +368,5 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Motion is for the layout; the images just sit there" | In `motion` and `both`, icons and images are in the motion plan. `recipes-motion.md` §15. |
 | "The icons are free, I downloaded them" | Free download, attribution-required and non-commercial are three different things. `icons-and-assets.md`. |
 | "The images rule says no watermark, so I can't add one" | That rule is about third-party marks in what ships. The author's protective watermark is separate. `watermark.md`. |
+| "They chose an audition, so go straight to assets" | Offer `selling-positioning` first: now, at the end, or skip. `selling-positioning.md` §1. |
 | "An icon per feature item will carry the section" | Three columns, three circled icons, three paragraphs is the template tell. None of the thirty measured sites do it. |
