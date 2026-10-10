@@ -43,7 +43,9 @@ Conditions outrank the skill's defaults. If a condition conflicts with a
 rule here (for example "no icons"), say so once, plainly, and follow the
 author. The one exception is the four image rules in `images.md` (free,
 commercial, no credit, no watermark): those protect the author legally and
-are not waived by a preference.
+are not waived by a preference. These forbid third-party watermarks in what
+ships; the author's own protective watermark (`watermark.md`) is a different
+thing.
 
 In the first message, restate the conditions in one line so the author can
 correct a misreading: "I'll rework only the homepage and leave every other
@@ -53,7 +55,8 @@ page as it is."
 
 **This skill does not begin until both are settled**: answered by the
 author, by the invocation note, or obvious from the request, before reading
-files, before research, before a single rule of CSS.
+files, before research, before a single rule of CSS. A third question, the
+watermark, is asked in the same message (below).
 
 **1. Path: audition or design?** Ask the author unless they have already
 said:
@@ -71,9 +74,21 @@ said:
 | `design` | Identity and structure: type, colour, layout, spacing, composition. | Add or change animation. A static page must be finished as a static page. |
 | `both` | A rebrand. Identity and motion together. | Start with motion. Identity first, always. |
 
-Once both are known, record them as one status line:
+**3. Watermark: will the work be sold?** Ask in plain words, in the same
+first message, on both paths. Skip it if step 0 already settled it.
 
-`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> — <conditions from step 0, one line>`
+> Will this work be sold to a client? If you like, I can put a watermark on
+> everything I show you — a text pattern, or your image/logo with a text
+> pattern — repeated across the whole screen at low opacity, and keep a
+> clean copy separately for delivery after payment.
+
+If yes, ask for the text (default: the author's studio or name) and, for the
+image variant, the file or permission to use the author's logo. Types,
+opacity, scope and the preview/final split: `references/watermark.md`.
+
+Once these are known, record them as one status line:
+
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> — <conditions from step 0, one line>`
 
 The status line is for the record and for developers. **Ask the author in
 their own words.** A bakery owner gets "Would you like to see three short
@@ -134,6 +149,7 @@ to price them.
 | Icons (mandatory), illustration, textures | `references/icons-and-assets.md` |
 | Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |
+| Watermark: question, layer, preview and final | `references/watermark.md` |
 
 In `motion` mode the identity stages shrink to one: read the identity the
 site already has and keep to it.
@@ -334,4 +350,5 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Typographic identity, so no icons" | Icons are mandatory in controls, forms, status and admin. Pick a set that fits the identity. |
 | "Motion is for the layout; the images just sit there" | In `motion` and `both`, icons and images are in the motion plan. `recipes-motion.md` §15. |
 | "The icons are free, I downloaded them" | Free download, attribution-required and non-commercial are three different things. `icons-and-assets.md`. |
+| "The images rule says no watermark, so I can't add one" | That rule is about third-party marks in what ships. The author's protective watermark is separate. `watermark.md`. |
 | "An icon per feature item will carry the section" | Three columns, three circled icons, three paragraphs is the template tell. None of the thirty measured sites do it. |
