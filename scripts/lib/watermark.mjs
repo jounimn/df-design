@@ -23,7 +23,7 @@ export function parseWatermarkSpec(s) {
     body = raw.slice(0, suffix.index).trimEnd();
   }
   if (!(opacity >= MIN_OPACITY && opacity <= MAX_OPACITY)) {
-    throw new Error(`watermark opacity ${opacity} is outside ${MIN_OPACITY}–${MAX_OPACITY}`);
+    throw new Error(`watermark opacity ${opacity} (read from the trailing "@${suffix[1]}") is outside ${MIN_OPACITY}–${MAX_OPACITY}; if "@${suffix[1]}" is part of the text, add a character after it`);
   }
   if (body.startsWith('text:')) {
     const text = body.slice('text:'.length).trim();

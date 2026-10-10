@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { launchBrowser } from '../scripts/lib/browser.mjs';
-import { exportPresentation } from '../scripts/lib/export.mjs';
+import http from 'node:http';
+import { pathToFileURL } from 'node:url';
+import { exportPresentation, rewriteRelativeUrls } from '../scripts/lib/export.mjs';
 import { pngSize, pdfPageCount } from '../scripts/lib/image-meta.mjs';
 import { hasWatermark } from '../scripts/lib/watermark.mjs';
 import { copyPresentationFixture } from './helpers/presentation-fixture.mjs';
@@ -88,11 +90,40 @@ test('preview has the layer, final does not, same file set', () => {
   assert.deepEqual(rel(path.join(marked.dir, 'preview')), rel(path.join(marked.dir, 'final')));
 });
 
-test('exported html resolves relative assets through <base href="../">', () => {
+test('exported html finds the author assets and keeps in-page anchors working', async () => {
   for (const mode of ['final', 'preview']) {
-    const html = fs.readFileSync(path.join(marked.dir, mode, 'presentation.html'), 'utf8');
-    assert.ok(html.includes('<base href="../">'), mode);
+    const file = path.join(marked.dir, mode, 'presentation.html');
+    const html = fs.readFileSync(file, 'utf8');
+    assert.ok(!/<base[s>]/i.test(html), `${mode}: no <base>, it would redirect #anchors`);
+    assert.ok(html.includes('src="../assets/mockup.png"'), mode);
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    try {
+      const page = await context.newPage();
+      await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
+      assert.ok(await page.evaluate(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0)), `${mode}: images load`);
+      await page.click('a[href="#closing"]');
+      assert.equal(page.url(), `${pathToFileURL(file).href}#closing`, mode);
+    } finally {
+      await context.close();
+    }
   }
+});
+
+test('rewriteRelativeUrls prefixes relative urls only, and only where they are urls', () => {
+  const out = rewriteRelativeUrls([
+    '<!-- <img src="c.png"> -->',
+    '<link rel="stylesheet" href="css/a.css"><img src="a b/é.png" srcset="s1.png 1x, s2.png 2x" style="background:url(bg.png)">',
+    '<a href="#x">a</a><a href="?q=1">q</a><a href="/abs">abs</a><a href="//cdn.example/x">cdn</a><a href="https://e.com/x">e</a><a href="mailto:a@b.c">m</a><img src="data:image/png;base64,AAAA">',
+    '<a href="./up.html">u</a><iframe src="../site/index.html"></iframe>',
+    '<style>.a{background:url("img/z.png")} .b{background:url(https://e.com/z.png)}</style>',
+    `<script src="app.js"></script><script>const u = "<img src='no.png'>"; fetch("data.json");</script>`,
+  ].join('\n'), '../');
+  for (const want of [
+    '<!-- <img src="c.png"> -->', 'href="../css/a.css"', 'src="../a b/é.png"', 'srcset="../s1.png 1x, ../s2.png 2x"', 'url(../bg.png)',
+    'href="#x"', 'href="?q=1"', 'href="/abs"', 'href="//cdn.example/x"', 'href="https://e.com/x"', 'href="mailto:a@b.c"', 'src="data:image/png;base64,AAAA"',
+    'href="../up.html"', 'src="../../site/index.html"', 'url("../img/z.png")', 'url(https://e.com/z.png)', '<script src="../app.js">',
+    `const u = "<img src='no.png'>"; fetch("data.json");`,
+  ]) assert.ok(out.includes(want), want + '\n' + out);
 });
 
 test('the watermark is actually drawn into the preview slides, not the final ones', () => {
@@ -128,4 +159,65 @@ test('a section with its own inline height is still forced to 1080 (the checker,
   } finally {
     f.cleanup();
   }
+});
+
+async function variant(mutate, spec = 'none', options = {}) {
+  const f = copyPresentationFixture();
+  try {
+    const file = path.join(f.dir, 'presentation.html');
+    fs.writeFileSync(file, mutate(fs.readFileSync(file, 'utf8'), f.dir));
+    return { ...f, result: await exportPresentation(f.dir, spec, { browser, ...options }) };
+  } catch (err) {
+    f.cleanup();
+    throw err;
+  }
+}
+
+test('a lazy image far below the fold does not hang the export', { timeout: 90000 }, async () => {
+  const f = await variant((h) => h.replace('<div class="artboards">', '<div style="height:6000px"></div><img loading="lazy" src="assets/mockup.png" alt=""><div class="artboards">'));
+  try {
+    assert.equal(fs.readdirSync(path.join(f.dir, 'final', 'slides')).length, SECTIONS.length);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('an image that never answers fails with a named error instead of hanging', { timeout: 60000 }, async () => {
+  const server = http.createServer(() => {});
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  try {
+    await assert.rejects(
+      variant((h) => h.replace('<div class="artboards">', `<img src="http://127.0.0.1:${server.address().port}/never.png" alt=""><div class="artboards">`), 'none', { imageTimeoutMs: 800 }),
+      /did not load within 800ms.*never\.png/s,
+    );
+  } finally {
+    server.closeAllConnections();
+    server.close();
+  }
+});
+
+test('a social artboard inside a section is left out of the PDF without hiding its section', async () => {
+  const f = await variant((h) => h
+    .replace('<div data-social="square">Square</div>', '')
+    .replace('<p>Fixture copy for closing.</p>', '<p>Fixture copy for closing.</p><div data-social="square">Square</div>'));
+  try {
+    assert.equal(pdfPageCount(fs.readFileSync(path.join(f.dir, 'final', 'presentation.pdf'))), SECTIONS.length);
+    assert.deepEqual(png(f.dir, 'final', 'social', 'square.png'), { width: 1080, height: 1080 });
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('a hidden or zero-size mockup fails with an error naming it', async () => {
+  await assert.rejects(
+    variant((h) => h.replace('<div data-mockup="poster"', '<div data-mockup="ghost" hidden></div><div data-mockup="poster"')),
+    /data-mockup="ghost".*no visible size/s,
+  );
+});
+
+test('two mockups that would write the same file fail with an error naming it', async () => {
+  await assert.rejects(
+    variant((h) => h.replace('data-mockup="card"', 'data-mockup="poster"')),
+    /more than one.*mockups\/poster\.png/s,
+  );
 });

@@ -18,30 +18,91 @@ section[data-section] { width: ${SLIDE.width}px !important; height: ${SLIDE.heig
 @media print { html, body { margin: 0 !important; } }
 `;
 
+const fail = (message) => { throw new Error(`export: ${message}`); };
 const pad = (n) => String(n).padStart(2, '0');
 const safeName = (s) => String(s).trim().replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^-+|-+$/g, '');
 
-// The saved HTML lives one folder down (final/ or preview/), so it needs <base href="../"> to find the author's assets.
-function savedHtml(source, layer) {
-  let html = source;
-  if (!/<base[\s>]/i.test(html)) {
-    html = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (m) => `${m}<base href="../">`) : `<base href="../">${html}`;
+// The saved HTML lives one folder down (final/ or preview/), so its relative urls get a '../' prefix.
+// A <base href="../"> would do it in one line but also sends every #anchor to the folder above.
+const INERT = /<!--[\s\S]*?-->|<script\b[\s\S]*?<\/script\s*>|<style\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+const isRelative = (u) => {
+  const v = u.trim();
+  return v !== '' && !/^([#?/]|[a-z][a-z0-9+.-]*:)/i.test(v) && !v.includes('{{');
+};
+const withPrefix = (u, prefix) => prefix + u.trim().replace(/^\.\//, '');
+const prefixed = (u, prefix) => (isRelative(u) ? withPrefix(u, prefix) : u);
+const cssUrls = (css, prefix) => css.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (m, q, u) => (isRelative(u) ? `url(${q}${withPrefix(u, prefix)}${q})` : m));
+const ATTR = /(\s)(src|href|poster|data|action|formaction|xlink:href|srcset|imagesrcset|style)(\s*=\s*)("([^"]*)"|'([^']*)'|([^\s"'>]+))/gi;
+
+function rewriteAttributes(markup, prefix) {
+  return markup.replace(ATTR, (m, sp, name, eq, raw, dq, sq, bare) => {
+    const value = dq ?? sq ?? bare;
+    const quote = dq !== undefined ? '"' : sq !== undefined ? "'" : '';
+    const key = name.toLowerCase();
+    const next = key === 'style' ? cssUrls(value, prefix)
+      : key.endsWith('srcset') ? value.split(',').map((c) => c.replace(/^(\s*)(\S+)/, (_, ws, u) => ws + prefixed(u, prefix))).join(',')
+        : prefixed(value, prefix);
+    return `${sp}${name}${eq}${quote}${next}${quote}`;
+  });
+}
+
+export function rewriteRelativeUrls(html, prefix = '../') {
+  let out = '';
+  let last = 0;
+  for (const m of html.matchAll(INERT)) {
+    out += rewriteAttributes(html.slice(last, m.index), prefix);
+    const seg = m[0];
+    if (seg.startsWith('<!--')) out += seg;
+    else if (/^<script/i.test(seg)) { // the tag's own attributes (src) change; the script text never does
+      const end = seg.indexOf('>') + 1;
+      out += rewriteAttributes(seg.slice(0, end), prefix) + seg.slice(end);
+    } else {
+      const end = seg.indexOf('>') + 1;
+      out += seg.slice(0, end) + cssUrls(seg.slice(end), prefix);
+    }
+    last = m.index + seg.length;
   }
+  return out + rewriteAttributes(html.slice(last), prefix);
+}
+
+function savedHtml(source, layer) {
+  const html = rewriteRelativeUrls(source, '../');
   return layer ? injectWatermark(html, layer) : html;
 }
 
-async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.height, scale = 1, layer, slidesOnly = false } = {}) {
+// Lazy images below the fold never load on their own, and a stalled one would stall the export for good.
+async function waitForAssets(page, timeoutMs) {
+  const { done, pending } = await page.evaluate(async (ms) => {
+    document.querySelectorAll('img[loading]').forEach((i) => { i.loading = 'eager'; });
+    const loaded = Promise.all([document.fonts?.ready, ...[...document.images].map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))]).then(() => true);
+    const ok = await Promise.race([loaded, new Promise((r) => setTimeout(() => r(false), ms))]);
+    return { done: ok, pending: ok ? [] : [...document.images].filter((i) => !i.complete).map((i) => i.currentSrc || i.src) };
+  }, timeoutMs);
+  if (!done) throw new Error(`export: ${pending.length ? `${pending.length} image(s)` : 'fonts'} did not load within ${timeoutMs}ms${pending.length ? `: ${pending.join(', ')}` : ''}`);
+}
+
+async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.height, scale = 1, layer, slidesOnly = false, imageTimeoutMs = 15000 } = {}) {
   // slidesOnly is the PDF render: print repeats a fixed layer on every page, so it keeps the saved fixed layer.
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
+  try {
+    return await prepare(context, url, { layer, slidesOnly, imageTimeoutMs });
+  } catch (err) {
+    await context.close();
+    throw err;
+  }
+}
+
+async function prepare(context, url, { layer, slidesOnly, imageTimeoutMs }) {
   const page = await context.newPage();
-  await page.goto(url, { waitUntil: 'load' });
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ content: EXPORT_CSS });
-  await page.evaluate(() => document.fonts?.ready);
-  await page.evaluate(() => Promise.all([...document.images].map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))));
+  await waitForAssets(page, imageTimeoutMs);
   if (slidesOnly) {
-    // Hide each social artboard together with the wrapper that exists only to hold it, so no extra page is printed.
+    // Hide each social artboard (together with the wrapper that exists only to hold it) so no extra page is printed.
+    // An artboard inside a slide is hidden alone: climbing would hide the slide.
     await page.evaluate(() => {
       for (const el of document.querySelectorAll('[data-social]')) {
+        if (el.closest('section[data-section]')) { el.style.display = 'none'; continue; }
         let n = el;
         while (n.parentElement && n.parentElement !== document.body && !n.parentElement.querySelector('section[data-section]')) n = n.parentElement;
         n.style.display = 'none';
@@ -69,43 +130,54 @@ async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.heig
   return { page, context };
 }
 
-async function renderAll({ browser, url, outDir, layer }) {
+async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
   const written = [];
   const out = (...p) => path.join(outDir, ...p);
   const put = (file, buf) => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, buf); written.push(file); };
 
   // Slides, social artboards, and the element boxes mockups need.
-  const main = await openPage(browser, url, { layer });
+  const main = await openPage(browser, url, { layer, imageTimeoutMs });
   const { sections, mockups, social } = await main.page.evaluate(() => ({
     sections: [...document.querySelectorAll('section[data-section]')].map((s) => s.dataset.section),
     mockups: [...document.querySelectorAll('[data-mockup]')].map((e, i) => {
       const r = e.getBoundingClientRect();
-      return { name: e.dataset.mockup || `mockup-${i + 1}`, long: Math.max(r.width, r.height) };
+      return { label: e.dataset.mockup || `#${i + 1}`, name: e.dataset.mockup || `mockup-${i + 1}`, long: Math.max(r.width, r.height), box: `${r.width}×${r.height}` };
     }),
     social: ['square', 'story'].filter((k) => document.querySelector(`[data-social="${k}"]`)),
   }));
-  for (const [i, name] of sections.entries()) {
-    put(out('slides', `${pad(i + 1)}-${safeName(name)}.png`), await main.page.locator('section[data-section]').nth(i).screenshot({ animations: 'disabled' }));
+  try {
+    // Fail before writing anything when a mockup cannot be exported or two would overwrite each other.
+    const files = new Map();
+    for (const [i, m] of mockups.entries()) {
+      if (!(m.long > 0)) fail(`[data-mockup="${m.label}"] has no visible size (${m.box}); a hidden or empty mockup cannot be exported`);
+      m.file = `${safeName(m.name) || `mockup-${i + 1}`}.png`;
+      if (files.has(m.file)) fail(`more than one [data-mockup] would write mockups/${m.file} ("${files.get(m.file)}" and "${m.label}"); give each a unique name`);
+      files.set(m.file, m.label);
+    }
+    for (const [i, name] of sections.entries()) {
+      put(out('slides', `${pad(i + 1)}-${safeName(name)}.png`), await main.page.locator('section[data-section]').nth(i).screenshot({ animations: 'disabled' }));
+    }
+    for (const kind of social) {
+      put(out('social', `${kind}.png`), await main.page.locator(`[data-social="${kind}"]`).screenshot({ animations: 'disabled' }));
+    }
+  } finally {
+    await main.context.close();
   }
-  for (const kind of social) {
-    put(out('social', `${kind}.png`), await main.page.locator(`[data-social="${kind}"]`).screenshot({ animations: 'disabled' }));
-  }
-  await main.context.close();
 
   // Each mockup in its own context: deviceScaleFactor makes its long side 3000px.
   for (const [i, m] of mockups.entries()) {
-    const shot = await openPage(browser, url, { scale: MOCKUP_LONG_SIDE / m.long, layer });
-    put(out('mockups', `${safeName(m.name) || `mockup-${i + 1}`}.png`), await shot.page.locator('[data-mockup]').nth(i).screenshot({ animations: 'disabled' }));
+    const shot = await openPage(browser, url, { scale: MOCKUP_LONG_SIDE / m.long, layer, imageTimeoutMs });
+    put(out('mockups', m.file), await shot.page.locator('[data-mockup]').nth(i).screenshot({ animations: 'disabled' }));
     await shot.context.close();
   }
 
-  const doc = await openPage(browser, url, { layer, slidesOnly: true });
+  const doc = await openPage(browser, url, { layer, slidesOnly: true, imageTimeoutMs });
   put(out('presentation.pdf'), await doc.page.pdf({ width: `${SLIDE.width}px`, height: `${SLIDE.height}px`, printBackground: true, preferCSSPageSize: true }));
   await doc.context.close();
   return written;
 }
 
-export async function exportPresentation(dir, spec, { browser }) {
+export async function exportPresentation(dir, spec, { browser, imageTimeoutMs = 15000 }) {
   const parsed = parseWatermarkSpec(spec);
   const file = path.resolve(dir, 'presentation.html');
   const source = fs.readFileSync(file, 'utf8');
@@ -122,7 +194,7 @@ export async function exportPresentation(dir, spec, { browser }) {
     const withLayer = mode === 'preview' ? layer : null;
     const html = path.join(outDir, 'presentation.html');
     fs.writeFileSync(html, savedHtml(source, withLayer));
-    outputs.push(html, ...(await renderAll({ browser, url, outDir, layer: withLayer })));
+    outputs.push(html, ...(await renderAll({ browser, url, outDir, layer: withLayer, imageTimeoutMs })));
   }
   return { outputs };
 }

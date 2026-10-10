@@ -169,7 +169,7 @@ test('only a real opacity suffix is an opacity; anything else stays in the text'
   assert.equal(parseWatermarkSpec('text:Studio X @0.1').opacity, 0.1);
   assert.equal(parseWatermarkSpec('text:a@b').text, 'a@b');
   assert.equal(parseWatermarkSpec('text:x@.1').opacity, 0.1);
-  assert.throws(() => parseWatermarkSpec('text:x@1'));
+  assert.throws(() => parseWatermarkSpec('text:x@1'), /trailing "@1"/);
   assert.throws(() => parseWatermarkSpec('text:x@0.5'));
 });
 
