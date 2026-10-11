@@ -152,6 +152,11 @@ gets kraft paper and a street front, not a phone on marble.
   and the reason is reported. A failing mockup is never used "just this
   once".
 
+**Every mockup photo is a local file inside the presentation folder.** Not
+a `data:` URI, not a hotlink (`http`/`https`), not a path that leaves the
+folder (`../`). Download the original, store it in the folder, and
+reference it by relative path. The checker fails any other source.
+
 Record every photo that is used in `assets.md` (§9).
 
 ---
@@ -215,6 +220,10 @@ Markup contract, which the exporter and the checker read:
 Each section must fit **1920×1080**. A taller section would be cropped in
 its slide, so the checker fails it as "slide overflow". Split the content
 instead.
+
+Elements with `data-social` may sit inside a section. The slide PNG and the
+PDF hide them, and they are exported only as `social/square.png` and
+`social/story.png`. They do not count toward the section's 1920×1080.
 
 Relative assets resolve from the presentation directory. Paths may contain
 spaces and accents.
@@ -283,16 +292,29 @@ Both live in the presentation directory. The checker reads them.
 
 ### `research-log.md`
 
-The headings are read exactly as written. Entries are list items starting
-with `- `.
+The headings are read exactly as written. Entries are **top-level** list
+items: `- `, or numbered (`1.` / `1)`). A sub-bullet does not count, and
+neither does anything inside a code block.
 
 - **Behance cases, Market brands and Mockup candidates** count **unique
-  URLs**. A repeated entry, or one with no URL, does not count.
+  URLs**. A repeated entry, or one with no URL, does not count. The same
+  page with `http` and `https`, with or without `www.`, or with tracking
+  parameters (`utm_*`, `fbclid`…) counts once.
 - **Perceptual map** counts list items. A URL is recommended, not required.
 - HTML comments are ignored, so the template's instructions never count as
   content. Keep them as comments.
-- A base under 30 passes only when `## Shortfall` holds real text: the
-  actual count and the reason. Copying the template does not add one.
+- **A base under 30 needs its own line under `## Shortfall`**, one per short
+  base, in exactly this form:
+
+  ```
+  - Behance cases: 18 — only 18 relevant cases exist for this niche online
+  ```
+
+  The name is `Behance cases`, `Market brands` or `Mockup candidates`. The
+  number is the real count the checker reads from the log. The reason is in
+  words (three or more). A Shortfall does not excuse a base it does not name,
+  and a comment, "TBD" or a bare `-` does not count. Copying the template
+  adds none.
 
 ```markdown
 # Research log
@@ -318,7 +340,9 @@ with `- `.
 - https://example.org — Brand name: x = experimental, y = everyday
 
 ## Shortfall
-<!-- Delete this section unless a base is under 30. Then write the real count and the reason here. -->
+<!-- Delete this section unless a base is under 30. Then one line per short base, the real count and the reason, in this form:
+- Behance cases: 18 — only 18 relevant cases exist for this niche online
+-->
 ```
 
 | Rule | Value |
@@ -327,19 +351,27 @@ with `- `.
 | Market brands | 30 or more unique URLs |
 | Mockup candidates | 30 or more unique URLs |
 | Perceptual map | 8–12 list items |
-| A base under 30 | Accepted only under a non-empty `## Shortfall` |
+| A base under 30 | Accepted only with its own line under `## Shortfall` |
 
 ### `assets.md`
 
-One row per mockup photo used, as in `images.md` §5:
+A table, one row per mockup photo used, with these columns in this order:
 
 ```markdown
-| File | Source page | Licence (as shown on the page) | Downloaded | Treatment | Pages |
-|---|---|---|---|---|---|
-| mockup-card.jpg | https://stocksnap.io/photo/... | CC0 | 2026-10-10 | none | mockups |
+| file | source URL | licence |
+|---|---|---|
+| assets/mockup-card.jpg | https://stocksnap.io/photo/... | CC0 |
 ```
 
-The licence must need no credit. A CC BY row fails the check.
+- **file** is the photo's path relative to the presentation folder, written
+  exactly as the page uses it. The checker matches the whole path, not a
+  part of it.
+- **source URL** is the item page, and it must answer.
+- **licence** is never empty, and must need no credit (as shown on the page).
+  A CC BY row, or an empty cell, fails the check.
+
+`images.md` §5 keeps a longer record for the site's own images. This table is
+the presentation's.
 
 ---
 
@@ -372,4 +404,6 @@ to open.
 | "The author is waiting; skip the time warning" | The warning is part of the prompt. The author decides with it. |
 | "They have a logo, but I can improve it" | Use it unchanged. Never redraw it. |
 | "No mockup passes, but this one is close" | Drop the application and report why. A failing mockup is never used just this once. |
+| "I'll embed the mockup photo as a data URI / hotlink it" | Mockup photos are local files in the presentation folder, recorded in `assets.md` with their licence. The checker fails anything else. |
+| "I only found 18 cases, one Shortfall line covers everything" | One line per short base, with the real count. A Shortfall excuses only the bases it names. |
 | "The checker passed, so it is done" | It cannot judge taste or see a watermark in a photo. Look at the captures. |
