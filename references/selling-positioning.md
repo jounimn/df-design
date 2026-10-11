@@ -41,8 +41,9 @@ Never drop the time warning. The author decides with it in front of them.
 
 | Answer | Then |
 |---|---|
-| **Now** | Run §2–§8 before the Assets stage. Refresh the site section after the verification gate (§6) |
-| **At the end** | Continue to Assets and the build. Run §2–§8 after the verification gate |
+| **Now, `audition` path** | Run §2–§8 before the Assets stage. Refresh the site section after the verification gate (§6) |
+| **Now, `design` path** | Assets, the loading tier and the identity brief are already done. Run §2–§8 before Implementation. Refresh the site section after the verification gate (§6) |
+| **At the end** | Continue to Assets (or Implementation) and the build. Run §2–§8 after the verification gate |
 | **Skip** | Continue. Do not offer it again |
 
 **If Playwright was declined earlier**, add to the prompt:
@@ -69,6 +70,9 @@ Record the choice in the status line: `selling=<now|end|skip>`.
 If the author rejects every proposal, redirect with their notes and make
 **one more round**. After that, ask whether to continue without the logo
 system.
+
+The step 0 scope holds here. A new logo does not enter the shared header,
+or any surface outside the scope, unless the author agrees.
 
 From the approved mark, build the system:
 
@@ -170,6 +174,9 @@ Which site is shown:
 | Now, `design` path | Marked pending (`data-pending`). Filled with the built, verified site after the verification gate |
 | At the end | The built, verified site |
 
+The step 0 scope holds here: the site section shows only the surfaces in
+scope, and says nothing about the others.
+
 A refresh re-runs the export.
 
 ---
@@ -200,7 +207,7 @@ Markup contract, which the exporter and the checker read:
 | Attribute | On | Means |
 |---|---|---|
 | `data-section="<name>"` | The ten sections | One slide each, in the order above |
-| `data-mockup` | Each mockup element | Exported on its own, 3000px on the long side |
+| `data-mockup="<name>"` | Each mockup element | Exported on its own, 3000px on the long side. The value is the file name: `data-mockup="card"` gives `mockups/card.png`. Names must be unique |
 | `data-social="square"` | One element | Exported as the 1080×1080 post |
 | `data-social="story"` | One element | Exported as the 1080×1920 post |
 | `data-pending` | The `site` section | The site is not built yet. The checker fails it after the verification gate |
@@ -228,7 +235,7 @@ Output tree:
 ```
 selling-positioning/
   presentation.html
-  research-log.md        # Behance cases + market brands
+  research-log.md        # Behance cases + market brands + mockup candidates
   assets.md              # every mockup photo: source URL, licence, checked
   preview/               # watermarked (only when watermark != none)
     slides/ mockups/ social/ presentation.pdf presentation.html
@@ -243,7 +250,7 @@ Run, in this order:
 
 ```bash
 node scripts/export-presentation.mjs <presentation-dir> <watermark-spec|none>
-node scripts/check-presentation.mjs <presentation-dir>
+node scripts/check-presentation.mjs <presentation-dir> --watermark <watermark-spec|none>
 ```
 
 After the verification gate, when the site section is filled or refreshed,
@@ -251,10 +258,16 @@ run both again, with the late check:
 
 ```bash
 node scripts/export-presentation.mjs <presentation-dir> <watermark-spec|none>
-node scripts/check-presentation.mjs <presentation-dir> --after-gate
+node scripts/check-presentation.mjs <presentation-dir> --after-gate --watermark <watermark-spec|none>
 ```
 
-`--offline` skips the source-URL fetch when there is no network.
+Optional flags of `check-presentation.mjs`:
+
+| Flag | Does |
+|---|---|
+| `--offline` | Skips the source-URL fetch when there is no network |
+| `--after-gate` | Also fails a site section still marked `data-pending` |
+| `--watermark <spec\|none>` | Says what the export was run with. `none` fails a leftover `preview/`; a spec fails a missing or stale one. Pass the same value given to the export |
 
 The checker confirms the ten sections, the research counts, the licence
 rows, the preview and final split, every export size and the PDF page
@@ -271,34 +284,49 @@ Both live in the presentation directory. The checker reads them.
 ### `research-log.md`
 
 The headings are read exactly as written. Entries are list items starting
-with `- ` and carry a URL. The checker counts **unique URLs**: a repeated
-entry, or one with no URL, does not count.
+with `- `.
+
+- **Behance cases, Market brands and Mockup candidates** count **unique
+  URLs**. A repeated entry, or one with no URL, does not count.
+- **Perceptual map** counts list items. A URL is recommended, not required.
+- HTML comments are ignored, so the template's instructions never count as
+  content. Keep them as comments.
+- A base under 30 passes only when `## Shortfall` holds real text: the
+  actual count and the reason. Copying the template does not add one.
 
 ```markdown
 # Research log
 
 ## Behance cases
-- https://www.behance.net/gallery/… — what it demonstrates; accepted: the pacing of its construction slides
-- https://www.behance.net/gallery/… — what it demonstrates; rejected: stock-template composition
+<!-- One line per case: URL, what it demonstrates, accepted or rejected and why. 30 or more. -->
+- https://www.behance.net/gallery/111111/example-one — what it demonstrates; accepted: the pacing of its construction slides
+- https://www.behance.net/gallery/222222/example-two — what it demonstrates; rejected: stock-template composition
 
 ## Market brands
+<!-- One line per brand: URL, name, segment, price band, aesthetic, access date. Mark adjacent brands. 30 or more. -->
 - https://example.com — Brand name; segment, price band, aesthetic; accessed 2026-10-10
 - https://example.org — Brand name (adjacent: other city); segment, price band, aesthetic; accessed 2026-10-10
 
+## Mockup candidates
+<!-- One line per screened photo: URL, what it shows, passed or failed which rule. 30 or more. -->
+- https://stocksnap.io/photo/example-one — kraft bag; passed all four rules
+- https://example.net/free-mockup/two — shopfront; failed rule 3: credit required
+
 ## Perceptual map
+<!-- The 8-12 deep-cut brands, one line each, with the two axes. -->
 - https://example.com — Brand name: x = traditional, y = premium
 - https://example.org — Brand name: x = experimental, y = everyday
 
 ## Shortfall
-Only when a base is under 30: the real count and the reason. Leave the
-section out otherwise.
+<!-- Delete this section unless a base is under 30. Then write the real count and the reason here. -->
 ```
 
 | Rule | Value |
 |---|---|
-| Behance cases | 30 or more |
-| Market brands | 30 or more |
-| Perceptual map | 8–12 brands |
+| Behance cases | 30 or more unique URLs |
+| Market brands | 30 or more unique URLs |
+| Mockup candidates | 30 or more unique URLs |
+| Perceptual map | 8–12 list items |
 | A base under 30 | Accepted only under a non-empty `## Shortfall` |
 
 ### `assets.md`
