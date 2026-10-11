@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { licenceNeedsCredit, licenceIsPlaceholder } from './licence.mjs';
 import { hasWatermark } from './watermark.mjs';
 import { pngSize, pdfPageCount } from './image-meta.mjs';
-import { EXPORT_CSS, HIDE_INNER_ARTBOARDS_CSS, srcsetUrls } from './export.mjs';
+import { EXPORT_CSS, HIDE_INNER_ARTBOARDS_CSS, srcsetUrls, mapImageSetStrings } from './export.mjs';
 
 export const REQUIRED_SECTIONS = ['opening', 'concept', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
 const MIN_BASE = 30;
@@ -204,7 +204,7 @@ async function renderRaw(browser, file, width, height, scale = 1) {
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
   page.on('requestfailed', (r) => errors.push(`failed: ${r.url()}`));
   await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
-  await page.evaluate(() => document.querySelectorAll('img[loading]').forEach((i) => { i.loading = 'eager'; }));
+  await page.evaluate(() => document.querySelectorAll('img[loading], iframe[loading]').forEach((i) => { i.loading = 'eager'; }));
   await page.evaluate(() => Promise.race([
     Promise.all([document.fonts?.ready, ...[...document.images].map((i) => (i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; })))]),
     new Promise((r) => setTimeout(r, 8000)),
@@ -235,13 +235,22 @@ function collectMockupSources(selector) {
 
   // A file:// stylesheet (a <link>, an @import) is cross-origin to a file:// page, so its rules cannot be read from here:
   // those hrefs come back in `blocked` and the caller inlines them.
+  // Rules are [selector, declarations, base]. A rule nested in another style rule (CSS nesting) gets its selector spelled
+  // out: "&" becomes :is(parent), and a child with no "&" is a descendant of the parent. Conditional groups (@media...)
+  // inside a style rule keep the parent selector; their bare declarations belong to it.
   const rules = [];
   const blocked = [];
-  const walk = (list, base) => {
+  const splitList = (list) => list.split(/,(?![^()]*\))/).map((x) => x.trim()).filter(Boolean);
+  const spell = (selector, parent) => (parent === null ? selector : splitList(selector).map((one) => (one.includes('&') ? one.replaceAll('&', `:is(${parent})`) : `:is(${parent}) ${one}`)).join(', '));
+  const walk = (list, base, parent = null) => {
     for (const r of list) {
       if (r instanceof CSSImportRule) readSheet(r.styleSheet, base);
-      else if (r instanceof CSSStyleRule) rules.push([r, base]);
-      else if (r.cssRules) walk(r.cssRules, base);
+      else if (r instanceof CSSStyleRule) {
+        const selector = spell(r.selectorText, parent);
+        rules.push([selector, r.style.cssText, base]);
+        if (r.cssRules?.length) walk(r.cssRules, base, selector);
+      } else if (r.cssRules) walk(r.cssRules, base, parent);
+      else if (parent !== null && r.style) rules.push([parent, r.style.cssText, base]); // CSSNestedDeclarations
     }
   };
   function readSheet(sheet, base) {
@@ -270,7 +279,7 @@ function collectMockupSources(selector) {
         if (n.parentElement instanceof HTMLPictureElement && n.getAttribute('srcset')) srcsets.push(n.getAttribute('srcset'));
         if (n.parentElement instanceof HTMLMediaElement) sources.push(n.src);
       }
-      if (n instanceof SVGImageElement && n.href?.baseVal) sources.push(resolve(n.href.baseVal, document.baseURI));
+      if ((n instanceof SVGImageElement || n instanceof SVGFEImageElement) && n.href?.baseVal) sources.push(resolve(n.href.baseVal, document.baseURI));
       if (n instanceof HTMLVideoElement) sources.push(n.poster, n.currentSrc, n.src);
       if (n instanceof HTMLObjectElement) sources.push(n.data);
       if (n instanceof HTMLEmbedElement || n instanceof HTMLIFrameElement) sources.push(n.src);
@@ -280,8 +289,8 @@ function collectMockupSources(selector) {
         for (const prop of IMAGE_PROPS) sources.push(...urlsIn(style[prop] || '', document.baseURI));
       }
     }
-    for (const [rule, base] of rules) {
-      if (nodes.some((n) => matches(n, rule.selectorText))) sources.push(...urlsIn(rule.cssText.slice(rule.cssText.indexOf('{')), base));
+    for (const [selector, declarations, base] of rules) {
+      if (nodes.some((n) => matches(n, selector))) sources.push(...urlsIn(declarations, base));
     }
     out.push({ label: m.dataset?.mockup || `#${i + 1}`, base: document.baseURI, sources: [...new Set(sources.filter((s) => s && !/^(about|javascript):/i.test(s)))], srcsets });
   });
@@ -293,7 +302,7 @@ function collectMockupSources(selector) {
 // Stylesheet text with its urls made absolute, so it can be inlined into the page without changing what they point at.
 function absolutizeCss(css, base) {
   const abs = (u) => { try { return new URL(u, base).href; } catch { return u; } };
-  return css
+  return mapImageSetStrings(css, (u) => (/^(data:|#)/i.test(u) ? u : abs(u)))
     .replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (m, q, u) => (/^(data:|#)/i.test(u) ? m : `url("${abs(u)}")`))
     .replace(/@import\s+(["'])([^"']+)\1/gi, (m, q, u) => `@import "${abs(u)}"`);
 }
@@ -321,6 +330,11 @@ async function mockupSources(page) {
     label: m.label,
     sources: [...m.sources, ...m.srcsets.flatMap((v) => srcsetUrls(v).map((u) => { try { return new URL(u, m.base).href; } catch { return u; } }))],
   }));
+  // Frames load on their own clock (a lazy iframe was only just made eager): let them finish before they are read.
+  for (let round = 0; round < 2; round++) {
+    await Promise.all(page.frames().map((fr) => fr.waitForLoadState('load', { timeout: 15000 }).catch(() => {})));
+    await page.waitForTimeout(150);
+  }
   const mockups = labelled(await collectIn(page, '[data-mockup]'));
   const labelOf = new Map([[page.mainFrame(), null]]);
   for (const frame of page.frames()) {
@@ -402,7 +416,7 @@ async function checkSlideshow(browser, file, width, height) {
 
 // Judged on the path alone: "photo.png?f=.svg" and "photo.png#.svg" are photos.
 // What in an SVG makes it a carrier for a photo: an <image>, an embedded raster, or a CSS url() to one.
-const SVG_RASTER = /<image\b|data:image\/(?:png|jpe?g|webp|gif)|url\(\s*["']?[^)#"']+\.(?:png|jpe?g|webp|gif)/i;
+const SVG_RASTER = /<image\b|<feImage\b|data:image\/(?!svg)|url\(\s*["']?[^)#"']+\.(?:png|jpe?g|webp|gif)/i;
 function svgText(src) {
   try {
     if (!/^data:/i.test(src)) return fs.readFileSync(fileURLToPath(src), 'utf8');

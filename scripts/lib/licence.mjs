@@ -4,7 +4,7 @@ const CC_BY_URL = /creativecommons\.org\/licenses\/by/i;
 
 const NEGATED = new RegExp([
   // "no attribution (required)", "not credit", "without attribution"
-  String.raw`(?:no|not|without)\s+(?:attribution|credit)(?:\s+(?:is\s+)?(?:required|needed))?`,
+  String.raw`\b(?:no|not|without)\s+(?:attribution|credit)(?:\s+(?:is\s+)?(?:required|needed))?`,
   // "attribution (is) not required", "credit not needed"
   String.raw`(?:attribution|credit)\s+(?:is\s+)?not\s+(?:required|needed|necessary)`,
   // "does not require attribution", "doesn't require credit", "don't require attribution"
@@ -21,7 +21,7 @@ const NEEDS_CREDIT = new RegExp([
   String.raw`\bby-nc\b`,
   String.raw`\bcreative\s+commons\s+(?:attribution|by)\b`,
   String.raw`\battribution\b`, // "Attribution 4.0 International", "attribution needed", "Free with attribution"
-  String.raw`\bcredit(?:ed)?\s+(?:the|to|required|needed|must|appreciated)\b`, // "credit the photographer"
+  String.raw`\bcredit(?:s|ed|ing)?\b`, // "credit the photographer", "Credit: Jane Doe", "Give credit", "Requires crediting the author"
   String.raw`\bphotographer\s+credit\b`,
   String.raw`\brequires?\s+credit\b`,
 ].join('|'), 'i');

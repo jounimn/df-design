@@ -36,7 +36,7 @@ body :not([data-df-anc]):not([data-df-art]):not([data-df-art] *):not([data-df-wa
 // frame layer behind a transparent mockup does not end up in the file. The checker reads the mockup's own sources only.
 const MOCKUP_SHOT_CSS = `${ARTBOARD_SHOT_CSS}
 [data-df-anc] { background: none !important; border-image: none !important; box-shadow: none !important; -webkit-mask: none !important; mask: none !important; }
-[data-df-anc]::before, [data-df-anc]::after { display: none !important; }
+[data-df-anc]::before, [data-df-anc]::after { visibility: hidden !important; background: none !important; }
 `;
 
 const fail = (message) => { throw new Error(`export: ${message}`); };
@@ -70,7 +70,7 @@ const withPrefix = (u, prefix) => prefix + u.trim().replace(/^\.\//, '');
 const prefixed = (u, prefix) => (isRelative(decodeEntities(u)) ? withPrefix(u, prefix) : u);
 // image-set("a.png" 1x, url(b.png) 2x type("image/png")): the bare strings are urls too. url() and type() inside the set are
 // left alone here (the url() rule below prefixes the first). The closing paren is found by counting, not by the first ")".
-function imageSets(css, prefix) {
+export function mapImageSetStrings(css, fix) {
   let out = '';
   let i = 0;
   for (;;) {
@@ -87,11 +87,12 @@ function imageSets(css, prefix) {
       else if (c === ')') depth--;
     }
     const inner = css.slice(open, depth === 0 ? j - 1 : j);
-    const fixed = inner.replace(/(?:url|type)\([^)]*\)|(["'])([^"']+)\1/g, (part, q, u) => (q && isRelative(u) ? q + withPrefix(u, prefix) + q : part));
+    const fixed = inner.replace(/(?:url|type)\([^)]*\)|(["'])([^"']+)\1/g, (part, q, u) => (q ? q + fix(u) + q : part));
     out += css.slice(i, open) + fixed + (depth === 0 ? ')' : '');
     i = j;
   }
 }
+const imageSets = (css, prefix) => mapImageSetStrings(css, (u) => (isRelative(u) ? withPrefix(u, prefix) : u));
 const cssUrls = (css, prefix) => imageSets(css, prefix)
   .replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (m, q, u) => (isRelative(u) ? `url(${q}${withPrefix(u, prefix)}${q})` : m))
   .replace(/@import\s+(["'])([^"']+)\1/gi, (m, q, u) => (isRelative(u) ? `@import ${q}${withPrefix(u, prefix)}${q}` : m));
@@ -338,7 +339,7 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
       // The mockup alone: its ancestors stop clipping and painting (it may be bigger than the slide that holds it), the rest is hidden.
       await el.evaluate((e) => {
         e.setAttribute('data-df-art', '');
-        for (let n = e.parentElement; n && n !== document.documentElement; n = n.parentElement) n.setAttribute('data-df-anc', '');
+        for (let n = e.parentElement; n; n = n.parentElement) n.setAttribute('data-df-anc', ''); // up to and including <html>
       });
       await shot.page.addStyleTag({ content: MOCKUP_SHOT_CSS });
       put(out('mockups', m.file), await shootBox(shot.page, el));

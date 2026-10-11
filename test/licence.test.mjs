@@ -48,3 +48,12 @@ test('more placeholders: None, TBD., N.A., tbc', () => {
   for (const l of ['None', 'none.', 'TBD.', 'T.B.D.', 'N.A.', 'n.a', 'tbc', 'TBC', '???']) assert.equal(licenceIsPlaceholder(l), true, l);
   for (const l of ['CC0', 'Pexels License', 'Unsplash License', 'Public Domain']) assert.equal(licenceIsPlaceholder(l), false, l);
 });
+
+test('any mention of credit needs credit, once negations are gone', () => {
+  for (const l of ['Free to use with credit', 'Credit: Jane Doe', 'Must credit author', 'Give credit', 'Credit line required', 'Requires crediting the author', 'credits to the studio', 'Mario Bruno credit required']) {
+    assert.equal(licenceNeedsCredit(`| a.jpg | https://x | ${l} |`), true, l);
+  }
+  for (const l of ['no credit required', 'No credit', 'does not require credit', "doesn't require credit", 'credit not needed', 'credit required: no', 'without credit']) {
+    assert.equal(licenceNeedsCredit(`| a.jpg | https://x | Pexels License, ${l} |`), false, l);
+  }
+});

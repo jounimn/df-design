@@ -352,3 +352,17 @@ test('a mockup PNG holds the mockup only: what its ancestors paint (section back
     f.cleanup();
   }
 });
+
+test('a mockup PNG also leaves out what <html> paints, and an ancestor pseudo-element still takes its place in the layout', { timeout: 300000 }, async () => {
+  const f = await variant((h) => h
+    .replace('<div class="row">', '<div class="row" style="display:grid;grid-template-columns:200px 400px"><div data-mockup="grid" style="width:100%;aspect-ratio:2/1"></div>')
+    .replace('</style>', 'html{background:#ff0000}html::before{content:"";position:absolute;top:0;left:0;width:100%;height:30000px;background:#0000ff;z-index:9}.row::before{content:""}</style>'));
+  try {
+    const file = path.join(f.dir, 'final', 'mockups', 'grid.png');
+    assert.equal(png(f.dir, 'final', 'mockups', 'grid.png').width, 3000, 'the grid column the pseudo-element takes is still taken');
+    assert.deepEqual((await pixel(file, 10, 10)).slice(0, 3), [255, 255, 255], 'nothing behind the mockup: not the html red, not the html::before blue');
+  } finally {
+    f.cleanup();
+  }
+});
+"});"  

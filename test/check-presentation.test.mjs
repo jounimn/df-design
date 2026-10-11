@@ -505,3 +505,41 @@ test('a rule in a linked or @import-ed stylesheet is read (file:// sheets cannot
   };
   assert.deepEqual((await check(relative)).failed, [], 'a relative url in a linked sheet resolves against the sheet, to a recorded local photo');
 });
+
+test('rules nested in other rules are read, with "&" read as the parent selector', async () => {
+  const variants = {
+    '& [data-mockup] in a nested @media': addCss(`section[data-section="mockups"]{@media (min-width:2400px){& [data-mockup]{background:url(${remote('bg.png')})}}}`),
+    'a child with no &, in a nested @media': addCss(`.row{@media (max-width:50px){.poster{background:url(${remote('bg.png')})}}}`),
+    'a child with &.class': addCss(`.m{@media (max-width:50px){&.poster{background:url(${remote('bg.png')})}}}`),
+    'declarations placed directly in a nested @media': addCss(`.poster{@media (max-width:50px){background:url(${remote('bg.png')})}}`),
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+  // A nested rule for something that is not the mockup does not accuse it.
+  const elsewhere = addCss(`section[data-section="mockups"]{@media (max-width:50px){& h2{background:url(${remote('bg.png')})}}}`);
+  assert.deepEqual((await check(elsewhere)).failed, [], 'a nested rule for the heading');
+});
+
+test('an <feImage> in an inline SVG, a raster data: URI in an SVG, and a lazy iframe far down the mockup are all read', async () => {
+  const variants = {
+    'an <feImage>': intoCard(`<svg width="10" height="10"><filter id="f"><feImage href="${remote('fe.png')}"/></filter><rect width="10" height="10" filter="url(#f)"/></svg>`),
+    'a data:image/gif in a local SVG': (dir) => {
+      fs.writeFileSync(path.join(dir, 'g.svg'), `<svg xmlns="http://www.w3.org/2000/svg"><style>.a{fill:url("data:image/gif;base64,R0lGODlhAQABAAAAACw=")}</style><rect class="a" width="1" height="1"/></svg>`);
+      intoCard('<img src="g.svg" alt="x">')(dir);
+    },
+    'a lazy iframe below the clipped edge': (dir) => {
+      fs.writeFileSync(path.join(dir, 'frame.html'), `<body><img src="${remote('lazy.png')}" alt="x"></body>`);
+      intoCard('<iframe src="frame.html" loading="lazy" style="margin-top:4000px;width:50px;height:50px"></iframe>')(dir);
+    },
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('image-set() strings in a linked stylesheet are resolved against the sheet', async () => {
+  const mutate = (dir) => {
+    fs.mkdirSync(path.join(dir, 'css'));
+    fs.copyFileSync(path.join(dir, 'assets', 'mockup.png'), path.join(dir, 'assets', 'set.png'));
+    fs.writeFileSync(path.join(dir, 'css', 'extra.css'), '.poster{background-image:image-set("../assets/set.png" 1x)}');
+    edit(dir, 'presentation.html', (h) => h.replace('</head>', () => '<link rel="stylesheet" href="css/extra.css"></head>'));
+  };
+  assert.deepEqual((await check(mutate)).failed, RECORD('assets/set.png'));
+});
