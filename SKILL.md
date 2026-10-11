@@ -93,10 +93,12 @@ opacity, scope and the preview/final split: `references/watermark.md`.
 Once path and mode are known (and the watermark answered or defaulted to
 none), record them as one status line:
 
-`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> selling=<now|end|skip> — <conditions from step 0, one line>`
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> selling=<now|end|skip> tier=<fast|medium|high> — <conditions from step 0, one line>`
 
-`selling=` is filled when the detour is offered (`selling-positioning.md`
-§1); until then leave it out.
+`selling=` and `tier=` are filled when the detour is offered
+(`selling-positioning.md` §1). `tier=` is the presentation's motion tier,
+the author's choice, and is left out when `selling=skip`. Until the detour
+is offered, leave both out.
 
 The status line is for the record and for developers. **Ask the author in
 their own words.** A bakery owner gets "Would you like to see three short
@@ -144,7 +146,9 @@ Step 0 conditions  →  Author intent  →  Identity definition  →  Reference 
 ```
 
 `selling-positioning` is not a third path. It is an optional detour,
-recorded as `selling=<now|end|skip>`. In the `audition` path the offer
+recorded as `selling=<now|end|skip> tier=<fast|medium|high>`. It has no
+market research: positioning comes from the identity and the author's
+intent. In the `audition` path the offer
 follows Author selection. In the `design` path it follows the approval of
 the identity brief. On `end`, the path runs after the verification gate.
 Everything about it: `references/selling-positioning.md`.
@@ -166,7 +170,7 @@ to price them.
 | Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |
 | Watermark: question, layer, preview and final | `references/watermark.md` |
-| Selling-positioning: logo, market, mockups, presentation, export | `references/selling-positioning.md` |
+| Selling-positioning: logo, positioning, mockups, slideshow, export | `references/selling-positioning.md` |
 
 In `motion` mode the identity stages shrink to one: read the identity the
 site already has and keep to it.

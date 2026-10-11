@@ -55,9 +55,12 @@ Author intent → Identity definition → Reference & identity research
 ```
 
 The optional **selling-positioning** detour, offered once the identity is
-chosen, produces a complete logo presentation and the identity's market
-positioning (researched competitors, real mockups, the chosen site shown as
-part of the work) as an HTML presentation, slides, social images and a PDF.
+chosen, produces a complete logo presentation and the identity's positioning
+(from the identity and the author's intent, with no market research; real
+mockups; the chosen site shown as part of the work) as an HTML slideshow,
+slides, social images and a PDF. The author picks the motion tier of the
+slideshow (`fast`, `medium` or `high`), and may choose a logo proposal,
+combine parts of several, or redirect.
 If the work is being sold, a **protective watermark** (a text pattern, or
 the author's image plus text, at low opacity) goes on everything shown,
 with a clean copy kept for delivery after payment.
