@@ -6,54 +6,78 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { licenceNeedsCredit } from './licence.mjs';
 import { hasWatermark } from './watermark.mjs';
 import { pngSize, pdfPageCount } from './image-meta.mjs';
-import { EXPORT_CSS } from './export.mjs';
+import { EXPORT_CSS, HIDE_INNER_ARTBOARDS_CSS } from './export.mjs';
 
 export const REQUIRED_SECTIONS = ['opening', 'concept', 'market', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
 const MIN_BASE = 30;
 const MAP_RANGE = [8, 12];
 const SLIDE = { width: 1920, height: 1080 };
 
-const stripComments = (s) => s.replace(/<!--[\s\S]*?-->/g, '');
+// An unclosed comment runs to the end of the text, as it does in a browser and in Markdown renderers.
+const stripComments = (s) => s.replace(/<!--[\s\S]*?(?:-->|$)/g, '');
 
-// ---- pure parsers ----
+// ---- HTML parsers (runChecks reads the rendered DOM; these are for plain strings) ----
 
-const sectionNames = (html) => [...stripComments(html).matchAll(/data-section\s*=\s*["']?([\w-]+)/g)].map((m) => m[1]);
+// Only real <section> tags count: CSS selectors, script text and comments that mention data-section do not.
+const sectionTags = (html) => [...stripComments(html)
+  .replace(/<script\b[\s\S]*?<\/script\s*>/gi, '')
+  .replace(/<style\b[\s\S]*?<\/style\s*>/gi, '')
+  .matchAll(/<section\b[^>]*>/gi)].map((m) => m[0]);
+const attr = (tag, name) => {
+  const m = tag.match(new RegExp(`\\s${name}(?:\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'>]+)))?(?=[\\s/>])`, 'i'));
+  return m ? (m[1] ?? m[2] ?? m[3] ?? '') : null;
+};
 
-export function missingSections(html) {
-  const found = new Set(sectionNames(html));
-  return REQUIRED_SECTIONS.filter((s) => !found.has(s));
-}
+const sectionNames = (html) => sectionTags(html).map((t) => attr(t, 'data-section')).filter((n) => n !== null);
 
-export function sectionsInOrder(html) {
-  const seen = sectionNames(html).filter((n) => REQUIRED_SECTIONS.includes(n));
+export const missingFrom = (names) => REQUIRED_SECTIONS.filter((s) => !names.includes(s));
+export const inOrder = (names) => {
+  const seen = names.filter((n) => REQUIRED_SECTIONS.includes(n));
   return seen.length === REQUIRED_SECTIONS.length && seen.every((n, i) => n === REQUIRED_SECTIONS[i]);
+};
+export const missingSections = (html) => missingFrom(sectionNames(html));
+export const sectionsInOrder = (html) => inOrder(sectionNames(html));
+
+const isPending = (value) => value !== null && !/^(false|0)$/i.test(value);
+export function sitePending(html) {
+  const tag = sectionTags(html).find((t) => attr(t, 'data-section') === 'site');
+  return !!tag && isPending(attr(tag, 'data-pending'));
 }
 
-export function sitePending(html) {
-  const tag = stripComments(html).match(/<section\b[^>]*data-section\s*=\s*["']?site["']?[^>]*>/i);
-  return !!tag && /\sdata-pending\b/i.test(tag[0]);
-}
+// ---- research log ----
 
 const URL_RE = /https?:\/\/[^\s)>\]|"'<]+/i;
-const normalUrl = (raw) => {
+const TRACKING = /^(utm_.*|fbclid|gclid|ref|ref_src|mc_.*)$/i;
+
+// One page, one key: scheme, www, host case, tracking parameters, query order, fragment and trailing slash do not matter.
+function normalUrl(raw) {
   const u = raw.replace(/[.,;:!?]+$/, '');
   try {
-    const parsed = new URL(u);
-    parsed.hash = '';
-    return parsed.href.replace(/\/+$/, '');
+    const p = new URL(u);
+    const params = [...p.searchParams].filter(([k]) => !TRACKING.test(k)).sort(([a, av], [b, bv]) => a.localeCompare(b) || av.localeCompare(bv));
+    const query = new URLSearchParams(params).toString();
+    return `${p.hostname.toLowerCase().replace(/^www\./, '')}${p.port ? `:${p.port}` : ''}${p.pathname.replace(/\/+$/, '')}${query ? `?${query}` : ''}`;
   } catch {
     return u.replace(/\/+$/, '');
   }
-};
+}
 
-// Level 1 and 2 headings split the log; deeper headings stay in their section's body.
+const headingKey = (text) => text.toLowerCase().replace(/[*_`]/g, '')
+  .replace(/\s*[([][^)\]]*[)\]]\s*$/, '')
+  .replace(/\s*[-–—:]\s*\d+\s*$/, '')
+  .replace(/\s+/g, ' ').trim();
+
+// ## and ### headings split the log. Code fences are skipped whole, so an example inside one is never read as content.
 function logSections(md) {
   const sections = {};
   let current = null;
+  let fence = false;
   for (const line of stripComments(md).split(/\r?\n/)) {
-    const h = line.match(/^#{1,2}\s+(.+?)\s*#*\s*$/);
+    if (/^\s{0,3}(```|~~~)/.test(line)) { fence = !fence; continue; }
+    if (fence) continue;
+    const h = line.match(/^ {0,3}#{1,3}\s+(.+?)\s*#*\s*$/);
     if (h) {
-      current = h[1].trim().toLowerCase();
+      current = headingKey(h[1]);
       sections[current] ??= [];
     } else if (current) {
       sections[current].push(line);
@@ -62,38 +86,95 @@ function logSections(md) {
   return sections;
 }
 
-const listItems = (lines) => lines.map((l) => l.match(/^\s{0,3}[-*+]\s+(\S.*)$/)).filter(Boolean).map((m) => m[1]);
+// Top-level items only: 0–1 spaces of indent, `-`, `*`, `+`, `1.` or `1)`. Nested bullets are details, not entries.
+const listItems = (lines) => lines.map((l) => l.match(/^ {0,1}(?:[-*+]|\d{1,3}[.)])\s+(\S.*)$/)).filter(Boolean).map((m) => m[1]);
 const uniqueUrls = (lines) => new Set(listItems(lines).map((i) => i.match(URL_RE)?.[0]).filter(Boolean).map(normalUrl)).size;
 
-// Counts unique URLs in the three research bases, list items in the map, and whether a Shortfall states something.
+const BASES = [['behance', 'Behance cases'], ['market', 'Market brands'], ['mockups', 'Mockup candidates']];
+
+// `- <Base name>: <N> — <reason>`: one line per short base, the reason at least three words.
+function parseShortfalls(lines) {
+  const found = {};
+  for (const item of listItems(lines)) {
+    const m = item.replace(/[*_`]/g, '').match(/^(behance cases|market brands|mockup candidates)\s*:\s*(\d+)\s*[—–:-]\s*(.+)$/i);
+    if (!m || m[3].split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length < 3) continue;
+    const key = BASES.find(([, label]) => label.toLowerCase() === m[1].toLowerCase())[0];
+    found[key] = { count: Number(m[2]), reason: m[3].trim() };
+  }
+  return found;
+}
+
+// Counts unique URLs in the three research bases, list items in the map, and the Shortfall lines.
 // HTML comments are removed first, so the template's instructions never count as content.
 export function parseResearchLog(md) {
   const s = logSections(md);
+  const shortfalls = parseShortfalls(s.shortfall ?? []);
   return {
     behance: uniqueUrls(s['behance cases'] ?? []),
     market: uniqueUrls(s['market brands'] ?? []),
     mockups: uniqueUrls(s['mockup candidates'] ?? []),
     mapBrands: listItems(s['perceptual map'] ?? []).length,
-    shortfall: (s.shortfall ?? []).join('\n').trim().length > 0,
+    shortfall: Object.keys(shortfalls).length > 0,
+    shortfalls,
   };
 }
 
 export function researchFailures(log) {
   const failures = [];
-  for (const [key, label] of [['behance', 'Behance cases'], ['market', 'Market brands'], ['mockups', 'Mockup candidates']]) {
-    if (log[key] < MIN_BASE && !log.shortfall) failures.push(`${label}: ${log[key]} unique URLs, ${MIN_BASE} needed (or a non-empty ## Shortfall)`);
+  for (const [key, label] of BASES) {
+    if (log[key] >= MIN_BASE) continue;
+    const sf = log.shortfalls?.[key];
+    if (!sf) failures.push(`${label}: ${log[key]} unique URLs, ${MIN_BASE} needed; or add "- ${label}: ${log[key]} — <reason>" under ## Shortfall`);
+    else if (sf.count !== log[key]) failures.push(`${label}: Shortfall says ${sf.count} but the log has ${log[key]} unique URLs`);
   }
   if (log.mapBrands < MAP_RANGE[0] || log.mapBrands > MAP_RANGE[1]) failures.push(`Perceptual map: ${log.mapBrands} brands, ${MAP_RANGE[0]}–${MAP_RANGE[1]} needed`);
   return failures;
 }
 
+// ---- assets.md ----
+
+// A table `| file | source URL | licence | … |`. The file cell is a path relative to the presentation folder.
+const normalFileCell = (cell) => {
+  const c = cell.replace(/[`<>]/g, '').replace(/\\/g, '/').replace(/^\.\//, '').trim();
+  try { return decodeURI(c); } catch { return c; }
+};
+export function parseAssetRows(md) {
+  return stripComments(md).split(/\r?\n/)
+    .filter((l) => /^\s*\|/.test(l))
+    .map((l) => l.trim().replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map((c) => c.trim()))
+    .filter((cells) => !cells.every((c) => /^:?-{2,}:?$/.test(c)))
+    .map((cells) => ({ file: normalFileCell(cells[0] ?? ''), source: cells[1] ?? '', licence: cells[2] ?? '' }));
+}
+
+// ---- command line ----
+
+const FLAGS = ['--offline', '--after-gate'];
+export function parseCheckArgs(argv) {
+  const out = { dir: undefined, offline: false, afterGate: false, watermark: undefined };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === '--offline') out.offline = true;
+    else if (a === '--after-gate') out.afterGate = true;
+    else if (a === '--watermark' || a.startsWith('--watermark=')) {
+      const value = a === '--watermark' ? argv[++i] : a.slice('--watermark='.length);
+      if (!value || value.startsWith('--')) throw new Error('--watermark needs a value: none or a watermark spec');
+      out.watermark = value;
+    } else if (a.startsWith('--')) {
+      throw new Error(`unknown option ${a} (known: ${[...FLAGS, '--watermark <spec|none>'].join(', ')})`);
+    } else if (out.dir === undefined) out.dir = a;
+    else throw new Error(`unexpected extra argument: ${a}`);
+  }
+  if (out.dir === undefined) throw new Error('missing <presentation-dir>');
+  return out;
+}
+
 // ---- runChecks ----
 
-const RASTER = /\.(jpe?g|png|webp|avif|gif)$/i;
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) =>
   e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
 const relFiles = (d) => walk(d).map((f) => path.relative(d, f).split(path.sep).join('/')).sort();
 const pad = (n) => String(n).padStart(2, '0');
+const posix = (p) => p.split(path.sep).join('/');
 
 async function renderRaw(browser, file, width, height) {
   const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
@@ -110,24 +191,61 @@ async function renderRaw(browser, file, width, height) {
   return { page, context, errors };
 }
 
+// Every raster a [data-mockup] shows: <img>, SVG <image>, and the background of the element, its descendants and their
+// ::before / ::after. Computed styles serialise a background as url("…") with the address already resolved.
+function collectMockupSources() {
+  const out = [];
+  document.querySelectorAll('[data-mockup]').forEach((m, i) => {
+    const sources = [];
+    for (const n of [m, ...m.querySelectorAll('*')]) {
+      if (n instanceof HTMLImageElement) sources.push(n.currentSrc || n.src);
+      if (n instanceof SVGImageElement && n.href?.baseVal) sources.push(new URL(n.href.baseVal, document.baseURI).href);
+      for (const pseudo of [null, '::before', '::after']) {
+        for (const mm of getComputedStyle(n, pseudo).backgroundImage.matchAll(/url\("((?:[^"\\]|\\.)*)"\)/g)) sources.push(mm[1].replace(/\\(.)/g, '$1'));
+      }
+    }
+    out.push({ label: m.dataset.mockup || `#${i + 1}`, sources: sources.filter(Boolean) });
+  });
+  return out;
+}
+
+const isVector = (src) => /^data:image\/svg/i.test(src) || /\.svg([?#]|$)/i.test(src);
+
 export async function runChecks(dir, { offline = false, afterGate = false, browser, watermark } = {}) {
   const results = [];
   const check = (name, ok, detail = '') => results.push({ name, ok, detail });
-  const file = path.resolve(dir, 'presentation.html');
+  const root = path.resolve(dir);
+  const file = path.join(root, 'presentation.html');
 
   const exists = fs.existsSync(file);
   check('presentation.html exists', exists);
   if (!exists) return results;
-  const html = fs.readFileSync(file, 'utf8');
 
-  // Markup contract
-  const missing = missingSections(html);
-  check('ten sections present, in order', missing.length === 0 && sectionsInOrder(html),
-    missing.length ? `missing: ${missing.join(', ')}` : sectionsInOrder(html) ? '' : `found: ${sectionNames(html).join(', ')}`);
-  if (afterGate) check('site section is filled (not marked pending)', !sitePending(html));
+  // 1920 with the export CSS: the sections and artboards as the export will see them, and slide overflow.
+  const slides = await renderRaw(browser, file, SLIDE.width, SLIDE.height);
+  await slides.page.addStyleTag({ content: EXPORT_CSS + HIDE_INNER_ARTBOARDS_CSS });
+  const expected = await slides.page.evaluate(({ sw, sh }) => {
+    const site = document.querySelector('section[data-section="site"]');
+    return {
+      sections: [...document.querySelectorAll('section[data-section]')].map((s) => ({ name: s.dataset.section, over: s.scrollHeight > sh || s.scrollWidth > sw, box: `${s.scrollWidth}×${s.scrollHeight}` })),
+      sitePending: site ? site.getAttribute('data-pending') : null,
+      mockups: document.querySelectorAll('[data-mockup]').length,
+      social: ['square', 'story'].filter((k) => document.querySelector(`[data-social="${k}"]`)),
+    };
+  }, { sw: SLIDE.width, sh: SLIDE.height });
+  await slides.context.close();
+
+  // Markup contract, read from the rendered DOM
+  const names = expected.sections.map((s) => s.name);
+  const missing = missingFrom(names);
+  check('ten sections present, in order', missing.length === 0 && inOrder(names),
+    missing.length ? `missing: ${missing.join(', ')}` : inOrder(names) ? '' : `found: ${names.join(', ')}`);
+  if (afterGate) check('site section is filled (not marked pending)', !isPending(expected.sitePending));
+  const overflowing = expected.sections.filter((s) => s.over);
+  check('slide overflow: every section fits 1920×1080', overflowing.length === 0, overflowing.map((s) => `${s.name} is ${s.box}`).join(', '));
 
   // Research log
-  const logFile = path.join(dir, 'research-log.md');
+  const logFile = path.join(root, 'research-log.md');
   check('research-log.md exists', fs.existsSync(logFile));
   if (fs.existsSync(logFile)) {
     const log = parseResearchLog(fs.readFileSync(logFile, 'utf8'));
@@ -136,63 +254,57 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
       failures.join(' | ') || `behance ${log.behance}, market ${log.market}, mockups ${log.mockups}, map ${log.mapBrands}${log.shortfall ? ', shortfall stated' : ''}`);
   }
 
-  // Render: 1440 and 390 for errors, scroll and images; 1920 with the export CSS for slide overflow and what to expect from the export
-  const used = new Set();
+  // Render at 1440 and 390: errors, scroll, images; at 1440 also the photos inside the mockups
+  let mockups = [];
   for (const [w, h] of [[1440, 900], [390, 844]]) {
     const { page, context, errors } = await renderRaw(browser, file, w, h);
     const info = await page.evaluate(() => ({
       sw: document.documentElement.scrollWidth,
       imgs: [...document.images].map((i) => ({ src: i.currentSrc || i.src, ok: i.complete && i.naturalWidth > 0 })),
-      bg: [...document.querySelectorAll('*')].map((e) => getComputedStyle(e).backgroundImage).filter((b) => b.includes('url(')),
     }));
+    if (w === 1440) mockups = await page.evaluate(collectMockupSources);
     const label = `presentation.html @${w}`;
     check(`${label}: no page errors or failed requests`, errors.length === 0, errors.join(' | '));
     check(`${label}: no horizontal scroll`, info.sw <= w, `scrollWidth ${info.sw}`);
-    check(`${label}: every image loaded`, info.imgs.every((i) => i.ok), info.imgs.filter((i) => !i.ok).map((i) => i.src).join(', '));
-    const urls = [...info.imgs.map((i) => i.src), ...info.bg.flatMap((b) => [...b.matchAll(/url\("?([^")]+)"?\)/g)].map((m) => m[1]))];
-    for (const u of urls) {
-      if (!u.startsWith('file:')) continue;
-      const local = fileURLToPath(u);
-      const rel = path.relative(path.resolve(dir), local);
-      if (!rel.startsWith('..') && !path.isAbsolute(rel) && !/^(final|preview)[\\/]/.test(rel) && RASTER.test(local)) used.add(local);
-    }
+    check(`${label}: every image loaded`, info.imgs.every((i) => i.ok), info.imgs.filter((i) => !i.ok).map((i) => i.src.slice(0, 120)).join(', '));
     await context.close();
   }
 
-  const slides = await renderRaw(browser, file, SLIDE.width, SLIDE.height);
-  await slides.page.addStyleTag({ content: EXPORT_CSS });
-  const expected = await slides.page.evaluate(({ sw, sh }) => ({
-    sections: [...document.querySelectorAll('section[data-section]')].map((s) => ({ name: s.dataset.section, over: s.scrollHeight > sh || s.scrollWidth > sw, box: `${s.scrollWidth}×${s.scrollHeight}` })),
-    mockups: document.querySelectorAll('[data-mockup]').length,
-    social: ['square', 'story'].filter((k) => document.querySelector(`[data-social="${k}"]`)),
-  }), { sw: SLIDE.width, sh: SLIDE.height });
-  await slides.context.close();
-  const overflowing = expected.sections.filter((s) => s.over);
-  check('slide overflow: every section fits 1920×1080', overflowing.length === 0, overflowing.map((s) => `${s.name} is ${s.box}`).join(', '));
+  // Mockup photos must be local files in this folder; each is recorded with a source URL and a licence that needs no credit.
+  const used = new Map(); // relative path -> label
+  const notLocal = [];
+  for (const m of mockups) {
+    for (const src of m.sources.filter((s) => !isVector(s))) {
+      const rel = src.startsWith('file:') ? posix(path.relative(root, fileURLToPath(src))) : null;
+      if (rel === null) notLocal.push(`[data-mockup="${m.label}"]: ${src.startsWith('data:') ? 'data: URI' : src.slice(0, 80)}`);
+      else if (rel.startsWith('..') || path.isAbsolute(rel)) notLocal.push(`[data-mockup="${m.label}"]: ${rel} is outside the presentation folder`);
+      else if (/^(final|preview)\//.test(rel)) notLocal.push(`[data-mockup="${m.label}"]: ${rel} is inside the export folder`);
+      else used.set(rel, m.label);
+    }
+  }
+  if (mockups.length) check('mockup photo must be a local file in the presentation folder', notLocal.length === 0, notLocal.join(' | '));
 
-  // Mockup photos: recorded, with a source URL and a licence that needs no credit
   if (used.size) {
-    const assetsFile = ['assets.md', 'asset.md'].map((f) => path.join(dir, f)).find((f) => fs.existsSync(f));
+    const assetsFile = ['assets.md', 'asset.md'].map((f) => path.join(root, f)).find((f) => fs.existsSync(f));
     check('assets.md exists', !!assetsFile);
-    const records = assetsFile ? fs.readFileSync(assetsFile, 'utf8') : '';
-    for (const local of used) {
-      const base = path.basename(local);
-      const row = records.split('\n').find((l) => l.includes(base)) || '';
-      check(`${base}: recorded`, row.length > 0);
-      const url = (row.match(/https?:\/\/[^\s|)>]+/) || [])[0];
-      check(`${base}: source URL recorded`, !!url, url || '');
-      check(`${base}: licence is not CC BY / credit-required`, row.length > 0 && !licenceNeedsCredit(row), row.slice(0, 160));
+    const rows = assetsFile ? parseAssetRows(fs.readFileSync(assetsFile, 'utf8')) : [];
+    for (const rel of used.keys()) {
+      const row = rows.find((r) => r.file === rel);
+      check(`${rel}: recorded in assets.md`, !!row);
+      const url = (row?.source.match(/https?:\/\/[^\s|)>]+/) || [])[0];
+      check(`${rel}: source URL recorded`, !!url, url || '');
+      check(`${rel}: licence recorded and needs no credit`, !!row && row.licence.trim() !== '' && !licenceNeedsCredit(row.licence), row?.licence.slice(0, 160) ?? '');
       if (url && !offline) {
         let code = 0;
         try { code = (await fetch(url, { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 Chrome/130' }, signal: AbortSignal.timeout(20000) })).status; } catch { code = -1; }
-        check(`${base}: source page answers`, code > 0 && (code < 400 || [401, 403, 429].includes(code)), `HTTP ${code}`);
+        check(`${rel}: source page answers`, code > 0 && (code < 400 || [401, 403, 429].includes(code)), `HTTP ${code}`);
       }
     }
   }
 
   // preview/ and final/
-  const finalDir = path.join(dir, 'final');
-  const previewDir = path.join(dir, 'preview');
+  const finalDir = path.join(root, 'final');
+  const previewDir = path.join(root, 'preview');
   const hasPreview = fs.existsSync(previewDir);
   if (watermark === 'none') check('no preview/ when watermark=none', !hasPreview);
   else if (watermark !== undefined) check('preview/ exists (watermark requested)', hasPreview);
@@ -205,14 +317,12 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
 
   if (fs.existsSync(finalDir)) {
     const bad = htmlIn(finalDir).filter((f) => hasWatermark(fs.readFileSync(f, 'utf8')));
-    if (hasPreview || (watermark !== undefined && watermark !== 'none')) {
-      check('final/: no html has the watermark layer', bad.length === 0, bad.map((f) => path.relative(dir, f)).join(', '));
-    }
+    check('final/: no html has the watermark layer', bad.length === 0, bad.map((f) => path.relative(root, f)).join(', '));
   }
   if (hasPreview && watermark !== 'none') {
     const pages = htmlIn(previewDir);
     const bare = pages.filter((f) => !hasWatermark(fs.readFileSync(f, 'utf8')));
-    check('preview/: every html has the watermark layer', pages.length > 0 && bare.length === 0, bare.map((f) => path.relative(dir, f)).join(', ') || (pages.length ? '' : 'no html in preview/'));
+    check('preview/: every html has the watermark layer', pages.length > 0 && bare.length === 0, bare.map((f) => path.relative(root, f)).join(', ') || (pages.length ? '' : 'no html in preview/'));
     if (fs.existsSync(finalDir)) {
       const a = relFiles(previewDir);
       const b = relFiles(finalDir);
@@ -222,7 +332,6 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
   }
 
   // Export sizes and PDF, per mode
-  const names = expected.sections.map((s) => s.name);
   for (const [mode, d] of modes) {
     const sizeOf = (f) => { try { return pngSize(fs.readFileSync(f)); } catch { return null; } };
     const list = (sub) => (fs.existsSync(path.join(d, sub)) ? fs.readdirSync(path.join(d, sub)).filter((f) => f.endsWith('.png')).sort() : []);
@@ -234,9 +343,9 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
       .concat(gotSlides.filter((f) => wantSlides.includes(f)).filter((f) => { const s = sizeOf(path.join(d, 'slides', f)); return !s || s.width !== SLIDE.width || s.height !== SLIDE.height; }).map((f) => `${f} is not 1920×1080`));
     check(`${mode}/: every slide is 1920×1080, one per section`, slideBad.length === 0, slideBad.join(', '));
 
-    const mockups = list('mockups');
-    const mockBad = mockups.length === expected.mockups ? [] : [`${mockups.length} files for ${expected.mockups} [data-mockup] elements`];
-    for (const f of mockups) {
+    const files = list('mockups');
+    const mockBad = files.length === expected.mockups ? [] : [`${files.length} files for ${expected.mockups} [data-mockup] elements`];
+    for (const f of files) {
       const s = sizeOf(path.join(d, 'mockups', f));
       if (!s || Math.abs(Math.max(s.width, s.height) - 3000) > 1) mockBad.push(`${f} is ${s ? `${s.width}×${s.height}` : 'not a PNG'}`);
     }
@@ -244,9 +353,8 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
 
     const socialBad = [];
     for (const [kind, w, h] of [['square', 1080, 1080], ['story', 1080, 1920]]) {
-      const present = expected.social.includes(kind);
+      if (!expected.social.includes(kind)) continue;
       const f = path.join(d, 'social', `${kind}.png`);
-      if (!present) continue;
       const s = fs.existsSync(f) ? sizeOf(f) : null;
       if (!s || s.width !== w || s.height !== h) socialBad.push(`${kind}.png is ${s ? `${s.width}×${s.height}` : 'missing'}, expected ${w}×${h}`);
     }

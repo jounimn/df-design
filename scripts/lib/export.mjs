@@ -11,11 +11,21 @@ const MOCKUP_LONG_SIDE = 3000;
 // Injected at render time; the author's file is never edited.
 // Social artboards keep their size even inside a flex row; they are not slides, so they stay out of the PDF.
 export const EXPORT_CSS = `
-section[data-section] { width: ${SLIDE.width}px !important; height: ${SLIDE.height}px !important; overflow: hidden !important; box-sizing: border-box; break-after: page; page-break-after: always; }
+section[data-section] { width: ${SLIDE.width}px !important; height: ${SLIDE.height}px !important; overflow: hidden !important; min-height: 0 !important; max-height: none !important; box-sizing: border-box; break-after: page; page-break-after: always; }
 [data-social="square"] { flex: none; width: 1080px !important; height: 1080px !important; overflow: hidden !important; box-sizing: border-box; }
 [data-social="story"] { flex: none; width: 1080px !important; height: 1920px !important; overflow: hidden !important; box-sizing: border-box; }
 @page { size: ${SLIDE.width}px ${SLIDE.height}px; margin: 0; }
 @media print { html, body { margin: 0 !important; } }
+`;
+
+// A social artboard that sits inside a slide is not part of the slide: out of the slide PNG, the PDF and the overflow measure.
+export const HIDE_INNER_ARTBOARDS_CSS = 'section[data-section] [data-social] { display: none !important; }';
+
+// For an artboard's own screenshot: hide everything but the artboard, its ancestors and the watermark layer, and let the
+// ancestors stop clipping it, so an artboard bigger than its slide is captured whole and nothing overlaps it.
+const ARTBOARD_SHOT_CSS = `
+[data-df-anc][data-df-anc] { overflow: visible !important; }
+body :not([data-df-anc]):not([data-df-art]):not([data-df-art] *):not([data-df-watermark]) { visibility: hidden !important; }
 `;
 
 const fail = (message) => { throw new Error(`export: ${message}`); };
@@ -81,28 +91,27 @@ async function waitForAssets(page, timeoutMs) {
   if (!done) throw new Error(`export: ${pending.length ? `${pending.length} image(s)` : 'fonts'} did not load within ${timeoutMs}ms${pending.length ? `: ${pending.join(', ')}` : ''}`);
 }
 
-async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.height, scale = 1, layer, slidesOnly = false, imageTimeoutMs = 15000 } = {}) {
+async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.height, scale = 1, layer, slidesOnly = false, artboard = false, imageTimeoutMs = 15000 } = {}) {
   // slidesOnly is the PDF render: print repeats a fixed layer on every page, so it keeps the saved fixed layer.
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
   try {
-    return await prepare(context, url, { layer, slidesOnly, imageTimeoutMs });
+    return await prepare(context, url, { layer, slidesOnly, artboard, imageTimeoutMs });
   } catch (err) {
     await context.close();
     throw err;
   }
 }
 
-async function prepare(context, url, { layer, slidesOnly, imageTimeoutMs }) {
+async function prepare(context, url, { layer, slidesOnly, artboard, imageTimeoutMs }) {
   const page = await context.newPage();
   await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.addStyleTag({ content: EXPORT_CSS });
+  await page.addStyleTag({ content: artboard ? EXPORT_CSS : EXPORT_CSS + HIDE_INNER_ARTBOARDS_CSS });
   await waitForAssets(page, imageTimeoutMs);
   if (slidesOnly) {
-    // Hide each social artboard (together with the wrapper that exists only to hold it) so no extra page is printed.
-    // An artboard inside a slide is hidden alone: climbing would hide the slide.
+    // Hide each artboard outside the slides together with the wrapper that exists only to hold it, so no extra page is printed.
     await page.evaluate(() => {
       for (const el of document.querySelectorAll('[data-social]')) {
-        if (el.closest('section[data-section]')) { el.style.display = 'none'; continue; }
+        if (el.closest('section[data-section]')) continue;
         let n = el;
         while (n.parentElement && n.parentElement !== document.body && !n.parentElement.querySelector('section[data-section]')) n = n.parentElement;
         n.style.display = 'none';
@@ -157,11 +166,23 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
     for (const [i, name] of sections.entries()) {
       put(out('slides', `${pad(i + 1)}-${safeName(name)}.png`), await main.page.locator('section[data-section]').nth(i).screenshot({ animations: 'disabled' }));
     }
-    for (const kind of social) {
-      put(out('social', `${kind}.png`), await main.page.locator(`[data-social="${kind}"]`).screenshot({ animations: 'disabled' }));
-    }
   } finally {
     await main.context.close();
+  }
+
+  for (const kind of social) {
+    const shot = await openPage(browser, url, { layer, artboard: true, imageTimeoutMs });
+    try {
+      const art = shot.page.locator(`[data-social="${kind}"]`);
+      await art.evaluate((el) => {
+        el.setAttribute('data-df-art', '');
+        for (let n = el.parentElement; n && n !== document.documentElement; n = n.parentElement) n.setAttribute('data-df-anc', '');
+      });
+      await shot.page.addStyleTag({ content: ARTBOARD_SHOT_CSS });
+      put(out('social', `${kind}.png`), await art.screenshot({ animations: 'disabled' }));
+    } finally {
+      await shot.context.close();
+    }
   }
 
   // Each mockup in its own context: deviceScaleFactor makes its long side 3000px.

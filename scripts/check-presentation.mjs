@@ -2,25 +2,24 @@
 // preview/final split, export sizes, and a clean render.
 // Usage: node scripts/check-presentation.mjs <presentation-dir> [--offline] [--after-gate] [--watermark <spec|none>]
 // --offline skips the source-URL fetch. --after-gate also fails a site section still marked data-pending.
-// --watermark says what the export was run with: 'none' fails a leftover preview/, a spec fails a missing one.
-// Exit code 0 = every check passed.
+// --watermark says what the export was run with (also --watermark=<spec|none>): 'none' fails a leftover preview/,
+// a spec fails a missing one.
+// Exit code 0 = every check passed; 2 = bad command line.
 import { launchBrowser } from './lib/browser.mjs';
-import { runChecks } from './lib/presentation-checks.mjs';
+import { parseCheckArgs, runChecks } from './lib/presentation-checks.mjs';
 
-const args = process.argv.slice(2);
-const flag = (name) => args.includes(name);
-const wmAt = args.indexOf('--watermark');
-const watermark = wmAt >= 0 ? args[wmAt + 1] : undefined;
-const dir = args.find((a, i) => !a.startsWith('--') && args[i - 1] !== '--watermark');
-if (!dir || (wmAt >= 0 && !watermark)) {
-  console.error('Usage: node scripts/check-presentation.mjs <presentation-dir> [--offline] [--after-gate] [--watermark <spec|none>]');
+let options;
+try {
+  options = parseCheckArgs(process.argv.slice(2));
+} catch (err) {
+  console.error(`${err.message}\nUsage: node scripts/check-presentation.mjs <presentation-dir> [--offline] [--after-gate] [--watermark <spec|none>]`);
   process.exit(2);
 }
 
 const browser = await launchBrowser();
 let results;
 try {
-  results = await runChecks(dir, { offline: flag('--offline'), afterGate: flag('--after-gate'), browser, watermark });
+  results = await runChecks(options.dir, { offline: options.offline, afterGate: options.afterGate, browser, watermark: options.watermark });
 } finally {
   await browser.close();
 }

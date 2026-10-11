@@ -221,3 +221,43 @@ test('two mockups that would write the same file fail with an error naming it', 
     /more than one.*mockups\/poster\.png/s,
   );
 });
+
+async function pixel(file, x, y) {
+  const context = await browser.newContext();
+  try {
+    const page = await context.newPage();
+    const data = `data:image/png;base64,${fs.readFileSync(file).toString('base64')}`;
+    return await page.evaluate(async ([src, px, py]) => {
+      const img = new Image();
+      img.src = src;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      return [...g.getImageData(px, py, 1, 1).data];
+    }, [data, x, y]);
+  } finally {
+    await context.close();
+  }
+}
+
+test('a story artboard inside a slide: captured whole in social/, absent from the slide and the PDF', { timeout: 300000 }, async () => {
+  const withInner = await variant((h) => h
+    .replace('<div data-social="story">Story</div>', '')
+    .replace('<p>Fixture copy for closing.</p>', '<p>Fixture copy for closing.</p><div data-social="story">Story</div>'), 'text:Teste');
+  const without = await variant((h) => h.replace('<div data-social="story">Story</div>', '').replace('<div class="artboards">', '<div class="artboards" hidden>'), 'none');
+  try {
+    assert.equal(pdfPageCount(fs.readFileSync(path.join(withInner.dir, 'final', 'presentation.pdf'))), SECTIONS.length);
+    for (const mode of ['final', 'preview']) {
+      // Below the slide's own 1080px the artboard is still painted: the ancestor clipping is lifted for its shot.
+      const [r, g, b] = await pixel(path.join(withInner.dir, mode, 'social', 'story.png'), 20, 1500);
+      assert.ok(r < 90 && g < 90 && b < 90, `${mode}: story.png is dark at y=1500, got ${[r, g, b]}`);
+    }
+    // The slide itself is the same with the artboard inside it as without it.
+    assert.deepEqual(fs.readFileSync(path.join(withInner.dir, 'final', 'slides', '10-closing.png')), fs.readFileSync(path.join(without.dir, 'final', 'slides', '10-closing.png')));
+  } finally {
+    withInner.cleanup();
+    without.cleanup();
+  }
+});
