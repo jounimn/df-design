@@ -65,7 +65,16 @@ Record the choice in the status line: `selling=<now|end|skip>`.
 | Situation | Do |
 |---|---|
 | **The author has a logo** | Use it unchanged. Never redraw it. |
-| **No logo** | Design 2–3 SVG proposals from the chosen identity: its type, palette and grammar (the identity library entry). The author approves one, or redirects. |
+| **No logo** | Design 2–3 SVG proposals from the chosen identity: its type, palette and grammar (the identity library entry). Show them side by side. The author chooses, combines or redirects. |
+
+When you present the proposals, tell the author that **combining is an
+option**. The author may:
+
+| Answer | Then |
+|---|---|
+| **Choose** one proposal | Build the system from it |
+| **Combine** parts of different proposals (the wordmark of one, the symbol of another) | Build the system from the chosen parts, and show the combined lockup for confirmation before going on. Keep each part's drawing as it was |
+| **Redirect** with notes | Revise and show again (one more round, below) |
 
 If the author rejects every proposal, redirect with their notes and make
 **one more round**. After that, ask whether to continue without the logo
@@ -403,6 +412,7 @@ to open.
 | "The presentation can use a neutral case template" | It is written in the identity's grammar: its type, palette and composition. |
 | "The author is waiting; skip the time warning" | The warning is part of the prompt. The author decides with it. |
 | "They have a logo, but I can improve it" | Use it unchanged. Never redraw it. |
+| "The author must pick exactly one proposal" | They may combine parts (this wordmark, that symbol). Say so when you present, then show the combined lockup to confirm. |
 | "No mockup passes, but this one is close" | Drop the application and report why. A failing mockup is never used just this once. |
 | "I'll embed the mockup photo as a data URI / hotlink it" | Mockup photos are local files in the presentation folder, recorded in `assets.md` with their licence. The checker fails anything else. |
 | "I only found 18 cases, one Shortfall line covers everything" | One line per short base, with the real count. A Shortfall excuses only the bases it names. |
