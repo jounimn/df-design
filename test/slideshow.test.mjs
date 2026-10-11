@@ -73,24 +73,51 @@ test('keys with a modifier, or typed into a field, do not move the slide', withP
   await inView(page, 1);
 }));
 
-test('the hash follows the slide, opens a slide, and back/forward work', withPage({}, async (page) => {
+test('the hash follows the slide without filling the history; an edited hash still adds an entry that back undoes', withPage({}, async (page) => {
+  const before = await page.evaluate(() => history.length);
   await page.keyboard.press('ArrowRight'); await inView(page, 2);
   await page.keyboard.press('ArrowRight'); await inView(page, 3);
-  assert.ok((await page.evaluate(() => location.hash)) === '#slide-3');
-  await page.goBack(); await inView(page, 2);
-  await page.goBack(); await inView(page, 1);
-  await page.goForward(); await inView(page, 2);
-  assert.equal(await counter(page), `02 / ${pad(N)}`);
+  await page.click('.df-next'); await inView(page, 4);
+  await page.evaluate(() => window.__DF_SLIDESHOW__.go(3)); await inView(page, 3);
+  assert.equal(await page.evaluate(() => location.hash), '#slide-3');
+  assert.equal(await page.evaluate(() => history.length), before, 'keys, buttons and the API add no history entries');
+  await page.evaluate(() => { location.hash = '#slide-6'; }); await inView(page, 6);
+  assert.equal(await page.evaluate(() => history.length), before + 1, 'an edited hash is a navigation');
+  await page.goBack(); await inView(page, 3);
+  assert.equal(await counter(page), `03 / ${pad(N)}`);
 }));
 
-test('opening #slide-3 starts on slide 3; out-of-range hashes clamp; #id opens the slide holding it', async () => {
-  for (const [hash, want] of [['#slide-3', 3], [`#slide-${N}`, N], ['#slide-99', N], ['#slide-0', 1], ['#closing', N], ['#nothing-here', 1]]) {
+test('opening #slide-3 starts on slide 3; out-of-range hashes open the nearest slide and are corrected in place; #id opens the slide holding it', async () => {
+  for (const [hash, want, fixed] of [['#slide-3', 3, '#slide-3'], [`#slide-${N}`, N, `#slide-${N}`], ['#slide-99', N, `#slide-${N}`], ['#slide-0', 1, '#slide-1'], ['#closing', N, '#closing'], ['#nothing-here', 1, '#nothing-here']]) {
     const { page, context } = await open({ hash });
     try {
       await inView(page, want);
       assert.equal(await counter(page), `${pad(want)} / ${pad(N)}`, hash);
+      assert.equal(await page.evaluate(() => location.hash), fixed, `${hash} should read ${fixed}`);
     } finally { await context.close(); }
   }
+  const entries = async (hash) => {
+    const { page, context } = await open({ hash });
+    try { await inView(page, 3); return await page.evaluate(() => history.length); } finally { await context.close(); }
+  };
+  assert.equal(await entries('#slide-3'), await entries('#slide-3'));
+  const { page, context } = await open({ hash: '#slide-99' });
+  try {
+    await inView(page, N);
+    assert.equal(await page.evaluate(() => history.length), await entries('#slide-3'), 'the correction replaces the entry, it does not add one');
+  } finally { await context.close(); }
+});
+
+test('a malformed escape in the hash (#slide-%E0) does not blank the page: slide 1, no error', async () => {
+  const { page, context } = await open({ hash: '#slide-%E0' });
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  try {
+    await inView(page, 1);
+    assert.equal(await counter(page), `01 / ${pad(N)}`);
+    await page.keyboard.press('ArrowRight'); await inView(page, 2);
+    assert.deepEqual(errors, []);
+  } finally { await context.close(); }
 });
 
 test('an in-page link to an id moves to the slide that holds it', withPage({}, async (page) => {
@@ -190,5 +217,110 @@ test('window.__DF_EXPORT__ turns it all off: every section in the flow, reveals 
     }));
     assert.deepEqual([state.active, state.api, state.ui, state.positions, state.visible, state.clip], [false, false, false, ['static'], true, 'none']);
     assert.ok(state.tops.every((t, i) => i === 0 || t > state.tops[i - 1]), `sections stack in the flow, tops ${state.tops}`);
+  } finally { await context.close(); }
+});
+
+test('keys are ignored in anything editable, including plaintext-only and children of a contenteditable', withPage({}, async (page) => {
+  await page.evaluate(() => {
+    const host = document.querySelector('section[data-section]');
+    host.insertAdjacentHTML('beforeend', '<div id="plain" contenteditable="plaintext-only" tabindex="0">x</div><div id="rich" contenteditable="true"><span id="inner" tabindex="0">y</span></div>');
+  });
+  for (const id of ['#plain', '#inner']) {
+    await page.focus(id);
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(200);
+    await inView(page, 1);
+  }
+  await page.evaluate(() => document.activeElement.blur());
+  await page.keyboard.press('ArrowRight'); await inView(page, 2);
+}));
+
+test('accessibility: slides are labelled regions, only the one in focus is reachable, a live region says where we are, focus follows', withPage({}, async (page) => {
+  const state = () => page.evaluate(() => ({
+    roles: [...document.querySelectorAll('section[data-section]')].map((s) => [s.getAttribute('role'), s.getAttribute('aria-roledescription'), s.getAttribute('aria-label')]),
+    reachable: [...document.querySelectorAll('section[data-section]')].map((s, i) => [i + 1, s.inert, s.getAttribute('aria-hidden')]).filter(([, inert, hidden]) => !inert && hidden !== 'true').map(([n]) => n),
+    live: document.querySelector('[role=status][aria-live=polite]')?.textContent,
+    focusedSlide: [...document.querySelectorAll('section[data-section]')].findIndex((s) => s === document.activeElement) + 1,
+    bodyFocused: document.activeElement === document.body,
+  }));
+  let st = await state();
+  assert.deepEqual(st.roles.map((r) => r.slice(0, 2)), Array.from({ length: N }, () => ['region', 'slide']));
+  assert.deepEqual(st.roles.map((r) => r[2]), Array.from({ length: N }, (_, i) => `Slide ${i + 1} de ${N}`));
+  assert.deepEqual(st.reachable, [1]);
+  assert.equal(st.live, `Slide 1 de ${N}`);
+  assert.equal(st.bodyFocused, true, 'the first show does not take focus from the page');
+  await page.keyboard.press('ArrowRight'); await inView(page, 2);
+  st = await state();
+  assert.deepEqual([st.reachable, st.live, st.focusedSlide], [[2], `Slide 2 de ${N}`, 2]);
+  // From a button the focus stays on the button, so stepping with Enter keeps working.
+  await page.focus('.df-next');
+  await page.keyboard.press('Enter'); await inView(page, 3);
+  assert.equal(await page.evaluate(() => document.activeElement.classList.contains('df-next')), true);
+  assert.equal(await page.evaluate(() => document.querySelectorAll('.df-counter[role], .df-counter[aria-live]').length), 0, 'the counter is not a second live region');
+}));
+
+test('the resize listener refits the slide, and the slides do not animate while the viewport changes', withPage({}, async (page) => {
+  await inView(page, 1);
+  await page.setViewportSize({ width: 1000, height: 500 });
+  await page.waitForFunction(() => Math.abs(Number(document.documentElement.style.getPropertyValue('--df-scale')) - Math.min(1000 / 1920, 500 / 1080)) < 0.001, null, { timeout: 5000 });
+  const box = await page.evaluate(() => { const r = document.querySelector('section[data-section]').getBoundingClientRect(); return [r.width, r.height]; });
+  assert.ok(Math.abs(box[0] - 1920 * (500 / 1080)) < 1.5 && Math.abs(box[1] - 500) < 1.5, `slide box ${box}`);
+  const during = await page.evaluate(() => {
+    window.dispatchEvent(new Event('resize'));
+    return { resizing: document.documentElement.classList.contains('df-resizing'), transition: getComputedStyle(document.querySelector('section[data-section]')).transitionProperty };
+  });
+  assert.deepEqual(during, { resizing: true, transition: 'none' });
+  await page.waitForFunction(() => !document.documentElement.classList.contains('df-resizing'), null, { timeout: 3000 });
+  assert.notEqual(await page.evaluate(() => getComputedStyle(document.querySelector('section[data-section]')).transitionProperty), 'none');
+}));
+
+test('the transition between slides is a real fade: the slide being left is seen part way out', withPage({}, async (page) => {
+  await inView(page, 1);
+  const samples = await page.evaluate(() => new Promise((resolve) => {
+    const first = document.querySelector('section[data-section]');
+    const seen = [];
+    window.__DF_SLIDESHOW__.go(2);
+    const t0 = performance.now();
+    const tick = () => {
+      seen.push(Number(getComputedStyle(first).opacity));
+      if (performance.now() - t0 < 900) requestAnimationFrame(tick); else resolve(seen);
+    };
+    requestAnimationFrame(tick);
+  }));
+  assert.ok(samples.some((o) => o > 0.02 && o < 0.98), `opacity of the slide being left never was in between: ${samples.slice(0, 12)}`);
+  assert.equal(samples.at(-1), 0);
+  await inView(page, 2);
+}));
+
+const rect = (page, selector) => page.evaluate((sel) => { const r = document.querySelector(sel).getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height }; }, selector);
+const overlaps = (a, b) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+
+test('a phone held upright: the slide stays 16:9, the controls are in a bar outside it, and a hint asks to turn the phone', async () => {
+  const { page, context } = await open({ viewport: { width: 390, height: 844 } });
+  try {
+    await inView(page, 1);
+    const slide = await rect(page, 'section[data-section]');
+    assert.ok(Math.abs(slide.width / slide.height - 16 / 9) < 0.01, `slide ${slide.width}x${slide.height}`);
+    for (const sel of ['.df-prev', '.df-next', '.df-counter', '.df-hint']) {
+      const r = await rect(page, sel);
+      assert.ok(r.width > 0 && r.height > 0, `${sel} is shown`);
+      assert.equal(overlaps(r, slide), false, `${sel} sits on the slide`);
+      assert.ok(r.top >= slide.bottom - 0.5, `${sel} is below the slide`);
+    }
+    assert.match(await page.locator('.df-hint').textContent(), /gire o celular para tela cheia/i);
+    assert.equal(await page.locator('.df-hint').isVisible(), true);
+    await page.click('.df-next'); await inView(page, 2);
+  } finally { await context.close(); }
+});
+
+test('a phone held sideways: no hint, and the slide fills the screen', async () => {
+  const { page, context } = await open({ viewport: { width: 844, height: 390 } });
+  try {
+    await inView(page, 1);
+    assert.equal(await page.locator('.df-hint').isVisible(), false);
+    const slide = await rect(page, 'section[data-section]');
+    assert.ok(Math.abs(slide.height - 390) < 1.5, `the slide fills the height: ${slide.height}`);
+    for (const sel of ['.df-prev', '.df-next']) assert.equal(overlaps(await rect(page, sel), slide), false, `${sel} sits on the slide`);
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.df-ui')).display), 'block', 'the bar layout is for upright phones only');
   } finally { await context.close(); }
 });

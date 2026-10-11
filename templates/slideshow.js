@@ -3,10 +3,15 @@
 // Slides are the page's section[data-section] elements, one in focus at a time, 16:9 (1920×1080) scaled to fit the viewport.
 //   Keys        ←/→, PageUp/PageDown, Home/End
 //   Pointer     on-screen previous/next buttons; touch swipe
-//   Counter     "03 / 10"
-//   URL hash    #slide-N tracks the slide, so a slide can be linked, and back/forward work; #some-id opens the slide holding it
+//   Counter     "03 / 10", and a live region that says "Slide 3 de 10"
+//   Access      slides are role=region, only the one in focus is reachable (the others are inert and aria-hidden), and focus
+//               follows the slide unless it is on a control
+//   URL hash    #slide-N tracks the slide, so a slide can be linked; #some-id opens the slide holding it. Moving with the keys,
+//               the buttons or a swipe replaces the hash instead of adding history entries; a link or an edited hash still does.
+//               A number out of range opens the nearest slide and the hash is corrected to it.
 //   Motion      fast tier, CSS only: slide/fade transitions and clip-path reveals on [data-reveal] (see slideshow.css).
 //               prefers-reduced-motion switches both off.
+//   Phone       held upright, the slide stays 16:9 and the controls sit in a bar below it, with a hint to turn the phone.
 //   Events      document 'df:slidechange', detail { from, to, slide } (1-based; from is null on the first show), so a
 //               medium or high tier (GSAP, Motion One, WebGL) can hook in.
 //   API         window.__DF_SLIDESHOW__ = { go(n), next(), prev(), get current(), get count() }
@@ -31,6 +36,13 @@
     let current = 0;
     let shown = false;
 
+    slides.forEach((slide, i) => {
+      slide.setAttribute('role', 'region');
+      slide.setAttribute('aria-roledescription', 'slide');
+      slide.setAttribute('aria-label', `Slide ${i + 1} de ${slides.length}`);
+      slide.tabIndex = -1; // so focus can follow the slide; no ring, it is not a control
+    });
+
     // The first layout is set without a transition, so the slides do not animate in from an unscaled state.
     root.classList.add('df-resizing', 'df-slideshow');
     hideEverythingElse(slides);
@@ -41,8 +53,15 @@
     ui.setAttribute('aria-label', 'Slideshow');
     ui.innerHTML = '<button type="button" class="df-nav df-prev" aria-label="Previous slide">&#8249;</button>'
       + '<button type="button" class="df-nav df-next" aria-label="Next slide">&#8250;</button>'
-      + '<div class="df-counter" role="status" aria-live="polite"></div>';
+      + '<div class="df-counter" aria-hidden="true"></div>'
+      + '<p class="df-hint" aria-hidden="true">Gire o celular para tela cheia</p>';
     document.body.appendChild(ui);
+    const live = document.createElement('div');
+    live.className = 'df-live';
+    live.setAttribute('role', 'status');
+    live.setAttribute('aria-live', 'polite');
+    live.setAttribute('aria-atomic', 'true');
+    document.body.appendChild(live);
     const prevButton = ui.querySelector('.df-prev');
     const nextButton = ui.querySelector('.df-next');
     const counter = ui.querySelector('.df-counter');
@@ -72,9 +91,11 @@
         slide.classList.toggle('df-active', i === current);
         slide.classList.toggle('df-before', i < current);
         slide.classList.toggle('df-after', i > current);
-        slide.setAttribute('aria-label', `Slide ${i + 1} of ${slides.length}`);
+        slide.inert = i !== current;
+        if (i === current) slide.removeAttribute('aria-hidden'); else slide.setAttribute('aria-hidden', 'true');
       });
       counter.textContent = `${pad(current + 1)} / ${pad(slides.length)}`;
+      live.textContent = `Slide ${current + 1} de ${slides.length}`;
       prevButton.setAttribute('aria-disabled', String(current === 0));
       nextButton.setAttribute('aria-disabled', String(current === slides.length - 1));
       reveal(slides[current]);
@@ -87,30 +108,51 @@
       }));
     }
 
-    // go() moves and records the slide in the hash; the hashchange it triggers finds nothing left to do.
-    function go(n, { fromHash = false } = {}) {
+    // The hash is rewritten in place: moving through the slides must not fill the history, and a hash that was out of
+    // range is corrected to the slide that opened. replaceState can refuse on some file:// origins; replace() is the fallback.
+    function writeHash() {
+      const hash = `#slide-${current + 1}`;
+      if (window.location.hash === hash) return;
+      try { window.history.replaceState(window.history.state, '', hash); } catch { window.location.replace(hash); }
+    }
+
+    // Focus follows the slide, except when it is on a control (a keyboard user stepping with the button keeps their place)
+    // and on the very first show, which must not take focus from the page.
+    function moveFocus(first) {
+      if (first || ui.contains(document.activeElement)) return;
+      slides[current].focus({ preventScroll: true });
+    }
+
+    function go(n, { fromHash = false, correctHash = false } = {}) {
       const next = Math.max(0, Math.min(slides.length - 1, Math.round(n)));
-      if (shown && next === current) return;
+      if (shown && next === current) { if (correctHash) writeHash(); return; }
       const from = shown ? current : null;
       current = next;
       shown = true;
       render(from);
-      if (!fromHash) window.location.hash = `slide-${current + 1}`;
+      moveFocus(from === null);
+      if (!fromHash || correctHash) writeHash();
     }
 
-    function fromHash() {
-      const hash = decodeURIComponent(window.location.hash.slice(1));
+    // { index, outOfRange }: #slide-N, or the slide that holds #some-id, else the first.
+    function readHash() {
+      let hash = window.location.hash.slice(1);
+      try { hash = decodeURIComponent(hash); } catch { /* a malformed escape (%E0) is read as it is */ }
       const numbered = hash.match(/^slide-(\d+)$/);
-      if (numbered) return Number(numbered[1]) - 1;
+      if (numbered) {
+        const n = Number(numbered[1]);
+        return { index: n - 1, outOfRange: n < 1 || n > slides.length };
+      }
       const holder = hash && document.getElementById(hash)?.closest('section[data-section]');
-      return holder ? slides.indexOf(holder) : 0;
+      return { index: holder ? slides.indexOf(holder) : 0, outOfRange: false };
     }
-    window.addEventListener('hashchange', () => go(fromHash(), { fromHash: true }));
+    const followHash = () => { const { index, outOfRange } = readHash(); go(index, { fromHash: true, correctHash: outOfRange }); };
+    window.addEventListener('hashchange', followHash);
 
     // Keys
     document.addEventListener('keydown', (e) => {
       if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-      if (e.target.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
+      if (e.target.isContentEditable || e.target.closest?.('input, textarea, select')) return;
       const target = { ArrowRight: current + 1, PageDown: current + 1, ArrowLeft: current - 1, PageUp: current - 1, Home: 0, End: slides.length - 1 }[e.key];
       if (target === undefined) return;
       e.preventDefault();
@@ -139,7 +181,7 @@
       get current() { return current + 1; },
       get count() { return slides.length; },
     };
-    go(fromHash(), { fromHash: true });
+    followHash();
     requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('df-resizing')));
   }
 
