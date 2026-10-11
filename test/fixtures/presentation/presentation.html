@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Fixture presentation</title>
+  <link rel="stylesheet" href="slideshow.css">
   <style>
     body { margin: 0; font-family: Arial, sans-serif; background: #f4efe6; color: #1c1a17; }
     section { padding: 64px 96px; box-sizing: border-box; border-bottom: 1px solid #1c1a17; }
@@ -57,7 +58,7 @@
     <h2>08 · Mockups</h2>
     <div class="row">
       <div data-mockup="poster" class="m poster"><img src="assets/mockup.png" alt="Poster mockup"></div>
-      <div data-mockup="card" class="m card"><img src="assets/mockup.png" alt="Card mockup"></div>
+      <div data-mockup="card" class="m card"><img data-reveal src="assets/mockup.png" alt="Card mockup"></div>
     </div>
   </section>
   <section data-section="site">
@@ -72,5 +73,6 @@
     <div data-social="square">Square</div>
     <div data-social="story">Story</div>
   </div>
+  <script src="slideshow.js"></script>
 </body>
 </html>

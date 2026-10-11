@@ -176,8 +176,11 @@ const relFiles = (d) => walk(d).map((f) => path.relative(d, f).split(path.sep).j
 const pad = (n) => String(n).padStart(2, '0');
 const posix = (p) => p.split(path.sep).join('/');
 
+// Layout, overflow and captures are judged at rest, as the export sees the page: window.__DF_EXPORT__ keeps the
+// slideshow runtime off. checkSlideshow() below is the one place that runs without it.
 async function renderRaw(browser, file, width, height) {
   const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
+  await context.addInitScript(() => { window.__DF_EXPORT__ = true; });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
@@ -207,6 +210,59 @@ function collectMockupSources() {
     out.push({ label: m.dataset.mockup || `#${i + 1}`, sources: sources.filter(Boolean) });
   });
   return out;
+}
+
+// The slideshow as a viewer gets it: no export flag. Exactly one slide in focus; the arrow keys, the hash and the next
+// button move it; with reduced motion every [data-reveal] is open at once.
+async function checkSlideshow(browser, file, width, height) {
+  const url = pathToFileURL(file).href;
+  const visible = (page) => page.evaluate(() => [...document.querySelectorAll('section[data-section]')]
+    .map((s, i) => [i + 1, getComputedStyle(s)]).filter(([, st]) => st.visibility === 'visible' && Number(st.opacity) > 0.99).map(([n]) => n));
+  const settle = async (page, expected, step) => {
+    try {
+      await page.waitForFunction((want) => {
+        const shown = [...document.querySelectorAll('section[data-section]')]
+          .map((s, i) => [i + 1, getComputedStyle(s)]).filter(([, st]) => st.visibility === 'visible' && Number(st.opacity) > 0.99).map(([n]) => n);
+        return shown.length === 1 && shown[0] === want;
+      }, expected, { timeout: 4000 });
+    } catch {
+      throw new Error(`${step}: expected only slide ${expected} in view, got [${(await visible(page)).join(', ')}]`);
+    }
+  };
+  const open = async (context, hash = '') => {
+    const page = await context.newPage();
+    await page.goto(url + hash, { waitUntil: 'load' });
+    if (!(await page.evaluate(() => !!window.__DF_SLIDESHOW__ && document.documentElement.classList.contains('df-slideshow')))) {
+      throw new Error('the slideshow runtime did not start (copy templates/slideshow.js and slideshow.css next to presentation.html and link them)');
+    }
+    return page;
+  };
+  const context = await browser.newContext({ viewport: { width, height } });
+  const reduced = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
+  try {
+    const page = await open(context);
+    await settle(page, 1, 'at load');
+    await page.keyboard.press('ArrowRight');
+    await settle(page, 2, 'ArrowRight');
+    if (!(await page.evaluate(() => window.location.hash)).endsWith('#slide-2')) throw new Error('ArrowRight did not set #slide-2');
+    await page.keyboard.press('ArrowLeft');
+    await settle(page, 1, 'ArrowLeft');
+    await page.click('.df-next');
+    await settle(page, 2, 'the next button');
+    const count = await page.evaluate(() => window.__DF_SLIDESHOW__.count);
+    const last = await open(context, `#slide-${count}`);
+    await settle(last, count, `#slide-${count}`);
+    const quick = await open(reduced);
+    const shut = await quick.evaluate(() => [...document.querySelectorAll('[data-reveal]')].filter((el) => getComputedStyle(el).clipPath !== 'none').length);
+    if (shut) throw new Error(`reduced motion: ${shut} [data-reveal] element(s) still masked`);
+    await settle(quick, 1, 'reduced motion');
+    return '';
+  } catch (err) {
+    return err.message;
+  } finally {
+    await context.close();
+    await reduced.close();
+  }
 }
 
 const isVector = (src) => /^data:image\/svg/i.test(src) || /\.svg([?#]|$)/i.test(src);
@@ -268,6 +324,8 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
     check(`${label}: no horizontal scroll`, info.sw <= w, `scrollWidth ${info.sw}`);
     check(`${label}: every image loaded`, info.imgs.every((i) => i.ok), info.imgs.filter((i) => !i.ok).map((i) => i.src.slice(0, 120)).join(', '));
     await context.close();
+    const problem = await checkSlideshow(browser, file, w, h);
+    check(`${label}: slideshow works`, problem === '', problem);
   }
 
   // Mockup photos must be local files in this folder; each is recorded with a source URL and a licence that needs no credit.

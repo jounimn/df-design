@@ -339,3 +339,28 @@ test('missing export output is reported once instead of crashing', async () => {
   const { failed } = await check((dir) => fs.rmSync(path.join(dir, 'final'), { recursive: true }));
   assert.deepEqual(failed, ['final/ exists (run export-presentation.mjs)']);
 });
+
+const SLIDESHOW = ['presentation.html @1440: slideshow works', 'presentation.html @390: slideshow works'];
+
+test('a presentation without the slideshow runtime fails only the slideshow check, at both sizes', async () => {
+  const { failed, results } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<script src="slideshow.js"></script>', '')));
+  assert.deepEqual(failed, SLIDESHOW);
+  assert.match(results.find((r) => r.name === SLIDESHOW[0]).detail, /runtime did not start/);
+});
+
+test('two slides in view at once fail only the slideshow check', async () => {
+  const { failed, results } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('</head>', '<style>section[data-section]{visibility:visible !important;opacity:1 !important}</style></head>')));
+  assert.deepEqual(failed, SLIDESHOW);
+  assert.match(results.find((r) => r.name === SLIDESHOW[0]).detail, /expected only slide 1 in view/);
+});
+
+test('a reveal that stays masked under reduced motion fails only the slideshow check', async () => {
+  const { failed, results } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('</head>', '<style>@media (prefers-reduced-motion: reduce){.df-slideshow [data-reveal]{clip-path:inset(0 100% 0 0) !important}}</style></head>')));
+  assert.deepEqual(failed, SLIDESHOW);
+  assert.match(results.find((r) => r.name === SLIDESHOW[0]).detail, /reduced motion: 1 \[data-reveal\]/);
+});
+
+test('a keyboard handler that never moves the slide fails only the slideshow check', async () => {
+  const { failed } = await check((dir) => edit(dir, 'slideshow.js', (js) => js.replace("e.preventDefault();\n      go(target);", 'e.preventDefault();')));
+  assert.deepEqual(failed, SLIDESHOW);
+});

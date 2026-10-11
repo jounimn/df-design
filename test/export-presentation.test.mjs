@@ -11,6 +11,7 @@ import { hasWatermark } from '../scripts/lib/watermark.mjs';
 import { copyPresentationFixture } from './helpers/presentation-fixture.mjs';
 
 const SECTIONS = ['opening', 'concept', 'market', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
+const pad = (n) => String(n).padStart(2, '0');
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) =>
   e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
 const rel = (d) => walk(d).map((f) => path.relative(d, f).split(path.sep).join('/')).sort();
@@ -267,5 +268,39 @@ test('a local CSS background is painted into the slide', { timeout: 120000 }, as
     assert.ok(!(r === 244 && g === 239 && b === 230), `background image missing from the slide, got ${[r, g, b]}`);
   } finally {
     f.cleanup();
+  }
+});
+
+test('the slideshow runtime does not touch the captures: slides and mockups match a presentation without it', { timeout: 600000 }, async () => {
+  const strip = (h) => h.replace('<link rel="stylesheet" href="slideshow.css">', '').replace('<script src="slideshow.js"></script>', '').replace(' data-reveal', '');
+  const withRuntime = await variant((h) => h, 'none');
+  const without = await variant(strip, 'none');
+  try {
+    for (const rel of ['slides/01-opening.png', `slides/${pad(SECTIONS.indexOf('mockups') + 1)}-mockups.png`, 'mockups/card.png', 'mockups/poster.png', 'social/square.png']) {
+      assert.deepEqual(fs.readFileSync(path.join(withRuntime.dir, 'final', rel)), fs.readFileSync(path.join(without.dir, 'final', rel)), rel);
+    }
+    assert.equal(pdfPageCount(fs.readFileSync(path.join(withRuntime.dir, 'final', 'presentation.pdf'))), SECTIONS.length);
+  } finally {
+    withRuntime.cleanup();
+    without.cleanup();
+  }
+});
+
+test('the saved html runs the slideshow for the viewer: one slide in view, the runtime found through ../', { timeout: 120000 }, async () => {
+  for (const mode of ['final', 'preview']) {
+    const file = path.join(marked.dir, mode, 'presentation.html');
+    const html = fs.readFileSync(file, 'utf8');
+    assert.ok(html.includes('href="../slideshow.css"') && html.includes('src="../slideshow.js"'), mode);
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    try {
+      const page = await context.newPage();
+      await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
+      assert.equal(await page.evaluate(() => window.__DF_SLIDESHOW__?.count), SECTIONS.length, mode);
+      await page.keyboard.press('ArrowRight');
+      await page.waitForFunction(() => location.hash === '#slide-2');
+      if (mode === 'preview') assert.ok(await page.evaluate(() => getComputedStyle(document.querySelector('[data-df-watermark]')).display !== 'none'), 'the layer stays on top of the slideshow');
+    } finally {
+      await context.close();
+    }
   }
 });

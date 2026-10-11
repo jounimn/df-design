@@ -157,6 +157,8 @@ async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.heig
   // slidesOnly is the PDF render: print repeats a fixed layer on every page, so it keeps the saved fixed layer.
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
   try {
+    // The slideshow runtime (templates/slideshow.js) must not start: every section stays laid out at rest for capture.
+    await context.addInitScript(() => { window.__DF_EXPORT__ = true; });
     return await prepare(context, url, { layer, slidesOnly, artboard, imageTimeoutMs });
   } catch (err) {
     await context.close();
