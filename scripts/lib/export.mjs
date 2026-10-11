@@ -31,6 +31,14 @@ const ARTBOARD_SHOT_CSS = `
 body :not([data-df-anc]):not([data-df-art]):not([data-df-art] *):not([data-df-watermark]) { visibility: hidden !important; }
 `;
 
+// A mockup's PNG is the mockup and nothing behind it: besides the artboard rules above, whatever the ancestors paint
+// (background, a ::before / ::after picture, border-image, mask, shadow) is switched off, so a section background or a
+// frame layer behind a transparent mockup does not end up in the file. The checker reads the mockup's own sources only.
+const MOCKUP_SHOT_CSS = `${ARTBOARD_SHOT_CSS}
+[data-df-anc] { background: none !important; border-image: none !important; box-shadow: none !important; -webkit-mask: none !important; mask: none !important; }
+[data-df-anc]::before, [data-df-anc]::after { display: none !important; }
+`;
+
 const fail = (message) => { throw new Error(`export: ${message}`); };
 const pad = (n) => String(n).padStart(2, '0');
 const safeName = (s) => String(s).trim().replace(/[^\p{L}\p{N}._-]+/gu, '-').replace(/^-+|-+$/g, '');
@@ -60,9 +68,58 @@ const isRelative = (u) => {
 };
 const withPrefix = (u, prefix) => prefix + u.trim().replace(/^\.\//, '');
 const prefixed = (u, prefix) => (isRelative(decodeEntities(u)) ? withPrefix(u, prefix) : u);
-const cssUrls = (css, prefix) => css
+// image-set("a.png" 1x, url(b.png) 2x type("image/png")): the bare strings are urls too. url() and type() inside the set are
+// left alone here (the url() rule below prefixes the first). The closing paren is found by counting, not by the first ")".
+function imageSets(css, prefix) {
+  let out = '';
+  let i = 0;
+  for (;;) {
+    const at = css.slice(i).search(/image-set\(/i);
+    if (at < 0) return out + css.slice(i);
+    const open = i + at + css.slice(i + at).indexOf('(') + 1;
+    let depth = 1;
+    let quote = '';
+    let j = open;
+    for (; j < css.length && depth > 0; j++) {
+      const c = css[j];
+      if (quote) { if (c === '\\') j++; else if (c === quote) quote = ''; } else if (c === '"' || c === "'") quote = c;
+      else if (c === '(') depth++;
+      else if (c === ')') depth--;
+    }
+    const inner = css.slice(open, depth === 0 ? j - 1 : j);
+    const fixed = inner.replace(/(?:url|type)\([^)]*\)|(["'])([^"']+)\1/g, (part, q, u) => (q && isRelative(u) ? q + withPrefix(u, prefix) + q : part));
+    out += css.slice(i, open) + fixed + (depth === 0 ? ')' : '');
+    i = j;
+  }
+}
+const cssUrls = (css, prefix) => imageSets(css, prefix)
   .replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (m, q, u) => (isRelative(u) ? `url(${q}${withPrefix(u, prefix)}${q})` : m))
   .replace(/@import\s+(["'])([^"']+)\1/gi, (m, q, u) => (isRelative(u) ? `@import ${q}${withPrefix(u, prefix)}${q}` : m));
+
+// The urls of a srcset, in order. Same scanner as rewriteSrcset below, so "a.png 1x,b.png 2x" (no space after the comma) reads as two.
+export function srcsetUrls(value) {
+  const urls = [];
+  let i = 0;
+  while (i < value.length) {
+    while (i < value.length && /[\s,]/.test(value[i])) i++;
+    if (i >= value.length) break;
+    let k = i;
+    while (k < value.length && !/\s/.test(value[k])) k++;
+    let url = value.slice(i, k);
+    const trailing = /^data:/i.test(url) ? '' : (url.match(/,+$/)?.[0] ?? '');
+    if (trailing) url = url.slice(0, -trailing.length);
+    if (url) urls.push(url);
+    i = k;
+    if (trailing) continue;
+    let depth = 0;
+    while (i < value.length && !(value[i] === ',' && depth === 0)) {
+      if (value[i] === '(') depth++;
+      if (value[i] === ')') depth--;
+      i++;
+    }
+  }
+  return urls;
+}
 
 // srcset: candidates are `url [descriptor]` separated by commas. A url runs to the next whitespace, so commas inside it
 // ("img.jpg?w=100,200", a whole data: uri) stay; commas at its end separate candidates.
@@ -278,14 +335,12 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
     const shot = await openPage(browser, url, { scale: MOCKUP_LONG_SIDE / m.long, layer, artboard: true, imageTimeoutMs });
     try {
       const el = shot.page.locator('[data-mockup]').nth(i);
-      if (m.inArtboard) {
-        // Inside an artboard the mockup may be bigger than the slide that holds it: unclip the ancestors, hide the rest.
-        await el.evaluate((e) => {
-          e.setAttribute('data-df-art', '');
-          for (let n = e.parentElement; n && n !== document.documentElement; n = n.parentElement) n.setAttribute('data-df-anc', '');
-        });
-        await shot.page.addStyleTag({ content: ARTBOARD_SHOT_CSS });
-      }
+      // The mockup alone: its ancestors stop clipping and painting (it may be bigger than the slide that holds it), the rest is hidden.
+      await el.evaluate((e) => {
+        e.setAttribute('data-df-art', '');
+        for (let n = e.parentElement; n && n !== document.documentElement; n = n.parentElement) n.setAttribute('data-df-anc', '');
+      });
+      await shot.page.addStyleTag({ content: MOCKUP_SHOT_CSS });
       put(out('mockups', m.file), await shootBox(shot.page, el));
     } finally {
       await shot.context.close();

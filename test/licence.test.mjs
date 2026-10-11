@@ -24,3 +24,27 @@ test('placeholder licences are not a recorded licence', () => {
   for (const l of ['', ' ', 'TBD', 'tba', 'TODO', '-', '--', '—', 'n/a', 'N/A', 'na', '?', '??', '...', 'unknown', 'pending']) assert.equal(licenceIsPlaceholder(l), true, JSON.stringify(l));
   for (const l of ['CC0', 'Pexels License', 'Public Domain', 'Unsplash License']) assert.equal(licenceIsPlaceholder(l), false, l);
 });
+
+test('a Creative Commons BY licence page needs credit even though URLs are otherwise ignored', () => {
+  for (const u of ['https://creativecommons.org/licenses/by/4.0/', 'https://creativecommons.org/licenses/by-sa/3.0', 'http://creativecommons.org/licenses/by-nc-nd/2.0/deed.en']) {
+    assert.equal(licenceNeedsCredit(`| a.jpg | https://x.example/a | ${u} |`), true, u);
+  }
+  assert.equal(licenceNeedsCredit('| a.jpg | https://creativecommons.org/publicdomain/zero/1.0/ | CC0 |'), false);
+});
+
+test('more ways to say credit is owed', () => {
+  for (const l of ['Creative Commons BY 4.0', 'Attribution', 'Attribution needed', 'attribution appreciated', 'Free with attribution', 'Free to use, credit the photographer', 'photographer credit', 'credit to the author required', 'Credit required']) {
+    assert.equal(licenceNeedsCredit(`| a.jpg | https://x | ${l} |`), true, l);
+  }
+});
+
+test('phrases that say no credit is owed stay clear', () => {
+  for (const l of ['CC0', 'Pexels License, attribution optional', 'Unsplash, no attribution needed', 'credit not necessary', 'without attribution', 'Public domain, credit unnecessary']) {
+    assert.equal(licenceNeedsCredit(`| a.jpg | https://x | ${l} |`), false, l);
+  }
+});
+
+test('more placeholders: None, TBD., N.A., tbc', () => {
+  for (const l of ['None', 'none.', 'TBD.', 'T.B.D.', 'N.A.', 'n.a', 'tbc', 'TBC', '???']) assert.equal(licenceIsPlaceholder(l), true, l);
+  for (const l of ['CC0', 'Pexels License', 'Unsplash License', 'Public Domain']) assert.equal(licenceIsPlaceholder(l), false, l);
+});

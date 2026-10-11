@@ -336,3 +336,19 @@ test('a mockup inside a social artboard inside a slide is exported whole; the sl
     f.cleanup();
   }
 });
+
+test('a mockup PNG holds the mockup only: what its ancestors paint (section background, a ::before / ::after layer) stays out', { timeout: 300000 }, async () => {
+  const f = await variant((h) => h
+    .replace('<section data-section="mockups">', '<section data-section="mockups" style="background:#ff0000">')
+    .replace('<div class="row">', '<div class="row" style="position:relative"><div data-mockup="clear" style="width:120px;height:80px"></div>')
+    .replace('</style>', '.row::before{content:"";position:absolute;inset:0;background:#0000ff;z-index:5}.row::after{content:"";position:absolute;inset:0;background:url(assets/mockup.png) #00ff00;z-index:6}</style>'));
+  try {
+    const clear = path.join(f.dir, 'final', 'mockups', 'clear.png');
+    for (const [x, y] of [[5, 5], [100, 60]]) {
+      const [r, g, b] = await pixel(clear, x, y);
+      assert.deepEqual([r, g, b], [255, 255, 255], `pixel ${x},${y} should be the bare page, not the section red / row blue / row green`);
+    }
+  } finally {
+    f.cleanup();
+  }
+});

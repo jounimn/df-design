@@ -26,8 +26,11 @@ async function open({ hash = '', viewport = { width: 1440, height: 900 }, ...opt
     document.addEventListener('df:slidechange', (e) => window.__events.push({ from: e.detail.from, to: e.detail.to, name: e.detail.slide?.dataset.section }));
   });
   const page = await context.newPage();
+  // Registered before the page loads, so an error thrown while the runtime starts is caught.
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(url + hash, { waitUntil: 'load' });
-  return { page, context };
+  return { page, context, errors };
 }
 const shown = (page) => page.evaluate(() => [...document.querySelectorAll('section[data-section]')]
   .map((s, i) => [i + 1, getComputedStyle(s)]).filter(([, st]) => st.visibility === 'visible' && Number(st.opacity) > 0.99).map(([n]) => n));
@@ -109,10 +112,9 @@ test('opening #slide-3 starts on slide 3; out-of-range hashes open the nearest s
 });
 
 test('a malformed escape in the hash (#slide-%E0) does not blank the page: slide 1, no error', async () => {
-  const { page, context } = await open({ hash: '#slide-%E0' });
-  const errors = [];
-  page.on('pageerror', (e) => errors.push(e.message));
+  const { page, context, errors } = await open({ hash: '#slide-%E0' });
   try {
+    assert.deepEqual(errors, [], 'nothing was thrown while the runtime started');
     await inView(page, 1);
     assert.equal(await counter(page), `01 / ${pad(N)}`);
     await page.keyboard.press('ArrowRight'); await inView(page, 2);

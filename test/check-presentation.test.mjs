@@ -439,3 +439,69 @@ test('a placeholder licence (TBD, -, n/a, ?) fails only the licence check', asyn
   }
   assert.deepEqual((await check((dir) => edit(dir, 'assets.md', (m) => m.replace('CC0', 'Attribution 4.0 International')))).failed, licence);
 });
+
+test('fences close on the same character and length; indented code is not a table', () => {
+  const row = '| assets/a.png | https://x.example/a | CC0 |';
+  const four = '````md\n```\n' + row + '\n```\n| assets/b.png | https://x.example/b | CC0 |\n````\n';
+  assert.deepEqual(parseAssetRows(four), [], 'a ``` line inside a ```` fence does not close it');
+  assert.deepEqual(parseAssetRows('~~~\n```\n' + row + '\n~~~\n'), [], 'a ``` line inside a ~~~ fence does not close it');
+  assert.equal(parseAssetRows('```\n' + row + '\n```\n' + row + '\n').length, 1, 'after the fence closes, rows count again');
+  assert.deepEqual(parseAssetRows('    ' + row + '\n\t' + row + '\n'), [], 'indented code');
+  const logFenced = '````\n```\n## Behance cases\n' + items(40, 'b.example') + '\n```\n````\n';
+  assert.equal(parseResearchLog(logFenced).behance, 0, 'a research list inside a fence does not count');
+});
+
+test('a local page shown in an <iframe> is read: a hot-linked photo inside it fails the local-file rule', async () => {
+  const variants = {
+    'an <iframe>': (dir) => { fs.writeFileSync(path.join(dir, 'frame.html'), `<body><img src="${remote('inside.png')}" alt="x"></body>`); intoCard('<iframe src="frame.html"></iframe>')(dir); },
+    'an <object>': (dir) => { fs.writeFileSync(path.join(dir, 'frame.html'), `<body><div style="background:url(${remote('inside.png')})">x</div></body>`); intoCard('<object data="frame.html" type="text/html"></object>')(dir); },
+    'a frame inside a frame': (dir) => {
+      fs.writeFileSync(path.join(dir, 'inner.html'), `<body><img src="${remote('deep.png')}" alt="x"></body>`);
+      fs.writeFileSync(path.join(dir, 'frame.html'), '<body><iframe src="inner.html"></iframe></body>');
+      intoCard('<iframe src="frame.html"></iframe>')(dir);
+    },
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('an SVG is not exempt by default: remote SVGs are not local, local ones may not carry a raster', async () => {
+  const png = `data:image/png;base64,${PNG_1X1.toString('base64')}`;
+  const svgFile = (name, body) => (dir) => {
+    fs.writeFileSync(path.join(dir, name), `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="10" height="10">${body}</svg>`);
+    intoCard(`<img src="${name}" alt="x">`)(dir);
+  };
+  assert.deepEqual((await check(intoCard(`<img src="${remote('logo.svg')}" alt="x">`))).failed, [LOCAL_ONLY], 'remote svg');
+  assert.deepEqual((await check(svgFile('logo.svg', `<image href="${png}" width="10" height="10"/>`))).failed, [LOCAL_ONLY], 'svg with an embedded raster');
+  assert.deepEqual((await check(svgFile('logo.svg', `<image href="${remote('p.png')}" width="10" height="10"/>`))).failed, [LOCAL_ONLY], 'svg linking a remote image');
+  assert.deepEqual((await check(svgFile('logo.svg', '<rect width="10" height="10" fill="red"/>'))).failed, [], 'a plain drawing is fine');
+});
+
+test('video and its <source> are read, and pseudo-elements other than ::before / ::after do not hide a rule', async () => {
+  const variants = {
+    'video src': intoCard(`<video src="${remote('v.mp4')}"></video>`),
+    'video source': intoCard(`<video><source src="${remote('v.mp4')}" type="video/mp4"></video>`),
+    'srcset with no space after the comma': intoCard(`<img src="assets/mockup.png" srcset="assets/mockup.png 1x,${remote('s.png')} 2x" alt="x">`),
+    'a ::first-line rule': addCss(`.poster::first-line{background:url(${remote('bg.png')})}`),
+    'a rule inside a nested @media': addCss(`.poster{color:red;@media (max-width:100px){background:url(${remote('bg.png')})}}`),
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('a rule in a linked or @import-ed stylesheet is read (file:// sheets cannot be read from the page)', async () => {
+  const mutate = (dir) => {
+    fs.writeFileSync(path.join(dir, 'extra.css'), `.poster{background:url(${remote('bg.png')})}`);
+    edit(dir, 'presentation.html', (h) => h.replace('<style>', () => '<style>@import url("extra.css");'));
+  };
+  assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], '@import');
+  const linked = (dir) => {
+    fs.writeFileSync(path.join(dir, 'extra.css'), `@media (max-width:50px){.poster{background:url(${remote('bg.png')})}}`);
+    edit(dir, 'presentation.html', (h) => h.replace('</head>', () => '<link rel="stylesheet" href="extra.css"></head>'));
+  };
+  assert.deepEqual((await check(linked)).failed, [LOCAL_ONLY], '<link>');
+  const relative = (dir) => {
+    fs.mkdirSync(path.join(dir, 'css'));
+    fs.writeFileSync(path.join(dir, 'css', 'extra.css'), '.poster{background:url(../assets/mockup.png)}');
+    edit(dir, 'presentation.html', (h) => h.replace('</head>', () => '<link rel="stylesheet" href="css/extra.css"></head>'));
+  };
+  assert.deepEqual((await check(relative)).failed, [], 'a relative url in a linked sheet resolves against the sheet, to a recorded local photo');
+});

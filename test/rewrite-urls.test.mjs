@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rewriteRelativeUrls } from '../scripts/lib/export.mjs';
+import { rewriteRelativeUrls, srcsetUrls } from '../scripts/lib/export.mjs';
 
 test('rewriteRelativeUrls prefixes relative urls only, and only where they are urls', () => {
   const out = rewriteRelativeUrls([
@@ -72,4 +72,23 @@ test('single-quoted attributes, and a style attribute whose url() uses the other
     [`<img src='#frag'><img src='https://e.com/a.png'>`, `<img src='#frag'><img src='https://e.com/a.png'>`],
   ];
   for (const [input, want] of cases) assert.equal(rewriteRelativeUrls(input, '../'), want, input);
+});
+
+test('srcsetUrls: spaces, no spaces after commas, descriptors, data: uris, trailing commas', () => {
+  assert.deepEqual(srcsetUrls('a.png 1x, b.png 2x'), ['a.png', 'b.png']);
+  assert.deepEqual(srcsetUrls('a.png 1x,b.png 2x'), ['a.png', 'b.png']);
+  assert.deepEqual(srcsetUrls('a.png 100w,\n  b.png 200w,c.png 300w'), ['a.png', 'b.png', 'c.png']);
+  assert.deepEqual(srcsetUrls('a.png, b.png'), ['a.png', 'b.png']);
+  assert.deepEqual(srcsetUrls('only.png'), ['only.png']);
+  assert.deepEqual(srcsetUrls('img.jpg?w=100,200 1x, other.jpg 2x'), ['img.jpg?w=100,200', 'other.jpg']);
+  assert.deepEqual(srcsetUrls('data:image/png;base64,AAAA 1x, b.png 2x'), ['data:image/png;base64,AAAA', 'b.png']);
+  assert.deepEqual(srcsetUrls(''), []);
+});
+
+test('image-set() strings are urls too; url() and type() inside the set are not double-prefixed', () => {
+  const css = (v) => `<div style="${v}">`;
+  assert.equal(rewriteRelativeUrls(css(`background:image-set('b.png' 1x, 'c.png' 2x)`), '../'), css(`background:image-set('../b.png' 1x, '../c.png' 2x)`));
+  assert.equal(rewriteRelativeUrls(`<style>.a{background-image:-webkit-image-set("b.png" 1x)}</style>`, '../'), `<style>.a{background-image:-webkit-image-set("../b.png" 1x)}</style>`);
+  assert.equal(rewriteRelativeUrls(`<style>.a{background:image-set(url(b.png) 1x, "c.png" 2x type("image/png"))}</style>`, '../'), `<style>.a{background:image-set(url(../b.png) 1x, "../c.png" 2x type("image/png"))}</style>`);
+  assert.equal(rewriteRelativeUrls(`<style>.a{background:image-set("https://e.com/b.png" 1x, "/abs.png" 2x)}</style>`, '../'), `<style>.a{background:image-set("https://e.com/b.png" 1x, "/abs.png" 2x)}</style>`);
 });

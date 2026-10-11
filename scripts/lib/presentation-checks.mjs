@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { licenceNeedsCredit, licenceIsPlaceholder } from './licence.mjs';
 import { hasWatermark } from './watermark.mjs';
 import { pngSize, pdfPageCount } from './image-meta.mjs';
-import { EXPORT_CSS, HIDE_INNER_ARTBOARDS_CSS } from './export.mjs';
+import { EXPORT_CSS, HIDE_INNER_ARTBOARDS_CSS, srcsetUrls } from './export.mjs';
 
 export const REQUIRED_SECTIONS = ['opening', 'concept', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
 const MIN_BASE = 30;
@@ -61,6 +61,24 @@ function normalUrl(raw) {
   }
 }
 
+// Fenced code (``` or ~~~): a fence closes only on the same character, at least as long, with nothing after it. Call the
+// returned function with each line in order; true means the line is inside a fence (or is a fence line).
+function fenceState() {
+  let open = null;
+  return (line) => {
+    if (open) {
+      const close = line.match(/^ {0,3}(`{3,}|~{3,})\s*$/);
+      if (close && close[1][0] === open.char && close[1].length >= open.len) open = null;
+      return true;
+    }
+    const start = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    if (start && !(start[1][0] === '`' && start[2].includes('`'))) { open = { char: start[1][0], len: start[1].length }; return true; }
+    return false;
+  };
+}
+// A line indented four spaces (or a tab) is an indented code block, not a table row or a heading.
+const indentedCode = (line) => /^( {4,}|\t)/.test(line);
+
 const headingKey = (text) => text.toLowerCase().replace(/[*_`]/g, '')
   .replace(/\s*[([][^)\]]*[)\]]\s*$/, '')
   .replace(/\s*[-–—:]\s*\d+\s*$/, '')
@@ -70,10 +88,9 @@ const headingKey = (text) => text.toLowerCase().replace(/[*_`]/g, '')
 function logSections(md) {
   const sections = {};
   let current = null;
-  let fence = false;
+  const inFence = fenceState();
   for (const line of stripComments(md).split(/\r?\n/)) {
-    if (/^\s{0,3}(```|~~~)/.test(line)) { fence = !fence; continue; }
-    if (fence) continue;
+    if (inFence(line)) continue;
     const h = line.match(/^ {0,3}#{1,3}\s+(.+?)\s*#*\s*$/);
     if (h) {
       current = headingKey(h[1]);
@@ -136,12 +153,9 @@ const normalFileCell = (cell) => {
   try { return decodeURI(c); } catch { return c; }
 };
 export function parseAssetRows(md) {
-  let fence = false;
+  const inFence = fenceState();
   return stripComments(md).split(/\r?\n/)
-    .filter((l) => {
-      if (/^\s{0,3}(```|~~~)/.test(l)) { fence = !fence; return false; }
-      return !fence && /^\s*\|/.test(l);
-    })
+    .filter((l) => !inFence(l) && !indentedCode(l) && /^\s*\|/.test(l))
     .map((l) => l.trim().replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map((c) => c.trim()))
     .filter((cells) => !cells.every((c) => /^:?-{2,}:?$/.test(c)))
     .map((cells) => ({ file: normalFileCell(cells[0] ?? ''), source: cells[1] ?? '', licence: cells[2] ?? '' }));
@@ -198,14 +212,17 @@ async function renderRaw(browser, file, width, height, scale = 1) {
   return { page, context, errors };
 }
 
-// Every image a [data-mockup] could show, whichever branch the export takes. Runs in the page.
-//  - the elements: <img> (currentSrc and every srcset candidate, including the <source>s of its <picture>), SVG <image>,
-//    <video poster>, <object>, <embed>, <iframe>, <input type=image>;
+// Every image a [data-mockup] could show, whichever branch the export takes. Runs in the page (and in each frame inside a
+// mockup, with selector ':root', so a local page shown in an <iframe> is read too).
+//  - the elements: <img> (currentSrc, and the srcset of the image and of the <source>s of its <picture>), SVG <image>,
+//    <video> (poster, src, currentSrc) and its <source>s, <object>, <embed>, <iframe>, <input type=image>;
 //  - the computed style of the element, its descendants and their ::before / ::after: background, border-image, mask,
 //    list-style and content images, as the export viewport resolves them;
-//  - every stylesheet rule that matches one of those elements, in any @media / @supports block, so a rule for a width the
-//    checker does not render (min-width:1600px) is still read.
-function collectMockupSources() {
+//  - every stylesheet rule that matches one of those elements, in any @media / @supports block, in @import-ed sheets and
+//    in nested rules, so a rule for a width or a resolution the checker does not render is still read. Because the rules
+//    are enumerated, the device scale of the page does not decide what is found.
+// srcset values come back raw: the caller splits them with the same tokenizer the export uses.
+function collectMockupSources(selector) {
   const IMAGE_PROPS = ['backgroundImage', 'borderImageSource', 'maskImage', 'webkitMaskImage', 'listStyleImage', 'content'];
   const unescape = (u) => u.replace(/\\(.)/g, '$1').trim();
   const resolve = (u, base) => { try { return new URL(u, base).href; } catch { return u; } };
@@ -215,35 +232,46 @@ function collectMockupSources() {
     for (const set of css.matchAll(/image-set\(([^)]*)\)/g)) for (const s of set[1].matchAll(/"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g)) found.push(s[1] ?? s[2]);
     return found.map(unescape).filter(Boolean).map((u) => resolve(u, base));
   };
-  const srcsetUrls = (srcset) => (srcset || '').trim().split(/\s+/)
-    .filter((t) => t && !/^\d+(\.\d+)?[xw],?$/i.test(t)).map((t) => t.replace(/,+$/, '')).filter(Boolean).map((u) => resolve(u, document.baseURI));
 
+  // A file:// stylesheet (a <link>, an @import) is cross-origin to a file:// page, so its rules cannot be read from here:
+  // those hrefs come back in `blocked` and the caller inlines them.
   const rules = [];
+  const blocked = [];
   const walk = (list, base) => {
     for (const r of list) {
-      if (r instanceof CSSStyleRule) rules.push([r, base]);
+      if (r instanceof CSSImportRule) readSheet(r.styleSheet, base);
+      else if (r instanceof CSSStyleRule) rules.push([r, base]);
       else if (r.cssRules) walk(r.cssRules, base);
     }
   };
-  for (const sheet of document.styleSheets) {
-    try { walk(sheet.cssRules, sheet.href || document.baseURI); } catch { /* a cross-origin sheet cannot be read */ }
+  function readSheet(sheet, base) {
+    if (!sheet) return;
+    try { walk(sheet.cssRules, sheet.href || base); } catch { if (sheet.href) blocked.push(sheet.href); }
   }
+  for (const sheet of document.styleSheets) readSheet(sheet, document.baseURI);
+  // Every pseudo-element goes (::before, ::after, ::marker, ::part(x), ::-webkit-...), so the rule is tested against the
+  // element it decorates. The selector is judged as it stands at rest: :hover and the like do not match, as in the export.
   const matches = (el, selector) => {
-    try { return el.matches(selector.replace(/::?(?:before|after)\b/g, '') || '*'); } catch { return false; }
+    try { return el.matches(selector.replace(/::[\w-]+(?:\([^)]*\))?|:(?:before|after|first-line|first-letter)\b/g, '') || '*'); } catch { return false; }
   };
 
   const out = [];
-  document.querySelectorAll('[data-mockup]').forEach((m, i) => {
+  document.querySelectorAll(selector).forEach((m, i) => {
     const sources = [];
+    const srcsets = [];
     const nodes = [m, ...m.querySelectorAll('*')];
     for (const n of nodes) {
       if (n instanceof HTMLImageElement) {
-        sources.push(n.currentSrc || n.src, ...srcsetUrls(n.getAttribute('srcset')));
-        if (n.parentElement instanceof HTMLPictureElement) for (const s of n.parentElement.querySelectorAll('source')) sources.push(...srcsetUrls(s.getAttribute('srcset')));
+        sources.push(n.currentSrc || n.src);
+        if (n.getAttribute('srcset')) srcsets.push(n.getAttribute('srcset'));
+        if (n.parentElement instanceof HTMLPictureElement) for (const s of n.parentElement.querySelectorAll('source')) if (s.getAttribute('srcset')) srcsets.push(s.getAttribute('srcset'));
       }
-      if (n instanceof HTMLSourceElement && n.parentElement instanceof HTMLPictureElement) sources.push(...srcsetUrls(n.getAttribute('srcset')));
+      if (n instanceof HTMLSourceElement) {
+        if (n.parentElement instanceof HTMLPictureElement && n.getAttribute('srcset')) srcsets.push(n.getAttribute('srcset'));
+        if (n.parentElement instanceof HTMLMediaElement) sources.push(n.src);
+      }
       if (n instanceof SVGImageElement && n.href?.baseVal) sources.push(resolve(n.href.baseVal, document.baseURI));
-      if (n instanceof HTMLVideoElement) sources.push(n.poster);
+      if (n instanceof HTMLVideoElement) sources.push(n.poster, n.currentSrc, n.src);
       if (n instanceof HTMLObjectElement) sources.push(n.data);
       if (n instanceof HTMLEmbedElement || n instanceof HTMLIFrameElement) sources.push(n.src);
       if (n instanceof HTMLInputElement && n.type === 'image') sources.push(n.src);
@@ -253,11 +281,68 @@ function collectMockupSources() {
       }
     }
     for (const [rule, base] of rules) {
-      if (nodes.some((n) => matches(n, rule.selectorText))) sources.push(...urlsIn(rule.style.cssText, base));
+      if (nodes.some((n) => matches(n, rule.selectorText))) sources.push(...urlsIn(rule.cssText.slice(rule.cssText.indexOf('{')), base));
     }
-    out.push({ label: m.dataset.mockup || `#${i + 1}`, sources: [...new Set(sources.filter((s) => s && !/^(about|javascript):/i.test(s)))] });
+    out.push({ label: m.dataset?.mockup || `#${i + 1}`, base: document.baseURI, sources: [...new Set(sources.filter((s) => s && !/^(about|javascript):/i.test(s)))], srcsets });
   });
-  return out;
+  return { mockups: out, blocked };
+}
+
+// All of a mockup's sources, as absolute urls: the page's own, then those of every frame the mockup holds (an <iframe> showing
+// a local page, and frames inside it).
+// Stylesheet text with its urls made absolute, so it can be inlined into the page without changing what they point at.
+function absolutizeCss(css, base) {
+  const abs = (u) => { try { return new URL(u, base).href; } catch { return u; } };
+  return css
+    .replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (m, q, u) => (/^(data:|#)/i.test(u) ? m : `url("${abs(u)}")`))
+    .replace(/@import\s+(["'])([^"']+)\1/gi, (m, q, u) => `@import "${abs(u)}"`);
+}
+
+// Runs the collector in a page or frame; stylesheets it could not read are inlined (once each) and the collector runs again.
+async function collectIn(target, selector) {
+  const inlined = new Set();
+  let result;
+  for (let round = 0; round < 8; round++) {
+    result = await target.evaluate(collectMockupSources, selector);
+    const fresh = result.blocked.filter((href) => !inlined.has(href));
+    if (!fresh.length) break;
+    for (const href of fresh) {
+      inlined.add(href);
+      let text;
+      try { text = fs.readFileSync(fileURLToPath(href), 'utf8'); } catch { continue; } // a remote sheet cannot be read here
+      await target.addStyleTag({ content: absolutizeCss(text, href) });
+    }
+  }
+  return result.mockups;
+}
+
+async function mockupSources(page) {
+  const labelled = (list) => list.map((m) => ({
+    label: m.label,
+    sources: [...m.sources, ...m.srcsets.flatMap((v) => srcsetUrls(v).map((u) => { try { return new URL(u, m.base).href; } catch { return u; } }))],
+  }));
+  const mockups = labelled(await collectIn(page, '[data-mockup]'));
+  const labelOf = new Map([[page.mainFrame(), null]]);
+  for (const frame of page.frames()) {
+    if (frame === page.mainFrame()) continue;
+    const parent = frame.parentFrame();
+    let label = labelOf.get(parent) ?? null;
+    try {
+      const owner = await frame.frameElement();
+      const own = await owner.evaluate((el) => {
+        const m = el.closest('[data-mockup]');
+        return m ? m.dataset.mockup || `#${[...el.ownerDocument.querySelectorAll('[data-mockup]')].indexOf(m) + 1}` : null;
+      });
+      if (label === null && own !== null) label = own;
+    } catch { /* a frame that is gone */ }
+    labelOf.set(frame, label);
+    if (label === null) continue;
+    let inner = [];
+    try { inner = labelled(await collectIn(frame, ':root')); } catch { /* a frame that cannot be read */ }
+    const target = mockups.find((m) => m.label === label) ?? mockups[0];
+    for (const i of inner) target?.sources.push(...i.sources);
+  }
+  return mockups;
 }
 
 // The slideshow as a viewer gets it: no export flag. Exactly one slide in focus; the arrow keys, the hash and the next
@@ -316,6 +401,17 @@ async function checkSlideshow(browser, file, width, height) {
 }
 
 // Judged on the path alone: "photo.png?f=.svg" and "photo.png#.svg" are photos.
+// What in an SVG makes it a carrier for a photo: an <image>, an embedded raster, or a CSS url() to one.
+const SVG_RASTER = /<image\b|data:image\/(?:png|jpe?g|webp|gif)|url\(\s*["']?[^)#"']+\.(?:png|jpe?g|webp|gif)/i;
+function svgText(src) {
+  try {
+    if (!/^data:/i.test(src)) return fs.readFileSync(fileURLToPath(src), 'utf8');
+    const m = src.match(/^data:[^,]*?(;base64)?,([\s\S]*)$/i);
+    if (!m) return '';
+    try { return m[1] ? Buffer.from(m[2], 'base64').toString('utf8') : decodeURIComponent(m[2]); } catch { return m[2]; }
+  } catch { return ''; }
+}
+
 // An <iframe> / <object> / <embed> that shows a local page is layout, not a photo.
 const isFramedPage = (src) => { try { const u = new URL(src); return u.protocol === 'file:' && /\.html?$/i.test(u.pathname); } catch { return false; } };
 
@@ -347,7 +443,7 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
       social: ['square', 'story'].filter((k) => document.querySelector(`[data-social="${k}"]`)),
     };
   }, { sw: SLIDE.width, sh: SLIDE.height });
-  const mockups = await slides.page.evaluate(collectMockupSources);
+  const mockups = await mockupSources(slides.page);
   await slides.context.close();
 
   // Markup contract, read from the rendered DOM
@@ -389,7 +485,13 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
   const used = new Map(); // relative path -> label
   const notLocal = [];
   for (const m of mockups) {
-    for (const src of m.sources.filter((s) => !isVector(s) && !isFramedPage(s))) {
+    for (const src of m.sources.filter((s) => !isFramedPage(s))) {
+      if (isVector(src)) {
+        // A vector is exempt only while it is a local drawing: a remote SVG is not local, and one that carries a raster is a photo in disguise.
+        if (!/^(file|data):/i.test(src)) notLocal.push(`[data-mockup="${m.label}"]: remote SVG ${src.slice(0, 80)}`);
+        else if (SVG_RASTER.test(svgText(src))) notLocal.push(`[data-mockup="${m.label}"]: ${src.startsWith('data:') ? 'an inline SVG' : posix(path.relative(root, fileURLToPath(src)))} embeds or links a raster image`);
+        continue;
+      }
       const rel = src.startsWith('file:') ? posix(path.relative(root, fileURLToPath(src))) : null;
       if (rel === null) notLocal.push(`[data-mockup="${m.label}"]: ${src.startsWith('data:') ? 'data: URI' : src.slice(0, 80)}`);
       else if (rel.startsWith('..') || path.isAbsolute(rel)) notLocal.push(`[data-mockup="${m.label}"]: ${rel} is outside the presentation folder`);
