@@ -10,7 +10,7 @@ import { pngSize, pdfPageCount } from '../scripts/lib/image-meta.mjs';
 import { hasWatermark } from '../scripts/lib/watermark.mjs';
 import { copyPresentationFixture } from './helpers/presentation-fixture.mjs';
 
-const SECTIONS = ['opening', 'concept', 'market', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
+const SECTIONS = ['opening', 'concept', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
 const pad = (n) => String(n).padStart(2, '0');
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) =>
   e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]);
@@ -239,7 +239,7 @@ test('a story artboard inside a slide: captured whole in social/, absent from th
       assert.ok(r < 90 && g < 90 && b < 90, `${mode}: story.png is dark at y=1500, got ${[r, g, b]}`);
     }
     // The slide itself is the same with the artboard inside it as without it.
-    assert.deepEqual(fs.readFileSync(path.join(withInner.dir, 'final', 'slides', '10-closing.png')), fs.readFileSync(path.join(without.dir, 'final', 'slides', '10-closing.png')));
+    assert.deepEqual(fs.readFileSync(path.join(withInner.dir, 'final', 'slides', '09-closing.png')), fs.readFileSync(path.join(without.dir, 'final', 'slides', '09-closing.png')));
   } finally {
     withInner.cleanup();
     without.cleanup();

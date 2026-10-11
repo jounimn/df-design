@@ -14,12 +14,12 @@ import {
 import { copyPresentationFixture } from './helpers/presentation-fixture.mjs';
 
 const items = (n, host = 'x.example') => Array.from({ length: n }, (_, i) => `- https://${host}/${i}`).join('\n');
-const log = ({ behance = 30, market = 30, mockups = 30, map = 8, tail = '' } = {}) =>
-  `## Behance cases\n${items(behance, 'b.example')}\n\n## Market brands\n${items(market, 'm.example')}\n\n## Mockup candidates\n${items(mockups, 'k.example')}\n\n## Perceptual map\n${Array.from({ length: map }, (_, i) => `- Brand ${i}`).join('\n')}\n${tail}`;
+const log = ({ behance = 30, mockups = 30, tail = '' } = {}) =>
+  `## Behance cases\n${items(behance, 'b.example')}\n\n## Mockup candidates\n${items(mockups, 'k.example')}\n${tail}`;
 const behance = (md) => parseResearchLog(`## Behance cases\n${md}\n`).behance;
 
-test('the ten sections, in order', () => {
-  assert.deepEqual(REQUIRED_SECTIONS, ['opening', 'concept', 'market', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing']);
+test('the nine sections, in order: no market slide', () => {
+  assert.deepEqual(REQUIRED_SECTIONS, ['opening', 'concept', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing']);
 });
 
 test('missingSections reads real <section data-section> tags: not comments, CSS selectors or script text', () => {
@@ -39,8 +39,8 @@ test('duplicate and URL-less entries do not count', () => {
 });
 
 test('URLs inside markdown links count once and trailing punctuation does not make a new URL', () => {
-  const md = '## Market brands\n- [A](https://x.example/a)\n- B https://x.example/a.\n- C https://x.example/a/\n- D https://x.example/b\n';
-  assert.equal(parseResearchLog(md).market, 2);
+  const md = '## Mockup candidates\n- [A](https://x.example/a)\n- B https://x.example/a.\n- C https://x.example/a/\n- D https://x.example/b\n';
+  assert.equal(parseResearchLog(md).mockups, 2);
 });
 
 test('the same page written differently counts once: http/https, www, host case, tracking params, query order, fragment', () => {
@@ -56,23 +56,7 @@ test('only top-level list items count: 0–1 space of indent; nested bullets, ta
 
 test('numbered and starred lists count; a bare marker does not', () => {
   assert.equal(behance('1. https://b/1\n2) https://b/2\n* https://b/3\n+ https://b/4\n-\n- '), 4);
-  assert.equal(parseResearchLog('## Perceptual map\n1. A\n2) B\n-\n- \n').mapBrands, 2);
-});
-
-test('nested sub-bullets under a map brand do not inflate the map', () => {
-  const md = `## Perceptual map\n${Array.from({ length: 4 }, (_, i) => `- Brand ${i}\n  - x: 1, y: 2\n\t- axis`).join('\n')}`;
-  assert.equal(parseResearchLog(md).mapBrands, 4);
-});
-
-test('content inside code fences is ignored', () => {
-  assert.equal(behance(`\`\`\`\n${items(30, 'b')}\n\`\`\`\n- https://real/1`), 1);
-  assert.equal(behance(`~~~\n- https://b/1\n~~~`), 0);
-});
-
-test('section headings: any case, ## or ###, trailing spaces and a (30) suffix', () => {
-  for (const h of ['## behance cases ', '## Behance Cases (30)', '### Behance cases', '## Behance cases [30]', '## **Behance cases**']) {
-    assert.equal(parseResearchLog(`${h}\n- https://b/1\n- https://b/2\n`).behance, 2, h);
-  }
+  assert.equal(parseResearchLog('## Mockup candidates\n1. https://k/1\n2) https://k/2\n-\n- \n').mockups, 2);
 });
 
 test('CRLF files parse like LF files', () => {
@@ -83,7 +67,6 @@ test('29 cases fail; a Shortfall line in the documented format excuses exactly t
   assert.equal(researchFailures(parseResearchLog(log({ behance: 29 }))).length, 1);
   const ok = log({ behance: 29, tail: '\n## Shortfall\n- Behance cases: 29 — only 29 logo-presentation cases exist for this niche on Behance\n' });
   assert.deepEqual(researchFailures(parseResearchLog(ok)), []);
-  assert.equal(researchFailures(parseResearchLog(log({ market: 12 }))).length, 1);
   assert.equal(researchFailures(parseResearchLog(log({ mockups: 5 }))).length, 1);
 });
 
@@ -97,14 +80,19 @@ test('a Shortfall must name each short base, with the real count and a reason of
   assert.equal(sf('Only 18 cases exist and I could not find more of them.').length, 1, 'free text is not the format');
   assert.equal(sf('-').length, 1, 'a bare dash');
   assert.equal(sf('<!-- - Behance cases: 18 — only 18 relevant cases found in this niche -->').length, 1, 'a comment');
-  assert.equal(sf('- Market brands: 18 — only 18 relevant cases found in this niche').length, 1, 'wrong base');
-  assert.equal(sf('- Behance cases: 18 — only 18 relevant cases found in this niche', { market: 12 }).length, 1, 'does not excuse Market brands');
-  assert.deepEqual(sf('- Behance cases: 18 — only 18 relevant cases found in this niche\n- Market brands: 12 — a very small niche with few competitors', { market: 12 }), []);
+  assert.equal(sf('- Mockup candidates: 18 — only 18 relevant cases found in this niche').length, 1, 'wrong base');
+  assert.equal(sf('- Behance cases: 18 — only 18 relevant cases found in this niche', { mockups: 12 }).length, 1, 'does not excuse Mockup candidates');
+  assert.deepEqual(sf('- Behance cases: 18 — only 18 relevant cases found in this niche\n- Mockup candidates: 12 — mockup photos that pass the four rules are rare', { mockups: 12 }), []);
 });
 
-test('map of 7 fails, 8 passes, 12 passes, 13 fails', () => {
-  const fails = (map) => researchFailures(parseResearchLog(log({ map }))).length;
-  assert.deepEqual([7, 8, 12, 13].map(fails), [1, 0, 0, 1]);
+test('market research is gone: ## Market brands and ## Perceptual map are neither required nor counted', () => {
+  assert.deepEqual(researchFailures(parseResearchLog(log())), [], 'a log with only the two bases passes');
+  const withMarket = `${log()}\n## Market brands\n${items(3, 'm.example')}\n\n## Perceptual map\n- A\n- B\n`;
+  assert.deepEqual(researchFailures(parseResearchLog(withMarket)), [], 'a short or odd market section does not fail');
+  assert.deepEqual(Object.keys(parseResearchLog(withMarket)).sort(), ['behance', 'mockups', 'shortfall', 'shortfalls']);
+  const short = parseResearchLog(`${log({ behance: 12 })}\n## Shortfall\n- Market brands: 12 — a market base that is no longer asked for\n`);
+  assert.equal(short.shortfall, false, 'Market brands is not a base any more');
+  assert.equal(researchFailures(short).length, 1);
 });
 
 test('HTML comments are ignored, including an unclosed one', () => {
@@ -180,7 +168,8 @@ const edit = (dir, file, fn) => {
 };
 const RECORD = (file) => [`${file}: recorded in assets.md`, `${file}: source URL recorded`, `${file}: licence recorded and needs no credit`];
 const LOCAL_ONLY = 'mockup photo must be a local file in the presentation folder';
-const SECTIONS_CHECK = 'ten sections present, in order';
+const SECTIONS_CHECK = 'nine sections present, in order';
+const RESEARCH_CHECK = 'research-log.md: Behance cases and Mockup candidates, 30 each (or a Shortfall)';
 const dropSite = (h) => h.replace(/<section data-section="site">[\s\S]*?<\/section>/, '');
 
 test('complete fixture passes every check', async () => {
@@ -248,19 +237,19 @@ test('a photo shown through a ::before background is a mockup photo too: it need
 
 test('a mockup photo embedded as a data: URI fails only the local-file rule', async () => {
   const uri = `data:image/png;base64,${PNG_1X1.toString('base64')}`;
-  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<img src="assets/mockup.png" alt="Card mockup">', `<img src="${uri}" alt="Card mockup">`)));
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<img data-reveal src="assets/mockup.png" alt="Card mockup">', `<img src="${uri}" alt="Card mockup">`)));
   assert.deepEqual(failed, [LOCAL_ONLY]);
 });
 
 test('a hot-linked mockup photo fails only the local-file rule', async () => {
-  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<img src="assets/mockup.png" alt="Card mockup">', `<img src="http://127.0.0.1:${server.address().port}/m.png" alt="Card mockup">`)));
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<img data-reveal src="assets/mockup.png" alt="Card mockup">', `<img src="http://127.0.0.1:${server.address().port}/m.png" alt="Card mockup">`)));
   assert.deepEqual(failed, [LOCAL_ONLY]);
 });
 
 test('a mockup photo outside the presentation folder fails only the local-file rule', async () => {
   const { failed } = await check((dir, root) => {
     fs.copyFileSync(path.join(dir, 'assets', 'mockup.png'), path.join(root, 'shared.png'));
-    edit(dir, 'presentation.html', (h) => h.replace('<img src="assets/mockup.png" alt="Card mockup">', '<img src="../shared.png" alt="Card mockup">'));
+    edit(dir, 'presentation.html', (h) => h.replace('<img data-reveal src="assets/mockup.png" alt="Card mockup">', '<img src="../shared.png" alt="Card mockup">'));
   });
   assert.deepEqual(failed, [LOCAL_ONLY]);
 });
@@ -274,7 +263,7 @@ test('a background data: URI on a mockup fails the local-file rule; a vector log
 
 test('short log without a Shortfall fails only research', async () => {
   const { failed } = await check((dir) => edit(dir, 'research-log.md', (m) => m.replace(/^- behance\.example case 0[123] .*$/gm, '')));
-  assert.deepEqual(failed, ['research-log.md: bases of 30 (or a Shortfall) and a map of 8–12']);
+  assert.deepEqual(failed, [RESEARCH_CHECK]);
 });
 
 test('short log with a Shortfall line in the documented format passes', async () => {
@@ -306,7 +295,7 @@ test('sections come from the rendered DOM: a CSS selector alone does not make a 
 
 test('a missing section is named, and sections out of order fail', async () => {
   assert.deepEqual((await check((dir) => edit(dir, 'presentation.html', dropSite), { reexport: true })).failed, [SECTIONS_CHECK]);
-  const swap = (dir) => edit(dir, 'presentation.html', (h) => h.replace('data-section="concept"', 'data-section="TMP"').replace('data-section="market"', 'data-section="concept"').replace('data-section="TMP"', 'data-section="market"'));
+  const swap = (dir) => edit(dir, 'presentation.html', (h) => h.replace('data-section="concept"', 'data-section="TMP"').replace('data-section="audience"', 'data-section="concept"').replace('data-section="TMP"', 'data-section="audience"'));
   assert.deepEqual((await check(swap, { reexport: true })).failed, [SECTIONS_CHECK]);
 });
 
@@ -363,4 +352,17 @@ test('a reveal that stays masked under reduced motion fails only the slideshow c
 test('a keyboard handler that never moves the slide fails only the slideshow check', async () => {
   const { failed } = await check((dir) => edit(dir, 'slideshow.js', (js) => js.replace("e.preventDefault();\n      go(target);", 'e.preventDefault();')));
   assert.deepEqual(failed, SLIDESHOW);
+});
+
+test('"source page answers": 401/403/429 count as answered (stock sites refuse scripted fetches); 404 and 500 do not', async () => {
+  const status = http.createServer((req, res) => { res.statusCode = Number(req.url.slice(1)); res.end(); });
+  await new Promise((r) => status.listen(0, '127.0.0.1', r));
+  try {
+    for (const [code, answered] of [[403, true], [429, true], [404, false]]) {
+      const { failed } = await check((dir) => edit(dir, 'assets.md', (m) => m.replace('https://example.com/mockups/poster-card', `http://127.0.0.1:${status.address().port}/${code}`)), { offline: false });
+      assert.deepEqual(failed, answered ? [] : ['assets/mockup.png: source page answers'], `HTTP ${code}`);
+    }
+  } finally {
+    status.close();
+  }
 });

@@ -7,6 +7,9 @@ import { parseWatermarkSpec, watermarkLayer, injectWatermark, imageDataUri } fro
 
 const SLIDE = { width: 1920, height: 1080 };
 const MOCKUP_LONG_SIDE = 3000;
+// A screenshot first waits for its element to hold still across animation frames, which a busy machine delays well past
+// Playwright's 30 s default. Slow is fine; a hang is caught by the image and load timeouts instead.
+const ACTION_TIMEOUT_MS = 180000;
 
 // Injected at render time; the author's file is never edited.
 // Social artboards keep their size even inside a flex row; they are not slides, so they stay out of the PDF.
@@ -156,6 +159,7 @@ async function waitForAssets(page, timeoutMs) {
 async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.height, scale = 1, layer, slidesOnly = false, artboard = false, imageTimeoutMs = 15000 } = {}) {
   // slidesOnly is the PDF render: print repeats a fixed layer on every page, so it keeps the saved fixed layer.
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
+  context.setDefaultTimeout(ACTION_TIMEOUT_MS);
   try {
     // The slideshow runtime (templates/slideshow.js) must not start: every section stays laid out at rest for capture.
     await context.addInitScript(() => { window.__DF_EXPORT__ = true; });

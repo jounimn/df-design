@@ -8,9 +8,8 @@ import { hasWatermark } from './watermark.mjs';
 import { pngSize, pdfPageCount } from './image-meta.mjs';
 import { EXPORT_CSS, HIDE_INNER_ARTBOARDS_CSS } from './export.mjs';
 
-export const REQUIRED_SECTIONS = ['opening', 'concept', 'market', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
+export const REQUIRED_SECTIONS = ['opening', 'concept', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
 const MIN_BASE = 30;
-const MAP_RANGE = [8, 12];
 const SLIDE = { width: 1920, height: 1080 };
 
 // An unclosed comment runs to the end of the text, as it does in a browser and in Markdown renderers.
@@ -90,13 +89,13 @@ function logSections(md) {
 const listItems = (lines) => lines.map((l) => l.match(/^ {0,1}(?:[-*+]|\d{1,3}[.)])\s+(\S.*)$/)).filter(Boolean).map((m) => m[1]);
 const uniqueUrls = (lines) => new Set(listItems(lines).map((i) => i.match(URL_RE)?.[0]).filter(Boolean).map(normalUrl)).size;
 
-const BASES = [['behance', 'Behance cases'], ['market', 'Market brands'], ['mockups', 'Mockup candidates']];
+const BASES = [['behance', 'Behance cases'], ['mockups', 'Mockup candidates']];
 
 // `- <Base name>: <N> — <reason>`: one line per short base, the reason at least three words.
 function parseShortfalls(lines) {
   const found = {};
   for (const item of listItems(lines)) {
-    const m = item.replace(/[*_`]/g, '').match(/^(behance cases|market brands|mockup candidates)\s*:\s*(\d+)\s*[—–:-]\s*(.+)$/i);
+    const m = item.replace(/[*_`]/g, '').match(/^(behance cases|mockup candidates)\s*:\s*(\d+)\s*[—–:-]\s*(.+)$/i);
     if (!m || m[3].split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length < 3) continue;
     const key = BASES.find(([, label]) => label.toLowerCase() === m[1].toLowerCase())[0];
     found[key] = { count: Number(m[2]), reason: m[3].trim() };
@@ -104,16 +103,15 @@ function parseShortfalls(lines) {
   return found;
 }
 
-// Counts unique URLs in the three research bases, list items in the map, and the Shortfall lines.
+// Counts unique URLs in the two research bases and reads the Shortfall lines. Market research is not asked for any more:
+// a ## Market brands or ## Perceptual map section, if one is there, is ignored.
 // HTML comments are removed first, so the template's instructions never count as content.
 export function parseResearchLog(md) {
   const s = logSections(md);
   const shortfalls = parseShortfalls(s.shortfall ?? []);
   return {
     behance: uniqueUrls(s['behance cases'] ?? []),
-    market: uniqueUrls(s['market brands'] ?? []),
     mockups: uniqueUrls(s['mockup candidates'] ?? []),
-    mapBrands: listItems(s['perceptual map'] ?? []).length,
     shortfall: Object.keys(shortfalls).length > 0,
     shortfalls,
   };
@@ -127,7 +125,6 @@ export function researchFailures(log) {
     if (!sf) failures.push(`${label}: ${log[key]} unique URLs, ${MIN_BASE} needed; or add "- ${label}: ${log[key]} — <reason>" under ## Shortfall`);
     else if (sf.count !== log[key]) failures.push(`${label}: Shortfall says ${sf.count} but the log has ${log[key]} unique URLs`);
   }
-  if (log.mapBrands < MAP_RANGE[0] || log.mapBrands > MAP_RANGE[1]) failures.push(`Perceptual map: ${log.mapBrands} brands, ${MAP_RANGE[0]}–${MAP_RANGE[1]} needed`);
   return failures;
 }
 
@@ -176,10 +173,13 @@ const relFiles = (d) => walk(d).map((f) => path.relative(d, f).split(path.sep).j
 const pad = (n) => String(n).padStart(2, '0');
 const posix = (p) => p.split(path.sep).join('/');
 
+const ACTION_TIMEOUT_MS = 120000; // a busy machine is slow, not wrong
+
 // Layout, overflow and captures are judged at rest, as the export sees the page: window.__DF_EXPORT__ keeps the
 // slideshow runtime off. checkSlideshow() below is the one place that runs without it.
 async function renderRaw(browser, file, width, height) {
   const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
+  context.setDefaultTimeout(ACTION_TIMEOUT_MS);
   await context.addInitScript(() => { window.__DF_EXPORT__ = true; });
   const page = await context.newPage();
   const errors = [];
@@ -224,7 +224,7 @@ async function checkSlideshow(browser, file, width, height) {
         const shown = [...document.querySelectorAll('section[data-section]')]
           .map((s, i) => [i + 1, getComputedStyle(s)]).filter(([, st]) => st.visibility === 'visible' && Number(st.opacity) > 0.99).map(([n]) => n);
         return shown.length === 1 && shown[0] === want;
-      }, expected, { timeout: 4000 });
+      }, expected, { timeout: 15000 });
     } catch {
       throw new Error(`${step}: expected only slide ${expected} in view, got [${(await visible(page)).join(', ')}]`);
     }
@@ -239,6 +239,8 @@ async function checkSlideshow(browser, file, width, height) {
   };
   const context = await browser.newContext({ viewport: { width, height } });
   const reduced = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
+  context.setDefaultTimeout(ACTION_TIMEOUT_MS);
+  reduced.setDefaultTimeout(ACTION_TIMEOUT_MS);
   try {
     const page = await open(context);
     await settle(page, 1, 'at load');
@@ -294,7 +296,7 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
   // Markup contract, read from the rendered DOM
   const names = expected.sections.map((s) => s.name);
   const missing = missingFrom(names);
-  check('ten sections present, in order', missing.length === 0 && inOrder(names),
+  check('nine sections present, in order', missing.length === 0 && inOrder(names),
     missing.length ? `missing: ${missing.join(', ')}` : inOrder(names) ? '' : `found: ${names.join(', ')}`);
   if (afterGate) check('site section is filled (not marked pending)', !isPending(expected.sitePending));
   const overflowing = expected.sections.filter((s) => s.over);
@@ -306,8 +308,8 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
   if (fs.existsSync(logFile)) {
     const log = parseResearchLog(fs.readFileSync(logFile, 'utf8'));
     const failures = researchFailures(log);
-    check('research-log.md: bases of 30 (or a Shortfall) and a map of 8–12', failures.length === 0,
-      failures.join(' | ') || `behance ${log.behance}, market ${log.market}, mockups ${log.mockups}, map ${log.mapBrands}${log.shortfall ? ', shortfall stated' : ''}`);
+    check('research-log.md: Behance cases and Mockup candidates, 30 each (or a Shortfall)', failures.length === 0,
+      failures.join(' | ') || `behance ${log.behance}, mockups ${log.mockups}${log.shortfall ? ', shortfall stated' : ''}`);
   }
 
   // Render at 1440 and 390: errors, scroll, images; at 1440 also the photos inside the mockups
