@@ -34,45 +34,107 @@ const safeName = (s) => String(s).trim().replace(/[^\p{L}\p{N}._-]+/gu, '-').rep
 
 // The saved HTML lives one folder down (final/ or preview/), so its relative urls get a '../' prefix.
 // A <base href="../"> would do it in one line but also sends every #anchor to the folder above.
-const INERT = /<!--[\s\S]*?-->|<script\b[\s\S]*?<\/script\s*>|<style\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+//
+// Only real tags are rewritten: text in <p>, <textarea> or <title>, script bodies and comments are left alone.
+// An author's own <base href> already moves every relative url, so then only that href is prefixed.
+const ATTRS = String.raw`(?:"[^"]*"|'[^']*'|[^'">])*`;
+const TOKEN = new RegExp(
+  String.raw`(?<comment><!--[\s\S]*?(?:-->|$))`
+  + String.raw`|<(?<raw>script|style|textarea|title)\b(?<rattrs>${ATTRS})>(?<body>[\s\S]*?)(?<close><\/\k<raw>\s*>|$)`
+  + String.raw`|<(?<name>[a-zA-Z][^\s/>]*)(?<attrs>${ATTRS})>`,
+  'gi',
+);
+const ATTR = /(\s)([^\s"'<>/=]+)(\s*=\s*)("([^"]*)"|'([^']*)'|([^\s"'>]+))/g;
+
+const NAMED = { quot: '"', amp: '&', lt: '<', gt: '>', apos: "'", nbsp: ' ' };
+const decodeEntities = (s) => s.replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/gi, (m, dec, hex, name) =>
+  (dec ? String.fromCodePoint(Number(dec)) : hex ? String.fromCodePoint(parseInt(hex, 16)) : (NAMED[name.toLowerCase()] ?? m)));
+const encodeAttr = (s, quote) => s.replace(/&/g, '&amp;').replace(quote === "'" ? /'/g : /"/g, quote === "'" ? '&#39;' : '&quot;');
+
 const isRelative = (u) => {
   const v = u.trim();
   return v !== '' && !/^([#?/]|[a-z][a-z0-9+.-]*:)/i.test(v) && !v.includes('{{');
 };
 const withPrefix = (u, prefix) => prefix + u.trim().replace(/^\.\//, '');
-const prefixed = (u, prefix) => (isRelative(u) ? withPrefix(u, prefix) : u);
-const cssUrls = (css, prefix) => css.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (m, q, u) => (isRelative(u) ? `url(${q}${withPrefix(u, prefix)}${q})` : m));
-const ATTR = /(\s)(src|href|poster|data|action|formaction|xlink:href|srcset|imagesrcset|style)(\s*=\s*)("([^"]*)"|'([^']*)'|([^\s"'>]+))/gi;
+const prefixed = (u, prefix) => (isRelative(decodeEntities(u)) ? withPrefix(u, prefix) : u);
+const cssUrls = (css, prefix) => css
+  .replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (m, q, u) => (isRelative(u) ? `url(${q}${withPrefix(u, prefix)}${q})` : m))
+  .replace(/@import\s+(["'])([^"']+)\1/gi, (m, q, u) => (isRelative(u) ? `@import ${q}${withPrefix(u, prefix)}${q}` : m));
 
-function rewriteAttributes(markup, prefix) {
-  return markup.replace(ATTR, (m, sp, name, eq, raw, dq, sq, bare) => {
+// srcset: candidates are `url [descriptor]` separated by commas. A url runs to the next whitespace, so commas inside it
+// ("img.jpg?w=100,200", a whole data: uri) stay; commas at its end separate candidates.
+function rewriteSrcset(value, prefix) {
+  let out = '';
+  let i = 0;
+  while (i < value.length) {
+    let j = i;
+    while (j < value.length && /[\s,]/.test(value[j])) j++;
+    out += value.slice(i, j);
+    i = j;
+    if (i >= value.length) break;
+    let k = i;
+    while (k < value.length && !/\s/.test(value[k])) k++;
+    let url = value.slice(i, k);
+    const trailing = /^data:/i.test(url) ? '' : (url.match(/,+$/)?.[0] ?? '');
+    if (trailing) url = url.slice(0, -trailing.length);
+    out += prefixed(url, prefix) + trailing;
+    i = k;
+    if (trailing) continue;
+    let d = i;
+    let depth = 0;
+    while (d < value.length && !(value[d] === ',' && depth === 0)) {
+      if (value[d] === '(') depth++;
+      if (value[d] === ')') depth--;
+      d++;
+    }
+    out += value.slice(i, d);
+    i = d;
+  }
+  return out;
+}
+
+const URL_ATTRS = new Set(['src', 'href', 'poster', 'action', 'formaction', 'xlink:href']);
+const LEGACY_BACKGROUND = new Set(['body', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th']);
+
+function rewriteAttributes(tagName, attrs, prefix, { onlyHref = false } = {}) {
+  const tag = tagName.toLowerCase();
+  return attrs.replace(ATTR, (m, space, name, eq, raw, dq, sq, bare) => {
+    const key = name.toLowerCase();
     const value = dq ?? sq ?? bare;
     const quote = dq !== undefined ? '"' : sq !== undefined ? "'" : '';
-    const key = name.toLowerCase();
-    const next = key === 'style' ? cssUrls(value, prefix)
-      : key.endsWith('srcset') ? value.split(',').map((c) => c.replace(/^(\s*)(\S+)/, (_, ws, u) => ws + prefixed(u, prefix))).join(',')
-        : prefixed(value, prefix);
-    return `${sp}${name}${eq}${quote}${next}${quote}`;
+    if (onlyHref && key !== 'href') return m;
+    let next;
+    if (key === 'style') {
+      const decoded = decodeEntities(value);
+      const css = cssUrls(decoded, prefix);
+      if (css === decoded) return m;
+      const q = quote || '"';
+      return `${space}${name}${eq}${q}${encodeAttr(css, q)}${q}`;
+    }
+    if (key === 'srcset' || key === 'imagesrcset') next = rewriteSrcset(value, prefix);
+    else if (URL_ATTRS.has(key) || (key === 'data' && tag === 'object') || (key === 'background' && LEGACY_BACKGROUND.has(tag))) next = prefixed(value, prefix);
+    else return m;
+    if (next === value) return m;
+    const q = quote || '"';
+    return `${space}${name}${eq}${q}${next}${q}`;
   });
 }
 
 export function rewriteRelativeUrls(html, prefix = '../') {
-  let out = '';
-  let last = 0;
-  for (const m of html.matchAll(INERT)) {
-    out += rewriteAttributes(html.slice(last, m.index), prefix);
-    const seg = m[0];
-    if (seg.startsWith('<!--')) out += seg;
-    else if (/^<script/i.test(seg)) { // the tag's own attributes (src) change; the script text never does
-      const end = seg.indexOf('>') + 1;
-      out += rewriteAttributes(seg.slice(0, end), prefix) + seg.slice(end);
-    } else {
-      const end = seg.indexOf('>') + 1;
-      out += seg.slice(0, end) + cssUrls(seg.slice(end), prefix);
+  const hasBase = [...html.matchAll(TOKEN)].some((m) => m.groups.name?.toLowerCase() === 'base' && /\shref\s*=/i.test(m.groups.attrs));
+  return html.replace(TOKEN, (m, ...rest) => {
+    const g = rest.at(-1);
+    if (g.comment !== undefined) return m;
+    if (g.raw !== undefined) {
+      if (hasBase) return m;
+      const tag = g.raw.toLowerCase();
+      const open = `<${g.raw}${rewriteAttributes(tag, g.rattrs, prefix)}>`;
+      return `${open}${tag === 'style' ? cssUrls(g.body, prefix) : g.body}${g.close}`;
     }
-    last = m.index + seg.length;
-  }
-  return out + rewriteAttributes(html.slice(last), prefix);
+    const isBase = g.name.toLowerCase() === 'base';
+    if (hasBase && !isBase) return m;
+    return `<${g.name}${rewriteAttributes(g.name, g.attrs, prefix, { onlyHref: hasBase })}>`;
+  });
 }
 
 function savedHtml(source, layer) {
@@ -107,6 +169,8 @@ async function prepare(context, url, { layer, slidesOnly, artboard, imageTimeout
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ content: artboard ? EXPORT_CSS : EXPORT_CSS + HIDE_INNER_ARTBOARDS_CSS });
   await waitForAssets(page, imageTimeoutMs);
+  // `load` also waits for CSS backgrounds, stylesheets and frames, which the image and font waits above do not see.
+  await page.waitForLoadState('load', { timeout: imageTimeoutMs }).catch(() => fail(`the page did not finish loading within ${imageTimeoutMs}ms; a stylesheet, script, frame or CSS background is still pending`));
   if (slidesOnly) {
     // Hide each artboard outside the slides together with the wrapper that exists only to hold it, so no extra page is printed.
     await page.evaluate(() => {

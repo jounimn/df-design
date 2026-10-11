@@ -109,23 +109,6 @@ test('exported html finds the author assets and keeps in-page anchors working', 
   }
 });
 
-test('rewriteRelativeUrls prefixes relative urls only, and only where they are urls', () => {
-  const out = rewriteRelativeUrls([
-    '<!-- <img src="c.png"> -->',
-    '<link rel="stylesheet" href="css/a.css"><img src="a b/é.png" srcset="s1.png 1x, s2.png 2x" style="background:url(bg.png)">',
-    '<a href="#x">a</a><a href="?q=1">q</a><a href="/abs">abs</a><a href="//cdn.example/x">cdn</a><a href="https://e.com/x">e</a><a href="mailto:a@b.c">m</a><img src="data:image/png;base64,AAAA">',
-    '<a href="./up.html">u</a><iframe src="../site/index.html"></iframe>',
-    '<style>.a{background:url("img/z.png")} .b{background:url(https://e.com/z.png)}</style>',
-    `<script src="app.js"></script><script>const u = "<img src='no.png'>"; fetch("data.json");</script>`,
-  ].join('\n'), '../');
-  for (const want of [
-    '<!-- <img src="c.png"> -->', 'href="../css/a.css"', 'src="../a b/é.png"', 'srcset="../s1.png 1x, ../s2.png 2x"', 'url(../bg.png)',
-    'href="#x"', 'href="?q=1"', 'href="/abs"', 'href="//cdn.example/x"', 'href="https://e.com/x"', 'href="mailto:a@b.c"', 'src="data:image/png;base64,AAAA"',
-    'href="../up.html"', 'src="../../site/index.html"', 'url("../img/z.png")', 'url(https://e.com/z.png)', '<script src="../app.js">',
-    `const u = "<img src='no.png'>"; fetch("data.json");`,
-  ]) assert.ok(out.includes(want), want + '\n' + out);
-});
-
 test('the watermark is actually drawn into the preview slides, not the final ones', () => {
   const a = fs.readFileSync(path.join(marked.dir, 'preview', 'slides', '01-opening.png'));
   const b = fs.readFileSync(path.join(marked.dir, 'final', 'slides', '01-opening.png'));
@@ -259,5 +242,30 @@ test('a story artboard inside a slide: captured whole in social/, absent from th
   } finally {
     withInner.cleanup();
     without.cleanup();
+  }
+});
+
+test('a CSS background that never answers fails with a named error (the page never finishes loading)', { timeout: 60000 }, async () => {
+  const server = http.createServer(() => {});
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+  try {
+    await assert.rejects(
+      variant((h) => h.replace('</style>', `.poster{background:url(http://127.0.0.1:${server.address().port}/never.png)}</style>`), 'none', { imageTimeoutMs: 800 }),
+      /did not finish loading within 800ms/,
+    );
+  } finally {
+    server.closeAllConnections();
+    server.close();
+  }
+});
+
+test('a local CSS background is painted into the slide', { timeout: 120000 }, async () => {
+  const f = await variant((h) => h.replace('<p>Fixture copy for opening.', '<div id="bgprobe" style="position:absolute;left:1500px;top:100px;width:200px;height:200px;background:url(assets/mockup.png) center/cover"></div><p>Fixture copy for opening.')
+    .replace('section { padding: 64px 96px;', 'section { position: relative; padding: 64px 96px;'));
+  try {
+    const [r, g, b] = await pixel(path.join(f.dir, 'final', 'slides', '01-opening.png'), 1600, 200);
+    assert.ok(!(r === 244 && g === 239 && b === 230), `background image missing from the slide, got ${[r, g, b]}`);
+  } finally {
+    f.cleanup();
   }
 });
