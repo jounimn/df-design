@@ -304,3 +304,35 @@ test('the saved html runs the slideshow for the viewer: one slide in view, the r
     }
   }
 });
+
+test('a mockup at a fractional position or size is exported at exactly 3000px on the long side', { timeout: 300000 }, async () => {
+  const f = await variant((h) => h
+    .replace('<div class="row">', '<div class="row" style="margin: 0.37px 0 0 0.71px">')
+    .replace('<div data-mockup="poster" class="m poster">', '<div data-mockup="poster" class="m poster" style="width:437.3px;height:600.6px;max-width:none">')
+    .replace('<div data-mockup="card" class="m card">', '<div data-mockup="card" class="m card" style="width:641.45px;height:360.8px;max-width:none">'));
+  try {
+    for (const [name, w, h] of [['poster', 437.3, 600.6], ['card', 641.45, 360.8]]) {
+      const size = png(f.dir, 'final', 'mockups', `${name}.png`);
+      const long = Math.max(size.width, size.height);
+      const short = Math.min(size.width, size.height);
+      assert.equal(long, 3000, `${name}: ${size.width}×${size.height}`);
+      // The clip is whole CSS pixels, so the short side is within a CSS pixel of the layout (about 5 output pixels here).
+      assert.ok(Math.abs(short - (3000 * Math.min(w, h)) / Math.max(w, h)) <= 8, `${name}: short side ${short}`);
+    }
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('a mockup inside a social artboard inside a slide is exported whole; the slide and the PDF do not show it', { timeout: 300000 }, async () => {
+  const f = await variant((h) => h.replace('<div data-social="story">Story</div>', '').replace('<p>Fixture copy for closing.</p>',
+    '<p>Fixture copy for closing.</p><div data-social="story"><div data-mockup="inner" class="m card"><img src="assets/mockup.png" alt="Inner mockup"></div></div>'));
+  try {
+    const size = png(f.dir, 'final', 'mockups', 'inner.png');
+    assert.equal(Math.max(size.width, size.height), 3000);
+    assert.equal(pdfPageCount(fs.readFileSync(path.join(f.dir, 'final', 'presentation.pdf'))), SECTIONS.length);
+    assert.deepEqual(png(f.dir, 'final', 'slides', `${pad(SECTIONS.length)}-closing.png`), { width: 1920, height: 1080 });
+  } finally {
+    f.cleanup();
+  }
+});

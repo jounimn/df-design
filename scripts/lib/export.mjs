@@ -209,6 +209,17 @@ async function prepare(context, url, { layer, slidesOnly, artboard, imageTimeout
   return { page, context };
 }
 
+// An element screenshot grows the box to whole pixels, so an element at x=10.4 comes out a pixel or two too large, and a clip
+// with a fractional size is cut down to whole CSS pixels before the scale is applied. So the clip is a whole number of CSS
+// pixels (the nearest to the element's own size) starting at the element's exact corner; whole sizes times the scale are exact.
+async function shootBox(page, locator) {
+  const box = await locator.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.x + window.scrollX, y: r.y + window.scrollY, width: Math.round(r.width), height: Math.round(r.height) };
+  });
+  return page.screenshot({ clip: box, fullPage: true, animations: 'disabled' });
+}
+
 async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
   const written = [];
   const out = (...p) => path.join(outDir, ...p);
@@ -216,14 +227,21 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
 
   // Slides, social artboards, and the element boxes mockups need.
   const main = await openPage(browser, url, { layer, imageTimeoutMs });
-  const { sections, mockups, social } = await main.page.evaluate(() => ({
+  const { sections, social } = await main.page.evaluate(() => ({
     sections: [...document.querySelectorAll('section[data-section]')].map((s) => s.dataset.section),
-    mockups: [...document.querySelectorAll('[data-mockup]')].map((e, i) => {
-      const r = e.getBoundingClientRect();
-      return { label: e.dataset.mockup || `#${i + 1}`, name: e.dataset.mockup || `mockup-${i + 1}`, long: Math.max(r.width, r.height), box: `${r.width}×${r.height}` };
-    }),
     social: ['square', 'story'].filter((k) => document.querySelector(`[data-social="${k}"]`)),
   }));
+  // Mockups are measured with inner artboards shown: a mockup inside an artboard inside a slide is still a mockup.
+  const measure = await openPage(browser, url, { artboard: true, imageTimeoutMs });
+  let mockups;
+  try {
+    mockups = await measure.page.evaluate(() => [...document.querySelectorAll('[data-mockup]')].map((e, i) => {
+      const r = e.getBoundingClientRect();
+      return { label: e.dataset.mockup || `#${i + 1}`, name: e.dataset.mockup || `mockup-${i + 1}`, long: Math.max(Math.round(r.width), Math.round(r.height)), box: `${r.width}×${r.height}`, inArtboard: !!e.closest('[data-social]') };
+    }));
+  } finally {
+    await measure.context.close();
+  }
   try {
     // Fail before writing anything when a mockup cannot be exported or two would overwrite each other.
     const files = new Map();
@@ -234,7 +252,7 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
       files.set(m.file, m.label);
     }
     for (const [i, name] of sections.entries()) {
-      put(out('slides', `${pad(i + 1)}-${safeName(name)}.png`), await main.page.locator('section[data-section]').nth(i).screenshot({ animations: 'disabled' }));
+      put(out('slides', `${pad(i + 1)}-${safeName(name)}.png`), await shootBox(main.page, main.page.locator('section[data-section]').nth(i)));
     }
   } finally {
     await main.context.close();
@@ -249,7 +267,7 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
         for (let n = el.parentElement; n && n !== document.documentElement; n = n.parentElement) n.setAttribute('data-df-anc', '');
       });
       await shot.page.addStyleTag({ content: ARTBOARD_SHOT_CSS });
-      put(out('social', `${kind}.png`), await art.screenshot({ animations: 'disabled' }));
+      put(out('social', `${kind}.png`), await shootBox(shot.page, art));
     } finally {
       await shot.context.close();
     }
@@ -257,9 +275,21 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
 
   // Each mockup in its own context: deviceScaleFactor makes its long side 3000px.
   for (const [i, m] of mockups.entries()) {
-    const shot = await openPage(browser, url, { scale: MOCKUP_LONG_SIDE / m.long, layer, imageTimeoutMs });
-    put(out('mockups', m.file), await shot.page.locator('[data-mockup]').nth(i).screenshot({ animations: 'disabled' }));
-    await shot.context.close();
+    const shot = await openPage(browser, url, { scale: MOCKUP_LONG_SIDE / m.long, layer, artboard: true, imageTimeoutMs });
+    try {
+      const el = shot.page.locator('[data-mockup]').nth(i);
+      if (m.inArtboard) {
+        // Inside an artboard the mockup may be bigger than the slide that holds it: unclip the ancestors, hide the rest.
+        await el.evaluate((e) => {
+          e.setAttribute('data-df-art', '');
+          for (let n = e.parentElement; n && n !== document.documentElement; n = n.parentElement) n.setAttribute('data-df-anc', '');
+        });
+        await shot.page.addStyleTag({ content: ARTBOARD_SHOT_CSS });
+      }
+      put(out('mockups', m.file), await shootBox(shot.page, el));
+    } finally {
+      await shot.context.close();
+    }
   }
 
   const doc = await openPage(browser, url, { layer, slidesOnly: true, imageTimeoutMs });
