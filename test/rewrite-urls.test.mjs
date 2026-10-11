@@ -58,3 +58,18 @@ test("an author's own <base href> is the only thing prefixed; urls stay as writt
   const inComment = '<!-- <base href="x/"> --><img src="a.png">';
   assert.equal(rewriteRelativeUrls(inComment), '<!-- <base href="x/"> --><img src="../a.png">');
 });
+
+test('single-quoted attributes, and a style attribute whose url() uses the other quote', () => {
+  const cases = [
+    [`<img src='a.png'>`, `<img src='../a.png'>`],
+    [`<img srcset='s1.png 1x, s2.png 2x'>`, `<img srcset='../s1.png 1x, ../s2.png 2x'>`],
+    [`<div style='background:url("bg.png")'>`, `<div style='background:url("../bg.png")'>`],
+    [`<div style='background:url(bg.png)'>`, `<div style='background:url(../bg.png)'>`],
+    [`<div style="background:url('bg.png')">`, `<div style="background:url('../bg.png')">`],
+    [`<a title='say "hi"' href='page.html#top'>`, `<a title='say "hi"' href='../page.html#top'>`],
+    [`<a title="it's" href="page.html">`, `<a title="it's" href="../page.html">`],
+    [`<link href='css/a.css' rel=stylesheet>`, `<link href='../css/a.css' rel=stylesheet>`],
+    [`<img src='#frag'><img src='https://e.com/a.png'>`, `<img src='#frag'><img src='https://e.com/a.png'>`],
+  ];
+  for (const [input, want] of cases) assert.equal(rewriteRelativeUrls(input, '../'), want, input);
+});

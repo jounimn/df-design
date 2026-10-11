@@ -9,7 +9,7 @@ import { exportPresentation } from '../scripts/lib/export.mjs';
 import { stripWatermark } from '../scripts/lib/watermark.mjs';
 import { licenceNeedsCredit } from '../scripts/lib/licence.mjs';
 import {
-  REQUIRED_SECTIONS, missingSections, sectionsInOrder, parseResearchLog, researchFailures, sitePending, parseCheckArgs, runChecks,
+  REQUIRED_SECTIONS, missingSections, sectionsInOrder, parseResearchLog, researchFailures, sitePending, parseCheckArgs, runChecks, isVector, parseAssetRows,
 } from '../scripts/lib/presentation-checks.mjs';
 import { copyPresentationFixture } from './helpers/presentation-fixture.mjs';
 
@@ -140,7 +140,8 @@ before(async () => {
   browser = await launchBrowser();
   base = copyPresentationFixture();
   await exportPresentation(base.dir, 'text:Teste', { browser });
-  server = http.createServer((req, res) => { res.setHeader('content-type', 'image/png'); res.end(PNG_1X1); });
+  // mask-image is fetched in CORS mode, so a remote mask needs this header to load at all.
+  server = http.createServer((req, res) => { res.setHeader('content-type', 'image/png'); res.setHeader('access-control-allow-origin', '*'); res.end(PNG_1X1); });
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
 });
 after(async () => {
@@ -371,4 +372,70 @@ test('"source page answers": 401/403/429 count as answered (stock sites refuse s
   } finally {
     status.close();
   }
+});
+
+test('isVector reads the path only: a query or fragment that mentions .svg does not make a photo a vector', () => {
+  for (const v of ['file:///c/logo.svg', 'file:///c/logo.SVG?v=2', 'file:///c/logo.svg#icon', 'data:image/svg+xml,%3Csvg/%3E', 'https://e.com/a.svg']) assert.equal(isVector(v), true, v);
+  for (const p of ['file:///c/photo.png#.svg', 'file:///c/photo.png?f=.svg', 'file:///c/photo.jpg?x=a.svg#b', 'file:///c/not-a-vector.svgz.png', 'data:image/png;base64,AAAA', 'not a url .svg']) assert.equal(isVector(p), false, p);
+});
+
+test('an assets.md table inside a code fence does not record anything', () => {
+  const row = '| assets/a.png | https://x.example/a | CC0 |';
+  assert.equal(parseAssetRows(`# Assets\n${row}\n`).length, 1);
+  assert.deepEqual(parseAssetRows(`# Assets\n~~~\n${row}\n~~~\n`), []);
+  assert.deepEqual(parseAssetRows(`\`\`\`md\n${row}\n\`\`\`\n`), []);
+  assert.equal(parseAssetRows(`\`\`\`\nx\n\`\`\`\n${row}\n`).length, 1, 'a table after the fence closes counts again');
+});
+
+test('parseCheckArgs rejects single-dash flags and extra arguments', () => {
+  for (const bad of [['d', '-offline'], ['d', '-o'], ['-x', 'd'], ['d', '-'], ['d', 'e', 'f'], ['d', '--offline', 'extra']]) assert.throws(() => parseCheckArgs(bad), Error, JSON.stringify(bad));
+});
+
+// Every way a [data-mockup] can show a photo must reach the local-file rule, at the export's width and scale, in any branch.
+const intoCard = (html) => (dir) => edit(dir, 'presentation.html', (h) => h.replace(/(<div data-mockup="card"[^>]*>)/, (m) => m + html));
+const addCss = (css) => (dir) => edit(dir, 'presentation.html', (h) => h.replace('</style>', () => `${css}</style>`));
+const remote = (file) => `http://127.0.0.1:${server.address().port}/${file}`;
+
+test('a hot-linked photo hidden behind srcset, <picture>, or a media query is still found', async () => {
+  const variants = {
+    'a srcset candidate': intoCard(`<img src="assets/mockup.png" srcset="assets/mockup.png 1x, ${remote('s.png')} 2x" alt="x">`),
+    'a <picture> source for wide screens': intoCard(`<picture><source media="(min-width:1600px)" srcset="${remote('big.png')}"><img src="assets/mockup.png" alt="x"></picture>`),
+    'a min-width:1600px rule': addCss(`@media (min-width:1600px){.poster{background:url(${remote('bg.png')})}}`),
+    'a media rule that never applies': addCss(`@media (max-width:200px){.poster{background:url(${remote('bg.png')})}}`),
+    'an image-set()': addCss(`.poster{background-image:image-set("${remote('bg.png')}" 1x)}`),
+    'a query that mentions .svg': intoCard(`<img src="${remote('m.png')}?f=.svg" alt="x">`),
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('content:url(), video poster, border-image, mask-image, object, embed, iframe and input type=image are read too', async () => {
+  const variants = {
+    'content:url()': addCss(`.poster::before{content:url(${remote('c.png')})}`),
+    'a video poster': intoCard(`<video poster="${remote('p.png')}"></video>`),
+    'border-image': addCss(`.poster{border:4px solid;border-image:url(${remote('b.png')}) 30 stretch}`),
+    'mask-image': addCss(`.poster{-webkit-mask-image:url(${remote('m.png')});mask-image:url(${remote('m.png')})}`),
+    'an <object>': intoCard(`<object data="${remote('o.png')}"></object>`),
+    'an <embed>': intoCard(`<embed src="${remote('e.png')}">`),
+    'an <iframe>': intoCard(`<iframe src="${remote('f.png')}"></iframe>`),
+    'an <input type=image>': intoCard(`<input type="image" src="${remote('i.png')}" alt="x">`),
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('a local photo reached through content:url() needs its assets.md row; a local page in an <iframe> is not a photo', async () => {
+  const content = (dir) => {
+    addCss('.poster::before{content:url(assets/bg.png)}')(dir);
+    fs.copyFileSync(path.join(dir, 'assets', 'mockup.png'), path.join(dir, 'assets', 'bg.png'));
+  };
+  assert.deepEqual((await check(content)).failed, RECORD('assets/bg.png'));
+  const framed = (dir) => { fs.writeFileSync(path.join(dir, 'inner.html'), '<p>x</p>'); intoCard('<iframe src="inner.html"></iframe>')(dir); };
+  assert.deepEqual((await check(framed)).failed, []);
+});
+
+test('a placeholder licence (TBD, -, n/a, ?) fails only the licence check', async () => {
+  const licence = ['assets/mockup.png: licence recorded and needs no credit'];
+  for (const placeholder of ['TBD', '-', 'n/a', '?']) {
+    assert.deepEqual((await check((dir) => edit(dir, 'assets.md', (m) => m.replace('CC0', placeholder)))).failed, licence, placeholder);
+  }
+  assert.deepEqual((await check((dir) => edit(dir, 'assets.md', (m) => m.replace('CC0', 'Attribution 4.0 International')))).failed, licence);
 });

@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { licenceNeedsCredit } from './licence.mjs';
+import { licenceNeedsCredit, licenceIsPlaceholder } from './licence.mjs';
 import { hasWatermark } from './watermark.mjs';
 import { pngSize, pdfPageCount } from './image-meta.mjs';
 import { EXPORT_CSS, HIDE_INNER_ARTBOARDS_CSS } from './export.mjs';
@@ -136,8 +136,12 @@ const normalFileCell = (cell) => {
   try { return decodeURI(c); } catch { return c; }
 };
 export function parseAssetRows(md) {
+  let fence = false;
   return stripComments(md).split(/\r?\n/)
-    .filter((l) => /^\s*\|/.test(l))
+    .filter((l) => {
+      if (/^\s{0,3}(```|~~~)/.test(l)) { fence = !fence; return false; }
+      return !fence && /^\s*\|/.test(l);
+    })
     .map((l) => l.trim().replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map((c) => c.trim()))
     .filter((cells) => !cells.every((c) => /^:?-{2,}:?$/.test(c)))
     .map((cells) => ({ file: normalFileCell(cells[0] ?? ''), source: cells[1] ?? '', licence: cells[2] ?? '' }));
@@ -156,7 +160,7 @@ export function parseCheckArgs(argv) {
       const value = a === '--watermark' ? argv[++i] : a.slice('--watermark='.length);
       if (!value || value.startsWith('--')) throw new Error('--watermark needs a value: none or a watermark spec');
       out.watermark = value;
-    } else if (a.startsWith('--')) {
+    } else if (a.startsWith('-')) {
       throw new Error(`unknown option ${a} (known: ${[...FLAGS, '--watermark <spec|none>'].join(', ')})`);
     } else if (out.dir === undefined) out.dir = a;
     else throw new Error(`unexpected extra argument: ${a}`);
@@ -177,8 +181,8 @@ const ACTION_TIMEOUT_MS = 120000; // a busy machine is slow, not wrong
 
 // Layout, overflow and captures are judged at rest, as the export sees the page: window.__DF_EXPORT__ keeps the
 // slideshow runtime off. checkSlideshow() below is the one place that runs without it.
-async function renderRaw(browser, file, width, height) {
-  const context = await browser.newContext({ viewport: { width, height }, reducedMotion: 'reduce' });
+async function renderRaw(browser, file, width, height, scale = 1) {
+  const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
   context.setDefaultTimeout(ACTION_TIMEOUT_MS);
   await context.addInitScript(() => { window.__DF_EXPORT__ = true; });
   const page = await context.newPage();
@@ -194,20 +198,64 @@ async function renderRaw(browser, file, width, height) {
   return { page, context, errors };
 }
 
-// Every raster a [data-mockup] shows: <img>, SVG <image>, and the background of the element, its descendants and their
-// ::before / ::after. Computed styles serialise a background as url("…") with the address already resolved.
+// Every image a [data-mockup] could show, whichever branch the export takes. Runs in the page.
+//  - the elements: <img> (currentSrc and every srcset candidate, including the <source>s of its <picture>), SVG <image>,
+//    <video poster>, <object>, <embed>, <iframe>, <input type=image>;
+//  - the computed style of the element, its descendants and their ::before / ::after: background, border-image, mask,
+//    list-style and content images, as the export viewport resolves them;
+//  - every stylesheet rule that matches one of those elements, in any @media / @supports block, so a rule for a width the
+//    checker does not render (min-width:1600px) is still read.
 function collectMockupSources() {
+  const IMAGE_PROPS = ['backgroundImage', 'borderImageSource', 'maskImage', 'webkitMaskImage', 'listStyleImage', 'content'];
+  const unescape = (u) => u.replace(/\\(.)/g, '$1').trim();
+  const resolve = (u, base) => { try { return new URL(u, base).href; } catch { return u; } };
+  const urlsIn = (css, base) => {
+    const found = [];
+    for (const m of css.matchAll(/url\(\s*(?:"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'|([^)"']*))\s*\)/g)) found.push(m[1] ?? m[2] ?? m[3]);
+    for (const set of css.matchAll(/image-set\(([^)]*)\)/g)) for (const s of set[1].matchAll(/"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'/g)) found.push(s[1] ?? s[2]);
+    return found.map(unescape).filter(Boolean).map((u) => resolve(u, base));
+  };
+  const srcsetUrls = (srcset) => (srcset || '').trim().split(/\s+/)
+    .filter((t) => t && !/^\d+(\.\d+)?[xw],?$/i.test(t)).map((t) => t.replace(/,+$/, '')).filter(Boolean).map((u) => resolve(u, document.baseURI));
+
+  const rules = [];
+  const walk = (list, base) => {
+    for (const r of list) {
+      if (r instanceof CSSStyleRule) rules.push([r, base]);
+      else if (r.cssRules) walk(r.cssRules, base);
+    }
+  };
+  for (const sheet of document.styleSheets) {
+    try { walk(sheet.cssRules, sheet.href || document.baseURI); } catch { /* a cross-origin sheet cannot be read */ }
+  }
+  const matches = (el, selector) => {
+    try { return el.matches(selector.replace(/::?(?:before|after)\b/g, '') || '*'); } catch { return false; }
+  };
+
   const out = [];
   document.querySelectorAll('[data-mockup]').forEach((m, i) => {
     const sources = [];
-    for (const n of [m, ...m.querySelectorAll('*')]) {
-      if (n instanceof HTMLImageElement) sources.push(n.currentSrc || n.src);
-      if (n instanceof SVGImageElement && n.href?.baseVal) sources.push(new URL(n.href.baseVal, document.baseURI).href);
+    const nodes = [m, ...m.querySelectorAll('*')];
+    for (const n of nodes) {
+      if (n instanceof HTMLImageElement) {
+        sources.push(n.currentSrc || n.src, ...srcsetUrls(n.getAttribute('srcset')));
+        if (n.parentElement instanceof HTMLPictureElement) for (const s of n.parentElement.querySelectorAll('source')) sources.push(...srcsetUrls(s.getAttribute('srcset')));
+      }
+      if (n instanceof HTMLSourceElement && n.parentElement instanceof HTMLPictureElement) sources.push(...srcsetUrls(n.getAttribute('srcset')));
+      if (n instanceof SVGImageElement && n.href?.baseVal) sources.push(resolve(n.href.baseVal, document.baseURI));
+      if (n instanceof HTMLVideoElement) sources.push(n.poster);
+      if (n instanceof HTMLObjectElement) sources.push(n.data);
+      if (n instanceof HTMLEmbedElement || n instanceof HTMLIFrameElement) sources.push(n.src);
+      if (n instanceof HTMLInputElement && n.type === 'image') sources.push(n.src);
       for (const pseudo of [null, '::before', '::after']) {
-        for (const mm of getComputedStyle(n, pseudo).backgroundImage.matchAll(/url\("((?:[^"\\]|\\.)*)"\)/g)) sources.push(mm[1].replace(/\\(.)/g, '$1'));
+        const style = getComputedStyle(n, pseudo);
+        for (const prop of IMAGE_PROPS) sources.push(...urlsIn(style[prop] || '', document.baseURI));
       }
     }
-    out.push({ label: m.dataset.mockup || `#${i + 1}`, sources: sources.filter(Boolean) });
+    for (const [rule, base] of rules) {
+      if (nodes.some((n) => matches(n, rule.selectorText))) sources.push(...urlsIn(rule.style.cssText, base));
+    }
+    out.push({ label: m.dataset.mockup || `#${i + 1}`, sources: [...new Set(sources.filter((s) => s && !/^(about|javascript):/i.test(s)))] });
   });
   return out;
 }
@@ -267,7 +315,14 @@ async function checkSlideshow(browser, file, width, height) {
   }
 }
 
-const isVector = (src) => /^data:image\/svg/i.test(src) || /\.svg([?#]|$)/i.test(src);
+// Judged on the path alone: "photo.png?f=.svg" and "photo.png#.svg" are photos.
+// An <iframe> / <object> / <embed> that shows a local page is layout, not a photo.
+const isFramedPage = (src) => { try { const u = new URL(src); return u.protocol === 'file:' && /\.html?$/i.test(u.pathname); } catch { return false; } };
+
+export function isVector(src) {
+  if (/^data:image\/svg/i.test(src)) return true;
+  try { return /\.svg$/i.test(new URL(src).pathname); } catch { return false; }
+}
 
 export async function runChecks(dir, { offline = false, afterGate = false, browser, watermark } = {}) {
   const results = [];
@@ -280,7 +335,8 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
   if (!exists) return results;
 
   // 1920 with the export CSS: the sections and artboards as the export will see them, and slide overflow.
-  const slides = await renderRaw(browser, file, SLIDE.width, SLIDE.height);
+  // The export renders mockups at 1920 wide and a high device scale, so the photos are collected there, not at 1440 / 1x.
+  const slides = await renderRaw(browser, file, SLIDE.width, SLIDE.height, 3);
   await slides.page.addStyleTag({ content: EXPORT_CSS + HIDE_INNER_ARTBOARDS_CSS });
   const expected = await slides.page.evaluate(({ sw, sh }) => {
     const site = document.querySelector('section[data-section="site"]');
@@ -291,6 +347,7 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
       social: ['square', 'story'].filter((k) => document.querySelector(`[data-social="${k}"]`)),
     };
   }, { sw: SLIDE.width, sh: SLIDE.height });
+  const mockups = await slides.page.evaluate(collectMockupSources);
   await slides.context.close();
 
   // Markup contract, read from the rendered DOM
@@ -313,14 +370,12 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
   }
 
   // Render at 1440 and 390: errors, scroll, images; at 1440 also the photos inside the mockups
-  let mockups = [];
   for (const [w, h] of [[1440, 900], [390, 844]]) {
     const { page, context, errors } = await renderRaw(browser, file, w, h);
     const info = await page.evaluate(() => ({
       sw: document.documentElement.scrollWidth,
       imgs: [...document.images].map((i) => ({ src: i.currentSrc || i.src, ok: i.complete && i.naturalWidth > 0 })),
     }));
-    if (w === 1440) mockups = await page.evaluate(collectMockupSources);
     const label = `presentation.html @${w}`;
     check(`${label}: no page errors or failed requests`, errors.length === 0, errors.join(' | '));
     check(`${label}: no horizontal scroll`, info.sw <= w, `scrollWidth ${info.sw}`);
@@ -334,7 +389,7 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
   const used = new Map(); // relative path -> label
   const notLocal = [];
   for (const m of mockups) {
-    for (const src of m.sources.filter((s) => !isVector(s))) {
+    for (const src of m.sources.filter((s) => !isVector(s) && !isFramedPage(s))) {
       const rel = src.startsWith('file:') ? posix(path.relative(root, fileURLToPath(src))) : null;
       if (rel === null) notLocal.push(`[data-mockup="${m.label}"]: ${src.startsWith('data:') ? 'data: URI' : src.slice(0, 80)}`);
       else if (rel.startsWith('..') || path.isAbsolute(rel)) notLocal.push(`[data-mockup="${m.label}"]: ${rel} is outside the presentation folder`);
@@ -353,7 +408,7 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
       check(`${rel}: recorded in assets.md`, !!row);
       const url = (row?.source.match(/https?:\/\/[^\s|)>]+/) || [])[0];
       check(`${rel}: source URL recorded`, !!url, url || '');
-      check(`${rel}: licence recorded and needs no credit`, !!row && row.licence.trim() !== '' && !licenceNeedsCredit(row.licence), row?.licence.slice(0, 160) ?? '');
+      check(`${rel}: licence recorded and needs no credit`, !!row && !licenceIsPlaceholder(row.licence) && !licenceNeedsCredit(row.licence), row?.licence.slice(0, 160) ?? '');
       if (url && !offline) {
         let code = 0;
         try { code = (await fetch(url, { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 Chrome/130' }, signal: AbortSignal.timeout(20000) })).status; } catch { code = -1; }
