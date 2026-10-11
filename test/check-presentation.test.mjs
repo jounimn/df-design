@@ -162,10 +162,16 @@ async function check(mutate = () => {}, { reexport, ...options } = {}) {
     fs.rmSync(root, { recursive: true, force: true });
   }
 }
+// A mutation that changes nothing would let its test pass without protecting anything, so it throws instead.
 const edit = (dir, file, fn) => {
   const p = path.join(dir, file);
-  fs.writeFileSync(p, fn(fs.readFileSync(p, 'utf8')));
+  const before = fs.readFileSync(p, 'utf8');
+  const after = fn(before);
+  if (after === before) throw new Error(`test mutation changed nothing in ${file}`);
+  fs.writeFileSync(p, after);
 };
+// The card mockup's <img>, whatever other attributes (data-reveal, loading, ...) the fixture gives it.
+const CARD_IMG = /<img\b[^>]*\bsrc="assets\/mockup\.png"[^>]*\balt="Card mockup"[^>]*>/;
 const RECORD = (file) => [`${file}: recorded in assets.md`, `${file}: source URL recorded`, `${file}: licence recorded and needs no credit`];
 const LOCAL_ONLY = 'mockup photo must be a local file in the presentation folder';
 const SECTIONS_CHECK = 'nine sections present, in order';
@@ -237,19 +243,19 @@ test('a photo shown through a ::before background is a mockup photo too: it need
 
 test('a mockup photo embedded as a data: URI fails only the local-file rule', async () => {
   const uri = `data:image/png;base64,${PNG_1X1.toString('base64')}`;
-  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<img data-reveal src="assets/mockup.png" alt="Card mockup">', `<img src="${uri}" alt="Card mockup">`)));
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace(CARD_IMG, `<img src="${uri}" alt="Card mockup">`)));
   assert.deepEqual(failed, [LOCAL_ONLY]);
 });
 
 test('a hot-linked mockup photo fails only the local-file rule', async () => {
-  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<img data-reveal src="assets/mockup.png" alt="Card mockup">', `<img src="http://127.0.0.1:${server.address().port}/m.png" alt="Card mockup">`)));
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace(CARD_IMG, `<img src="http://127.0.0.1:${server.address().port}/m.png" alt="Card mockup">`)));
   assert.deepEqual(failed, [LOCAL_ONLY]);
 });
 
 test('a mockup photo outside the presentation folder fails only the local-file rule', async () => {
   const { failed } = await check((dir, root) => {
     fs.copyFileSync(path.join(dir, 'assets', 'mockup.png'), path.join(root, 'shared.png'));
-    edit(dir, 'presentation.html', (h) => h.replace('<img data-reveal src="assets/mockup.png" alt="Card mockup">', '<img src="../shared.png" alt="Card mockup">'));
+    edit(dir, 'presentation.html', (h) => h.replace(CARD_IMG, '<img src="../shared.png" alt="Card mockup">'));
   });
   assert.deepEqual(failed, [LOCAL_ONLY]);
 });
@@ -350,7 +356,7 @@ test('a reveal that stays masked under reduced motion fails only the slideshow c
 });
 
 test('a keyboard handler that never moves the slide fails only the slideshow check', async () => {
-  const { failed } = await check((dir) => edit(dir, 'slideshow.js', (js) => js.replace("e.preventDefault();\n      go(target);", 'e.preventDefault();')));
+  const { failed } = await check((dir) => edit(dir, 'slideshow.js', (js) => js.replace(/e\.preventDefault\(\);\r?\n\s*go\(target\);/, 'e.preventDefault();')));
   assert.deepEqual(failed, SLIDESHOW);
 });
 
