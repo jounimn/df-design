@@ -104,7 +104,9 @@ item, not the site.**
 
 ### Check the final file for a watermark
 
-The rule is about the file that ships, so check that file:
+The rule is about the file that ships, so check that file. It forbids
+third-party watermarks in stock images; the author's own protective
+watermark over their work is a different thing (`watermark.md`).
 
 - Open the downloaded file at 100% and look at the corners and centre. Watermarks are usually a diagonal wordmark or a corner logo.
 - Compare its pixel dimensions with the size the source advertises. A small file from a "high-resolution" source is often a preview.

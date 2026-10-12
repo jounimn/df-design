@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Fixture presentation</title>
+  <link rel="stylesheet" href="slideshow.css">
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4efe6; color: #1c1a17; }
+    section { padding: 64px 96px; box-sizing: border-box; border-bottom: 1px solid #1c1a17; }
+    h2 { font-size: 56px; margin: 0 0 32px; }
+    p { font-size: 28px; }
+    .row { display: flex; gap: 48px; align-items: flex-start; }
+    .m { overflow: hidden; background: #d9cdb8; }
+    .m img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .poster { width: 540px; height: 720px; max-width: 100%; }
+    .card { width: 640px; height: 360px; max-width: 100%; }
+    .artboards { display: flex; flex-wrap: wrap; gap: 48px; padding: 48px; background: #fff; }
+    @media (max-width: 900px) {
+      section { padding: 32px 20px; }
+      .row { flex-direction: column; }
+      .poster, .card { height: auto; }
+      .poster { aspect-ratio: 3 / 4; }
+      .card { aspect-ratio: 16 / 9; }
+    }
+    [data-social] { background: #1c1a17; color: #f4efe6; font-size: 64px; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+  <section data-section="opening">
+    <h2>01 · Miolo & Filhos</h2>
+    <p>Fixture copy for opening. <a href="#closing">Skip to closing</a></p>
+  </section>
+  <section data-section="concept">
+    <h2>02 · Concept</h2>
+    <p>Fixture copy for concept.</p>
+  </section>
+  <section data-section="audience">
+    <h2>04 · Audience</h2>
+    <p>Fixture copy for audience.</p>
+  </section>
+  <section data-section="logo-construction">
+    <h2>05 · Logo construction</h2>
+    <p>Fixture copy for logo-construction.</p>
+  </section>
+  <section data-section="logo-system">
+    <h2>06 · Logo system</h2>
+    <p>Fixture copy for logo-system.</p>
+  </section>
+  <section data-section="colour-type">
+    <h2>07 · Colour and type</h2>
+    <p>Fixture copy for colour-type.</p>
+  </section>
+  <section data-section="mockups">
+    <h2>08 · Mockups</h2>
+    <div class="row">
+      <div data-mockup="poster" class="m poster"><img src="assets/mockup.png" alt="Poster mockup"></div>
+      <div data-mockup="card" class="m card"><img data-reveal src="assets/mockup.png" alt="Card mockup"></div>
+    </div>
+  </section>
+  <section data-section="site">
+    <h2>09 · Site</h2>
+    <p>Fixture copy for site.</p>
+  </section>
+  <section data-section="closing" id="closing">
+    <h2>10 · Closing</h2>
+    <p>Fixture copy for closing.</p>
+  </section>
+  <div class="artboards">
+    <div data-social="square">Square</div>
+    <div data-social="story">Story</div>
+  </div>
+  <script src="slideshow.js"></script>
+</body>
+</html>

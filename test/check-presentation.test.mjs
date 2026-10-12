@@ -1,0 +1,545 @@
+import test, { before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import http from 'node:http';
+import os from 'node:os';
+import path from 'node:path';
+import { launchBrowser } from '../scripts/lib/browser.mjs';
+import { exportPresentation } from '../scripts/lib/export.mjs';
+import { stripWatermark } from '../scripts/lib/watermark.mjs';
+import { licenceNeedsCredit } from '../scripts/lib/licence.mjs';
+import {
+  REQUIRED_SECTIONS, missingSections, sectionsInOrder, parseResearchLog, researchFailures, sitePending, parseCheckArgs, runChecks, isVector, parseAssetRows,
+} from '../scripts/lib/presentation-checks.mjs';
+import { copyPresentationFixture } from './helpers/presentation-fixture.mjs';
+
+const items = (n, host = 'x.example') => Array.from({ length: n }, (_, i) => `- https://${host}/${i}`).join('\n');
+const log = ({ behance = 30, mockups = 30, tail = '' } = {}) =>
+  `## Behance cases\n${items(behance, 'b.example')}\n\n## Mockup candidates\n${items(mockups, 'k.example')}\n${tail}`;
+const behance = (md) => parseResearchLog(`## Behance cases\n${md}\n`).behance;
+
+test('the nine sections, in order: no market slide', () => {
+  assert.deepEqual(REQUIRED_SECTIONS, ['opening', 'concept', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing']);
+});
+
+test('missingSections reads real <section data-section> tags: not comments, CSS selectors or script text', () => {
+  const all = REQUIRED_SECTIONS.map((s) => `<section data-section="${s}"></section>`).join('');
+  assert.deepEqual(missingSections(all), []);
+  assert.deepEqual(missingSections(all.replace('<section data-section="site">', '<section data-x="site">') + '<!-- <section data-section="site"> -->'), ['site']);
+  const css = `<style>${REQUIRED_SECTIONS.map((s) => `[data-section=${s}]`).join(',')}</style>`;
+  assert.deepEqual(missingSections(css), REQUIRED_SECTIONS);
+  assert.equal(sectionsInOrder(css), false);
+  const js = `<script>const a='${REQUIRED_SECTIONS.map((s) => `<section data-section="${s}">`).join('')}'</script>`;
+  assert.deepEqual(missingSections(js), REQUIRED_SECTIONS);
+});
+
+test('duplicate and URL-less entries do not count', () => {
+  const md = '## Behance cases\n- a https://x/1\n- b https://x/1\n- c no url\n';
+  assert.equal(parseResearchLog(md).behance, 1);
+});
+
+test('URLs inside markdown links count once and trailing punctuation does not make a new URL', () => {
+  const md = '## Mockup candidates\n- [A](https://x.example/a)\n- B https://x.example/a.\n- C https://x.example/a/\n- D https://x.example/b\n';
+  assert.equal(parseResearchLog(md).mockups, 2);
+});
+
+test('the same page written differently counts once: http/https, www, host case, tracking params, query order, fragment', () => {
+  assert.equal(behance(['- https://b.com/x', '- http://b.com/x', '- https://www.b.com/x', '- https://B.com/x', '- https://b.com/x/', '- https://b.com/x#top',
+    '- https://b.com/x?utm_source=a&utm_medium=b', '- https://b.com/x?fbclid=1', '- https://b.com/x?gclid=1&ref=home&ref_src=t&mc_cid=9'].join('\n')), 1);
+  assert.equal(behance('- https://b.com/x?a=1&b=2\n- https://b.com/x?b=2&a=1'), 1);
+  assert.equal(behance('- https://b.com/x?id=1\n- https://b.com/x?id=2\n- https://b.com/y'), 3);
+});
+
+test('only top-level list items count: 0–1 space of indent; nested bullets, tabs and 2+ spaces do not', () => {
+  assert.equal(behance('- https://b/1\n  - also https://b/2\n    - and https://b/3\n\t- tab https://b/4\n - one space https://b/5'), 2);
+});
+
+test('numbered and starred lists count; a bare marker does not', () => {
+  assert.equal(behance('1. https://b/1\n2) https://b/2\n* https://b/3\n+ https://b/4\n-\n- '), 4);
+  assert.equal(parseResearchLog('## Mockup candidates\n1. https://k/1\n2) https://k/2\n-\n- \n').mockups, 2);
+});
+
+test('CRLF files parse like LF files', () => {
+  assert.deepEqual(parseResearchLog(log().replace(/\n/g, '\r\n')), parseResearchLog(log()));
+});
+
+test('29 cases fail; a Shortfall line in the documented format excuses exactly that base', () => {
+  assert.equal(researchFailures(parseResearchLog(log({ behance: 29 }))).length, 1);
+  const ok = log({ behance: 29, tail: '\n## Shortfall\n- Behance cases: 29 — only 29 logo-presentation cases exist for this niche on Behance\n' });
+  assert.deepEqual(researchFailures(parseResearchLog(ok)), []);
+  assert.equal(researchFailures(parseResearchLog(log({ mockups: 5 }))).length, 1);
+});
+
+test('a Shortfall must name each short base, with the real count and a reason of three words or more', () => {
+  const sf = (lines, extra = {}) => researchFailures(parseResearchLog(log({ behance: 18, ...extra, tail: `\n## Shortfall\n${lines}\n` })));
+  assert.deepEqual(sf('- Behance cases: 18 — only 18 relevant cases found in this niche'), []);
+  assert.deepEqual(sf('- behance cases: 18 - only 18 relevant cases found in this niche'), []);
+  assert.equal(sf('- Behance cases: 20 — only 18 relevant cases found in this niche').length, 1, 'wrong N');
+  assert.equal(sf('- Behance cases: 18 — too few').length, 1, 'two words');
+  assert.equal(sf('- Behance cases: 18 — TBD').length, 1, 'TBD');
+  assert.equal(sf('Only 18 cases exist and I could not find more of them.').length, 1, 'free text is not the format');
+  assert.equal(sf('-').length, 1, 'a bare dash');
+  assert.equal(sf('<!-- - Behance cases: 18 — only 18 relevant cases found in this niche -->').length, 1, 'a comment');
+  assert.equal(sf('- Mockup candidates: 18 — only 18 relevant cases found in this niche').length, 1, 'wrong base');
+  assert.equal(sf('- Behance cases: 18 — only 18 relevant cases found in this niche', { mockups: 12 }).length, 1, 'does not excuse Mockup candidates');
+  assert.deepEqual(sf('- Behance cases: 18 — only 18 relevant cases found in this niche\n- Mockup candidates: 12 — mockup photos that pass the four rules are rare', { mockups: 12 }), []);
+});
+
+test('market research is gone: ## Market brands and ## Perceptual map are neither required nor counted', () => {
+  assert.deepEqual(researchFailures(parseResearchLog(log())), [], 'a log with only the two bases passes');
+  const withMarket = `${log()}\n## Market brands\n${items(3, 'm.example')}\n\n## Perceptual map\n- A\n- B\n`;
+  assert.deepEqual(researchFailures(parseResearchLog(withMarket)), [], 'a short or odd market section does not fail');
+  assert.deepEqual(Object.keys(parseResearchLog(withMarket)).sort(), ['behance', 'mockups', 'shortfall', 'shortfalls']);
+  const short = parseResearchLog(`${log({ behance: 12 })}\n## Shortfall\n- Market brands: 12 — a market base that is no longer asked for\n`);
+  assert.equal(short.shortfall, false, 'Market brands is not a base any more');
+  assert.equal(researchFailures(short).length, 1);
+});
+
+test('HTML comments are ignored, including an unclosed one', () => {
+  const md = `${log({ behance: 29 })}\n## Shortfall\n<!-- - Behance cases: 29 — only 29 relevant cases exist -->\n`;
+  assert.equal(parseResearchLog(md).shortfall, false);
+  assert.equal(researchFailures(parseResearchLog(md)).length, 1);
+  assert.equal(parseResearchLog('## Shortfall\n<!-- todo\n- Behance cases: 1 — only one case exists\n').shortfall, false);
+  assert.equal(behance('<!--\n- https://x/1\n- https://x/2\n-->\n- https://x/3'), 1);
+});
+
+test('sitePending reads data-pending on the <section> whose data-section is exactly "site"', () => {
+  assert.equal(sitePending('<section data-section="site" data-pending>x</section>'), true);
+  assert.equal(sitePending('<section data-pending data-section="site">x</section>'), true);
+  assert.equal(sitePending('<section\ndata-section="site"\ndata-pending>x</section>'), true);
+  assert.equal(sitePending('<section data-section="site">x</section>'), false);
+  assert.equal(sitePending('<section data-section="site" data-pending="false">x</section>'), false);
+  assert.equal(sitePending('<section data-section="closing" data-pending></section><section data-section="site"></section>'), false);
+  assert.equal(sitePending('<section data-section="site-extra" data-pending></section><section data-section="site"></section>'), false);
+  assert.equal(sitePending('<div data-section="site" data-pending></div>'), false);
+});
+
+test('licences that need credit: Creative Commons Attribution, -ShareAlike/-NonCommercial/-NoDerivatives, by-sa/nc/nd', () => {
+  for (const l of ['Creative Commons Attribution 4.0', 'Attribution-ShareAlike 4.0', 'Attribution-NonCommercial', 'attribution-noderivatives', 'CC-BY-SA 4.0', 'by-sa', 'by-nc', 'by-nd', 'BY-NC-SA 3.0', 'cc by-nc-nd']) {
+    assert.equal(licenceNeedsCredit(`photo.jpg | https://x | ${l}`), true, l);
+  }
+  for (const l of ['CC0', 'CC0 1.0 Universal', 'Public Domain', 'Unsplash License, no attribution required', 'Pexels License']) {
+    assert.equal(licenceNeedsCredit(`photo.jpg | https://x | ${l}`), false, l);
+  }
+});
+
+test('parseCheckArgs is strict', () => {
+  assert.deepEqual(parseCheckArgs(['d']), { dir: 'd', offline: false, afterGate: false, watermark: undefined });
+  assert.deepEqual(parseCheckArgs(['d', '--offline', '--after-gate', '--watermark', 'text:x']), { dir: 'd', offline: true, afterGate: true, watermark: 'text:x' });
+  assert.deepEqual(parseCheckArgs(['--watermark=none', 'd']), { dir: 'd', offline: false, afterGate: false, watermark: 'none' });
+  assert.deepEqual(parseCheckArgs(['--watermark=text:a=b', 'd']).watermark, 'text:a=b');
+  for (const bad of [[], ['d', '--watermark'], ['d', '--watermark', '--offline'], ['--watermark=', 'd'], ['d', '--wat'], ['d', '--offlin'], ['d', 'e'], ['--after-gate']]) {
+    assert.throws(() => parseCheckArgs(bad), Error, JSON.stringify(bad));
+  }
+});
+
+// Fixture variants: export once, copy the exported tree per test, mutate, run the checks.
+let browser, base, server;
+const PNG_1X1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+before(async () => {
+  browser = await launchBrowser();
+  base = copyPresentationFixture();
+  await exportPresentation(base.dir, 'text:Teste', { browser });
+  // mask-image is fetched in CORS mode, so a remote mask needs this header to load at all.
+  server = http.createServer((req, res) => { res.setHeader('content-type', 'image/png'); res.setHeader('access-control-allow-origin', '*'); res.end(PNG_1X1); });
+  await new Promise((r) => server.listen(0, '127.0.0.1', r));
+});
+after(async () => {
+  await browser?.close();
+  server?.close();
+  base?.cleanup();
+});
+
+async function check(mutate = () => {}, { reexport, ...options } = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'apresentação teste '));
+  const dir = path.join(root, 'apresentação');
+  try {
+    fs.cpSync(base.dir, dir, { recursive: true });
+    mutate(dir, root);
+    if (reexport) await exportPresentation(dir, 'text:Teste', { browser });
+    const results = await runChecks(dir, { offline: true, afterGate: false, browser, ...options });
+    return { results, failed: results.filter((r) => !r.ok).map((r) => r.name) };
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+// A mutation that changes nothing would let its test pass without protecting anything, so it throws instead.
+const edit = (dir, file, fn) => {
+  const p = path.join(dir, file);
+  const before = fs.readFileSync(p, 'utf8');
+  const after = fn(before);
+  if (after === before) throw new Error(`test mutation changed nothing in ${file}`);
+  fs.writeFileSync(p, after);
+};
+// The card mockup's <img>, whatever other attributes (data-reveal, loading, ...) the fixture gives it.
+const CARD_IMG = /<img\b[^>]*\bsrc="assets\/mockup\.png"[^>]*\balt="Card mockup"[^>]*>/;
+const RECORD = (file) => [`${file}: recorded in assets.md`, `${file}: source URL recorded`, `${file}: licence recorded and needs no credit`];
+const LOCAL_ONLY = 'mockup photo must be a local file in the presentation folder';
+const SECTIONS_CHECK = 'nine sections present, in order';
+const RESEARCH_CHECK = 'research-log.md: Behance cases and Mockup candidates, 30 each (or a Shortfall)';
+const dropSite = (h) => h.replace(/<section data-section="site">[\s\S]*?<\/section>/, '');
+
+test('complete fixture passes every check', async () => {
+  const { results, failed } = await check();
+  assert.deepEqual(failed, []);
+  assert.ok(results.length > 15, `only ${results.length} checks ran`);
+});
+
+test('preview without layer fails only that check', async () => {
+  const { failed } = await check((dir) => edit(dir, 'preview/presentation.html', stripWatermark));
+  assert.deepEqual(failed, ['preview/: every html has the watermark layer']);
+});
+
+test('a layer left in final/ fails only that check, with or without --watermark', async () => {
+  const mutate = (dir) => edit(dir, 'final/presentation.html', (h) => h.replace('</body>', '<!--df-watermark--><div data-df-watermark></div><!--/df-watermark--></body>'));
+  assert.deepEqual((await check(mutate)).failed, ['final/: no html has the watermark layer']);
+  assert.deepEqual((await check(mutate, { watermark: 'none' })).failed.sort(), ['final/: no html has the watermark layer', 'no preview/ when watermark=none']);
+  const noPreview = (dir) => { mutate(dir); fs.rmSync(path.join(dir, 'preview'), { recursive: true }); };
+  assert.deepEqual((await check(noPreview)).failed, ['final/: no html has the watermark layer']);
+});
+
+test('preview/ and final/ with different file sets fail only that check', async () => {
+  const { failed } = await check((dir) => fs.writeFileSync(path.join(dir, 'preview', 'stray.txt'), 'x'));
+  assert.deepEqual(failed, ['preview/ and final/ hold the same file set']);
+});
+
+test('mockup row with CC BY fails only that check', async () => {
+  const { failed } = await check((dir) => edit(dir, 'assets.md', (m) => m.replace('CC0', 'CC BY 4.0')));
+  assert.deepEqual(failed, ['assets/mockup.png: licence recorded and needs no credit']);
+});
+
+test('an empty licence cell, or "Creative Commons Attribution", fails only the licence check', async () => {
+  const licence = ['assets/mockup.png: licence recorded and needs no credit'];
+  assert.deepEqual((await check((dir) => edit(dir, 'assets.md', (m) => m.replace('| CC0 |', '| |')))).failed, licence);
+  assert.deepEqual((await check((dir) => edit(dir, 'assets.md', (m) => m.replace('CC0', 'Creative Commons Attribution 4.0')))).failed, licence);
+  assert.deepEqual((await check((dir) => edit(dir, 'assets.md', (m) => m.replace('CC0', 'CC BY-SA 4.0')))).failed, licence);
+});
+
+test('assets.md matches the file cell exactly, not by substring', async () => {
+  const mutate = (dir) => {
+    fs.renameSync(path.join(dir, 'assets', 'mockup.png'), path.join(dir, 'assets', 'a.png'));
+    edit(dir, 'presentation.html', (h) => h.replaceAll('assets/mockup.png', 'assets/a.png'));
+    edit(dir, 'assets.md', (m) => m.replace('assets/mockup.png', 'assets/mocha.png'));
+  };
+  assert.deepEqual((await check(mutate)).failed, RECORD('assets/a.png'));
+});
+
+test('an assets.md row that only appears inside an HTML comment does not record the photo', async () => {
+  const { failed } = await check((dir) => edit(dir, 'assets.md', () => '# Assets\n<!-- | assets/mockup.png | https://example.com/x | CC0 | -->\n'));
+  assert.deepEqual(failed, RECORD('assets/mockup.png'));
+});
+
+test('the source URL comes from the source cell, not from anywhere in the row', async () => {
+  const { failed } = await check((dir) => edit(dir, 'assets.md', (m) => m.replace('https://example.com/mockups/poster-card', 'no url here')));
+  assert.deepEqual(failed, ['assets/mockup.png: source URL recorded']);
+});
+
+test('a photo shown through a ::before background is a mockup photo too: it needs its row', async () => {
+  const { failed } = await check((dir) => {
+    edit(dir, 'presentation.html', (h) => h.replace('</style>', '.poster::before{content:"";display:block;width:10px;height:10px;background:url(assets/bg.png)}</style>'));
+    fs.copyFileSync(path.join(dir, 'assets', 'mockup.png'), path.join(dir, 'assets', 'bg.png'));
+  });
+  assert.deepEqual(failed, RECORD('assets/bg.png'));
+});
+
+test('a mockup photo embedded as a data: URI fails only the local-file rule', async () => {
+  const uri = `data:image/png;base64,${PNG_1X1.toString('base64')}`;
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace(CARD_IMG, `<img src="${uri}" alt="Card mockup">`)));
+  assert.deepEqual(failed, [LOCAL_ONLY]);
+});
+
+test('a hot-linked mockup photo fails only the local-file rule', async () => {
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace(CARD_IMG, `<img src="http://127.0.0.1:${server.address().port}/m.png" alt="Card mockup">`)));
+  assert.deepEqual(failed, [LOCAL_ONLY]);
+});
+
+test('a mockup photo outside the presentation folder fails only the local-file rule', async () => {
+  const { failed } = await check((dir, root) => {
+    fs.copyFileSync(path.join(dir, 'assets', 'mockup.png'), path.join(root, 'shared.png'));
+    edit(dir, 'presentation.html', (h) => h.replace(CARD_IMG, '<img src="../shared.png" alt="Card mockup">'));
+  });
+  assert.deepEqual(failed, [LOCAL_ONLY]);
+});
+
+test('a background data: URI on a mockup fails the local-file rule; a vector logo inside it does not', async () => {
+  const svg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E';
+  assert.deepEqual((await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('</style>', `.card{background:url("${svg}")}</style>`)))).failed, []);
+  const png = `data:image/png;base64,${PNG_1X1.toString('base64')}`;
+  assert.deepEqual((await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('</style>', `.card::after{content:"";position:absolute;inset:0;background:url("${png}")}</style>`)))).failed, [LOCAL_ONLY]);
+});
+
+test('short log without a Shortfall fails only research', async () => {
+  const { failed } = await check((dir) => edit(dir, 'research-log.md', (m) => m.replace(/^- behance\.example case 0[123] .*$/gm, '')));
+  assert.deepEqual(failed, [RESEARCH_CHECK]);
+});
+
+test('short log with a Shortfall line in the documented format passes', async () => {
+  const { failed } = await check((dir) => edit(dir, 'research-log.md', (m) => `${m.replace(/^- behance\.example case 0[123] .*$/gm, '')}\n## Shortfall\n- Behance cases: 29 — only 29 relevant cases exist in this niche\n`));
+  assert.deepEqual(failed, []);
+});
+
+test('pending site fails only with afterGate; data-pending="false" is not pending', async () => {
+  const pend = (v = '') => (dir) => edit(dir, 'presentation.html', (h) => h.replace('<section data-section="site">', `<section data-section="site" data-pending${v}>`));
+  assert.deepEqual((await check(pend())).failed, []);
+  assert.deepEqual((await check(pend(), { afterGate: true })).failed, ['site section is filled (not marked pending)']);
+  assert.deepEqual((await check(pend('="false"'), { afterGate: true })).failed, []);
+});
+
+test('a 1400px section fails slide overflow only', async () => {
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<section data-section="concept">', '<section data-section="concept"><div style="height:1400px"></div>')));
+  assert.deepEqual(failed, ['slide overflow: every section fits 1920×1080']);
+});
+
+test('a section with its own min-height cannot hide an overflow or leave a slide of the wrong size', async () => {
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<section data-section="concept">', '<section data-section="concept" style="min-height:1500px"><div style="height:1400px"></div>')), { reexport: true });
+  assert.deepEqual(failed, ['slide overflow: every section fits 1920×1080']);
+});
+
+test('sections come from the rendered DOM: a CSS selector alone does not make a section', async () => {
+  const { failed } = await check((dir) => edit(dir, 'presentation.html', (h) => dropSite(h).replace('</style>', 'section[data-section="site"]{color:red}</style>')), { reexport: true });
+  assert.deepEqual(failed, [SECTIONS_CHECK]);
+});
+
+test('a missing section is named, and sections out of order fail', async () => {
+  assert.deepEqual((await check((dir) => edit(dir, 'presentation.html', dropSite), { reexport: true })).failed, [SECTIONS_CHECK]);
+  const swap = (dir) => edit(dir, 'presentation.html', (h) => h.replace('data-section="concept"', 'data-section="TMP"').replace('data-section="audience"', 'data-section="concept"').replace('data-section="TMP"', 'data-section="audience"'));
+  assert.deepEqual((await check(swap, { reexport: true })).failed, [SECTIONS_CHECK]);
+});
+
+test('a social artboard inside a section is left out of the slide, the PDF and the overflow measure', async () => {
+  const inner = (dir) => edit(dir, 'presentation.html', (h) => h
+    .replace('<div data-social="story">Story</div>', '')
+    .replace('<p>Fixture copy for closing.</p>', '<p>Fixture copy for closing.</p><div data-social="story">Story</div>'));
+  assert.deepEqual((await check(inner, { reexport: true })).failed, []);
+});
+
+test('watermark=none with a stale preview/ fails; without one it passes', async () => {
+  assert.deepEqual((await check(() => {}, { watermark: 'none' })).failed, ['no preview/ when watermark=none']);
+  assert.deepEqual((await check((dir) => fs.rmSync(path.join(dir, 'preview'), { recursive: true }), { watermark: 'none' })).failed, []);
+});
+
+test('a watermark spec with no preview/ fails', async () => {
+  const { failed } = await check((dir) => fs.rmSync(path.join(dir, 'preview'), { recursive: true }), { watermark: 'text:Teste' });
+  assert.deepEqual(failed, ['preview/ exists (watermark requested)']);
+});
+
+test('a wrong PNG size and a short PDF are caught', async () => {
+  const { failed } = await check((dir) => {
+    fs.copyFileSync(path.join(dir, 'final', 'social', 'square.png'), path.join(dir, 'final', 'slides', '01-opening.png'));
+    fs.writeFileSync(path.join(dir, 'final', 'presentation.pdf'), '%PDF-1.4\n/Type /Page\n');
+  });
+  assert.deepEqual(failed, ['final/: every slide is 1920×1080, one per section', 'final/: PDF has one page per slide']);
+});
+
+test('missing export output is reported once instead of crashing', async () => {
+  const { failed } = await check((dir) => fs.rmSync(path.join(dir, 'final'), { recursive: true }));
+  assert.deepEqual(failed, ['final/ exists (run export-presentation.mjs)']);
+});
+
+const SLIDESHOW = ['presentation.html @1440: slideshow works', 'presentation.html @390: slideshow works'];
+
+test('a presentation without the slideshow runtime fails only the slideshow check, at both sizes', async () => {
+  const { failed, results } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('<script src="slideshow.js"></script>', '')));
+  assert.deepEqual(failed, SLIDESHOW);
+  assert.match(results.find((r) => r.name === SLIDESHOW[0]).detail, /runtime did not start/);
+});
+
+test('two slides in view at once fail only the slideshow check', async () => {
+  const { failed, results } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('</head>', '<style>section[data-section]{visibility:visible !important;opacity:1 !important}</style></head>')));
+  assert.deepEqual(failed, SLIDESHOW);
+  assert.match(results.find((r) => r.name === SLIDESHOW[0]).detail, /expected only slide 1 in view/);
+});
+
+test('a reveal that stays masked under reduced motion fails only the slideshow check', async () => {
+  const { failed, results } = await check((dir) => edit(dir, 'presentation.html', (h) => h.replace('</head>', '<style>@media (prefers-reduced-motion: reduce){.df-slideshow [data-reveal]{clip-path:inset(0 100% 0 0) !important}}</style></head>')));
+  assert.deepEqual(failed, SLIDESHOW);
+  assert.match(results.find((r) => r.name === SLIDESHOW[0]).detail, /reduced motion: 1 \[data-reveal\]/);
+});
+
+test('a keyboard handler that never moves the slide fails only the slideshow check', async () => {
+  const { failed } = await check((dir) => edit(dir, 'slideshow.js', (js) => js.replace(/e\.preventDefault\(\);\r?\n\s*go\(target\);/, 'e.preventDefault();')));
+  assert.deepEqual(failed, SLIDESHOW);
+});
+
+test('"source page answers": 401/403/429 count as answered (stock sites refuse scripted fetches); 404 and 500 do not', async () => {
+  const status = http.createServer((req, res) => { res.statusCode = Number(req.url.slice(1)); res.end(); });
+  await new Promise((r) => status.listen(0, '127.0.0.1', r));
+  try {
+    for (const [code, answered] of [[403, true], [429, true], [404, false]]) {
+      const { failed } = await check((dir) => edit(dir, 'assets.md', (m) => m.replace('https://example.com/mockups/poster-card', `http://127.0.0.1:${status.address().port}/${code}`)), { offline: false });
+      assert.deepEqual(failed, answered ? [] : ['assets/mockup.png: source page answers'], `HTTP ${code}`);
+    }
+  } finally {
+    status.close();
+  }
+});
+
+test('isVector reads the path only: a query or fragment that mentions .svg does not make a photo a vector', () => {
+  for (const v of ['file:///c/logo.svg', 'file:///c/logo.SVG?v=2', 'file:///c/logo.svg#icon', 'data:image/svg+xml,%3Csvg/%3E', 'https://e.com/a.svg']) assert.equal(isVector(v), true, v);
+  for (const p of ['file:///c/photo.png#.svg', 'file:///c/photo.png?f=.svg', 'file:///c/photo.jpg?x=a.svg#b', 'file:///c/not-a-vector.svgz.png', 'data:image/png;base64,AAAA', 'not a url .svg']) assert.equal(isVector(p), false, p);
+});
+
+test('an assets.md table inside a code fence does not record anything', () => {
+  const row = '| assets/a.png | https://x.example/a | CC0 |';
+  assert.equal(parseAssetRows(`# Assets\n${row}\n`).length, 1);
+  assert.deepEqual(parseAssetRows(`# Assets\n~~~\n${row}\n~~~\n`), []);
+  assert.deepEqual(parseAssetRows(`\`\`\`md\n${row}\n\`\`\`\n`), []);
+  assert.equal(parseAssetRows(`\`\`\`\nx\n\`\`\`\n${row}\n`).length, 1, 'a table after the fence closes counts again');
+});
+
+test('parseCheckArgs rejects single-dash flags and extra arguments', () => {
+  for (const bad of [['d', '-offline'], ['d', '-o'], ['-x', 'd'], ['d', '-'], ['d', 'e', 'f'], ['d', '--offline', 'extra']]) assert.throws(() => parseCheckArgs(bad), Error, JSON.stringify(bad));
+});
+
+// Every way a [data-mockup] can show a photo must reach the local-file rule, at the export's width and scale, in any branch.
+const intoCard = (html) => (dir) => edit(dir, 'presentation.html', (h) => h.replace(/(<div data-mockup="card"[^>]*>)/, (m) => m + html));
+const addCss = (css) => (dir) => edit(dir, 'presentation.html', (h) => h.replace('</style>', () => `${css}</style>`));
+const remote = (file) => `http://127.0.0.1:${server.address().port}/${file}`;
+
+test('a hot-linked photo hidden behind srcset, <picture>, or a media query is still found', async () => {
+  const variants = {
+    'a srcset candidate': intoCard(`<img src="assets/mockup.png" srcset="assets/mockup.png 1x, ${remote('s.png')} 2x" alt="x">`),
+    'a <picture> source for wide screens': intoCard(`<picture><source media="(min-width:1600px)" srcset="${remote('big.png')}"><img src="assets/mockup.png" alt="x"></picture>`),
+    'a min-width:1600px rule': addCss(`@media (min-width:1600px){.poster{background:url(${remote('bg.png')})}}`),
+    'a media rule that never applies': addCss(`@media (max-width:200px){.poster{background:url(${remote('bg.png')})}}`),
+    'an image-set()': addCss(`.poster{background-image:image-set("${remote('bg.png')}" 1x)}`),
+    'a query that mentions .svg': intoCard(`<img src="${remote('m.png')}?f=.svg" alt="x">`),
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('content:url(), video poster, border-image, mask-image, object, embed, iframe and input type=image are read too', async () => {
+  const variants = {
+    'content:url()': addCss(`.poster::before{content:url(${remote('c.png')})}`),
+    'a video poster': intoCard(`<video poster="${remote('p.png')}"></video>`),
+    'border-image': addCss(`.poster{border:4px solid;border-image:url(${remote('b.png')}) 30 stretch}`),
+    'mask-image': addCss(`.poster{-webkit-mask-image:url(${remote('m.png')});mask-image:url(${remote('m.png')})}`),
+    'an <object>': intoCard(`<object data="${remote('o.png')}"></object>`),
+    'an <embed>': intoCard(`<embed src="${remote('e.png')}">`),
+    'an <iframe>': intoCard(`<iframe src="${remote('f.png')}"></iframe>`),
+    'an <input type=image>': intoCard(`<input type="image" src="${remote('i.png')}" alt="x">`),
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('a local photo reached through content:url() needs its assets.md row; a local page in an <iframe> is not a photo', async () => {
+  const content = (dir) => {
+    addCss('.poster::before{content:url(assets/bg.png)}')(dir);
+    fs.copyFileSync(path.join(dir, 'assets', 'mockup.png'), path.join(dir, 'assets', 'bg.png'));
+  };
+  assert.deepEqual((await check(content)).failed, RECORD('assets/bg.png'));
+  const framed = (dir) => { fs.writeFileSync(path.join(dir, 'inner.html'), '<p>x</p>'); intoCard('<iframe src="inner.html"></iframe>')(dir); };
+  assert.deepEqual((await check(framed)).failed, []);
+});
+
+test('a placeholder licence (TBD, -, n/a, ?) fails only the licence check', async () => {
+  const licence = ['assets/mockup.png: licence recorded and needs no credit'];
+  for (const placeholder of ['TBD', '-', 'n/a', '?']) {
+    assert.deepEqual((await check((dir) => edit(dir, 'assets.md', (m) => m.replace('CC0', placeholder)))).failed, licence, placeholder);
+  }
+  assert.deepEqual((await check((dir) => edit(dir, 'assets.md', (m) => m.replace('CC0', 'Attribution 4.0 International')))).failed, licence);
+});
+
+test('fences close on the same character and length; indented code is not a table', () => {
+  const row = '| assets/a.png | https://x.example/a | CC0 |';
+  const four = '````md\n```\n' + row + '\n```\n| assets/b.png | https://x.example/b | CC0 |\n````\n';
+  assert.deepEqual(parseAssetRows(four), [], 'a ``` line inside a ```` fence does not close it');
+  assert.deepEqual(parseAssetRows('~~~\n```\n' + row + '\n~~~\n'), [], 'a ``` line inside a ~~~ fence does not close it');
+  assert.equal(parseAssetRows('```\n' + row + '\n```\n' + row + '\n').length, 1, 'after the fence closes, rows count again');
+  assert.deepEqual(parseAssetRows('    ' + row + '\n\t' + row + '\n'), [], 'indented code');
+  const logFenced = '````\n```\n## Behance cases\n' + items(40, 'b.example') + '\n```\n````\n';
+  assert.equal(parseResearchLog(logFenced).behance, 0, 'a research list inside a fence does not count');
+});
+
+test('a local page shown in an <iframe> is read: a hot-linked photo inside it fails the local-file rule', async () => {
+  const variants = {
+    'an <iframe>': (dir) => { fs.writeFileSync(path.join(dir, 'frame.html'), `<body><img src="${remote('inside.png')}" alt="x"></body>`); intoCard('<iframe src="frame.html"></iframe>')(dir); },
+    'an <object>': (dir) => { fs.writeFileSync(path.join(dir, 'frame.html'), `<body><div style="background:url(${remote('inside.png')})">x</div></body>`); intoCard('<object data="frame.html" type="text/html"></object>')(dir); },
+    'a frame inside a frame': (dir) => {
+      fs.writeFileSync(path.join(dir, 'inner.html'), `<body><img src="${remote('deep.png')}" alt="x"></body>`);
+      fs.writeFileSync(path.join(dir, 'frame.html'), '<body><iframe src="inner.html"></iframe></body>');
+      intoCard('<iframe src="frame.html"></iframe>')(dir);
+    },
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('an SVG is not exempt by default: remote SVGs are not local, local ones may not carry a raster', async () => {
+  const png = `data:image/png;base64,${PNG_1X1.toString('base64')}`;
+  const svgFile = (name, body) => (dir) => {
+    fs.writeFileSync(path.join(dir, name), `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="10" height="10">${body}</svg>`);
+    intoCard(`<img src="${name}" alt="x">`)(dir);
+  };
+  assert.deepEqual((await check(intoCard(`<img src="${remote('logo.svg')}" alt="x">`))).failed, [LOCAL_ONLY], 'remote svg');
+  assert.deepEqual((await check(svgFile('logo.svg', `<image href="${png}" width="10" height="10"/>`))).failed, [LOCAL_ONLY], 'svg with an embedded raster');
+  assert.deepEqual((await check(svgFile('logo.svg', `<image href="${remote('p.png')}" width="10" height="10"/>`))).failed, [LOCAL_ONLY], 'svg linking a remote image');
+  assert.deepEqual((await check(svgFile('logo.svg', '<rect width="10" height="10" fill="red"/>'))).failed, [], 'a plain drawing is fine');
+});
+
+test('video and its <source> are read, and pseudo-elements other than ::before / ::after do not hide a rule', async () => {
+  const variants = {
+    'video src': intoCard(`<video src="${remote('v.mp4')}"></video>`),
+    'video source': intoCard(`<video><source src="${remote('v.mp4')}" type="video/mp4"></video>`),
+    'srcset with no space after the comma': intoCard(`<img src="assets/mockup.png" srcset="assets/mockup.png 1x,${remote('s.png')} 2x" alt="x">`),
+    'a ::first-line rule': addCss(`.poster::first-line{background:url(${remote('bg.png')})}`),
+    'a rule inside a nested @media': addCss(`.poster{color:red;@media (max-width:100px){background:url(${remote('bg.png')})}}`),
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('a rule in a linked or @import-ed stylesheet is read (file:// sheets cannot be read from the page)', async () => {
+  const mutate = (dir) => {
+    fs.writeFileSync(path.join(dir, 'extra.css'), `.poster{background:url(${remote('bg.png')})}`);
+    edit(dir, 'presentation.html', (h) => h.replace('<style>', () => '<style>@import url("extra.css");'));
+  };
+  assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], '@import');
+  const linked = (dir) => {
+    fs.writeFileSync(path.join(dir, 'extra.css'), `@media (max-width:50px){.poster{background:url(${remote('bg.png')})}}`);
+    edit(dir, 'presentation.html', (h) => h.replace('</head>', () => '<link rel="stylesheet" href="extra.css"></head>'));
+  };
+  assert.deepEqual((await check(linked)).failed, [LOCAL_ONLY], '<link>');
+  const relative = (dir) => {
+    fs.mkdirSync(path.join(dir, 'css'));
+    fs.writeFileSync(path.join(dir, 'css', 'extra.css'), '.poster{background:url(../assets/mockup.png)}');
+    edit(dir, 'presentation.html', (h) => h.replace('</head>', () => '<link rel="stylesheet" href="css/extra.css"></head>'));
+  };
+  assert.deepEqual((await check(relative)).failed, [], 'a relative url in a linked sheet resolves against the sheet, to a recorded local photo');
+});
+
+test('rules nested in other rules are read, with "&" read as the parent selector', async () => {
+  const variants = {
+    '& [data-mockup] in a nested @media': addCss(`section[data-section="mockups"]{@media (min-width:2400px){& [data-mockup]{background:url(${remote('bg.png')})}}}`),
+    'a child with no &, in a nested @media': addCss(`.row{@media (max-width:50px){.poster{background:url(${remote('bg.png')})}}}`),
+    'a child with &.class': addCss(`.m{@media (max-width:50px){&.poster{background:url(${remote('bg.png')})}}}`),
+    'declarations placed directly in a nested @media': addCss(`.poster{@media (max-width:50px){background:url(${remote('bg.png')})}}`),
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+  // A nested rule for something that is not the mockup does not accuse it.
+  const elsewhere = addCss(`section[data-section="mockups"]{@media (max-width:50px){& h2{background:url(${remote('bg.png')})}}}`);
+  assert.deepEqual((await check(elsewhere)).failed, [], 'a nested rule for the heading');
+});
+
+test('an <feImage> in an inline SVG, a raster data: URI in an SVG, and a lazy iframe far down the mockup are all read', async () => {
+  const variants = {
+    'an <feImage>': intoCard(`<svg width="10" height="10"><filter id="f"><feImage href="${remote('fe.png')}"/></filter><rect width="10" height="10" filter="url(#f)"/></svg>`),
+    'a data:image/gif in a local SVG': (dir) => {
+      fs.writeFileSync(path.join(dir, 'g.svg'), `<svg xmlns="http://www.w3.org/2000/svg"><style>.a{fill:url("data:image/gif;base64,R0lGODlhAQABAAAAACw=")}</style><rect class="a" width="1" height="1"/></svg>`);
+      intoCard('<img src="g.svg" alt="x">')(dir);
+    },
+    'a lazy iframe below the clipped edge': (dir) => {
+      fs.writeFileSync(path.join(dir, 'frame.html'), `<body><img src="${remote('lazy.png')}" alt="x"></body>`);
+      intoCard('<iframe src="frame.html" loading="lazy" style="margin-top:4000px;width:50px;height:50px"></iframe>')(dir);
+    },
+  };
+  for (const [what, mutate] of Object.entries(variants)) assert.deepEqual((await check(mutate)).failed, [LOCAL_ONLY], what);
+});
+
+test('image-set() strings in a linked stylesheet are resolved against the sheet', async () => {
+  const mutate = (dir) => {
+    fs.mkdirSync(path.join(dir, 'css'));
+    fs.copyFileSync(path.join(dir, 'assets', 'mockup.png'), path.join(dir, 'assets', 'set.png'));
+    fs.writeFileSync(path.join(dir, 'css', 'extra.css'), '.poster{background-image:image-set("../assets/set.png" 1x)}');
+    edit(dir, 'presentation.html', (h) => h.replace('</head>', () => '<link rel="stylesheet" href="css/extra.css"></head>'));
+  };
+  assert.deepEqual((await check(mutate)).failed, RECORD('assets/set.png'));
+});

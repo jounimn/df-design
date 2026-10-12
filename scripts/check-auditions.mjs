@@ -3,6 +3,7 @@
 // Usage: node scripts/check-auditions.mjs <auditions-dir> <images: yes|no> <captures-dir>
 // 'images' is the author's answer to the stock-image question. Exit code 0 = every check passed.
 import { launchBrowser } from './lib/browser.mjs';
+import { licenceNeedsCredit } from './lib/licence.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -74,9 +75,7 @@ if (imagesAllowed === 'yes') {
     check(`${base}: recorded`, row.length > 0);
     const url = (row.match(/https?:\/\/[^\s|)>]+/) || [])[0];
     check(`${base}: source URL recorded`, !!url, url || '');
-    // Remove negated phrases first, so "no attribution required" is not read as "attribution required".
-    const lic = row.replace(/(no|not|without)\s+(attribution|credit)(\s+(is\s+)?(required|needed))?|(attribution|credit)\s+(is\s+)?not\s+(required|needed)/gi, '');
-    check(`${base}: licence is not CC BY / credit-required`, row.length > 0 && !/CC[ -]?BY(?![- ]?0)|attribution required|credit required|requires? (attribution|credit)/i.test(lic), row.slice(0, 160));
+    check(`${base}: licence is not CC BY / credit-required`, row.length > 0 && !licenceNeedsCredit(row), row.slice(0, 160));
     if (url) {
       let code = 0;
       try { code = (await fetch(url, { redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 Chrome/130' }, signal: AbortSignal.timeout(20000) })).status; } catch { code = -1; }

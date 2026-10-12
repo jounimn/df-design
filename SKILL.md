@@ -37,13 +37,16 @@ comment. Read it before anything else and record it as **Conditions**:
 | Loading tier | Priced for the scoped surfaces only |
 | Identity brief | `Surfaces:` lists only the scope; out-of-scope surfaces are named as untouched |
 | Build | Touch nothing outside the scope: no shared token, component or global stylesheet change that would alter another surface, unless the author agrees |
+| Selling-positioning | Logo system and mockups are brand-wide; the site section shows the scoped surfaces only |
 | Consistency check | Run on the scoped surfaces. Where the new page now clashes with an untouched surface, **report it as a note** for the author ("the 404 still uses the old navy; out of scope") and do not fix it |
 
 Conditions outrank the skill's defaults. If a condition conflicts with a
 rule here (for example "no icons"), say so once, plainly, and follow the
 author. The one exception is the four image rules in `images.md` (free,
 commercial, no credit, no watermark): those protect the author legally and
-are not waived by a preference.
+are not waived by a preference. These forbid third-party watermarks in what
+ships; the author's own protective watermark (`watermark.md`) is a different
+thing.
 
 In the first message, restate the conditions in one line so the author can
 correct a misreading: "I'll rework only the homepage and leave every other
@@ -53,7 +56,9 @@ page as it is."
 
 **This skill does not begin until both are settled**: answered by the
 author, by the invocation note, or obvious from the request, before reading
-files, before research, before a single rule of CSS.
+files, before research, before a single rule of CSS. A third question, the
+watermark, is asked in the same message but does not block the start
+(question 3, below).
 
 **1. Path: audition or design?** Ask the author unless they have already
 said:
@@ -71,9 +76,29 @@ said:
 | `design` | Identity and structure: type, colour, layout, spacing, composition. | Add or change animation. A static page must be finished as a static page. |
 | `both` | A rebrand. Identity and motion together. | Start with motion. Identity first, always. |
 
-Once both are known, record them as one status line:
+**3. Watermark: will the work be sold?** Ask in plain words, in the same
+first message, on both paths. Skip it if step 0 already settled it. Unlike
+path and mode, it **does not block the start**: if the author leaves it
+unanswered, record `watermark=none` and do not ask again.
 
-`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> — <conditions from step 0, one line>`
+> Will this work be sold to a client? If you like, I can put a watermark on
+> everything I show you — a text pattern, or your image/logo with a text
+> pattern — repeated across the whole screen at low opacity, and keep a
+> clean copy separately for delivery after payment.
+
+If yes, ask for the text (default: the author's studio or name) and, for the
+image variant, the file or permission to use the author's logo. Types,
+opacity, scope and the preview/final split: `references/watermark.md`.
+
+Once path and mode are known (and the watermark answered or defaulted to
+none), record them as one status line:
+
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> selling=<now|end|skip> tier=<fast|medium|high> — <conditions from step 0, one line>`
+
+`selling=` and `tier=` are filled when the detour is offered
+(`selling-positioning.md` §1). `tier=` is the presentation's motion tier,
+the author's choice, and is left out when `selling=skip`. Until the detour
+is offered, leave both out.
 
 The status line is for the record and for developers. **Ask the author in
 their own words.** A bakery owner gets "Would you like to see three short
@@ -110,13 +135,23 @@ stages of one workflow run:
 ```
 Step 0 conditions  →  Author intent  →  Identity definition  →  Reference & identity research
       →  [Playwright decision]  →  Design direction  →  HTML audition*
-      →  Author selection*  →  Assets (icon set + approved images)
+      →  Author selection*  →  [selling-positioning: now / end / skip]**
+      →  Assets (icon set + approved images)
       →  Loading tier (author's choice)  →  Identity brief
       →  Implementation, one surface at a time:
            [surface spec → author approves → build → verify] → next surface
-      →  Consistency validation  →  Verification gate
+      →  Consistency validation  →  Verification gate  →  [selling-positioning: end]**
                                          * audition path only
+                                        ** optional detour, see below
 ```
+
+`selling-positioning` is not a third path. It is an optional detour,
+recorded as `selling=<now|end|skip> tier=<fast|medium|high>`. It has no
+market research: positioning comes from the identity and the author's
+intent. In the `audition` path the offer
+follows Author selection. In the `design` path it follows the approval of
+the identity brief. On `end`, the path runs after the verification gate.
+Everything about it: `references/selling-positioning.md`.
 
 Assets are split across three points. **Ask** about stock images in the
 first message. **Shortlist** image sources and icon sets that fit each
@@ -134,6 +169,8 @@ to price them.
 | Icons (mandatory), illustration, textures | `references/icons-and-assets.md` |
 | Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |
+| Watermark: question, layer, preview and final | `references/watermark.md` |
+| Selling-positioning: logo, positioning, mockups, slideshow, export | `references/selling-positioning.md` |
 
 In `motion` mode the identity stages shrink to one: read the identity the
 site already has and keep to it.
@@ -334,4 +371,6 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Typographic identity, so no icons" | Icons are mandatory in controls, forms, status and admin. Pick a set that fits the identity. |
 | "Motion is for the layout; the images just sit there" | In `motion` and `both`, icons and images are in the motion plan. `recipes-motion.md` §15. |
 | "The icons are free, I downloaded them" | Free download, attribution-required and non-commercial are three different things. `icons-and-assets.md`. |
+| "The images rule says no watermark, so I can't add one" | That rule is about third-party marks in what ships. The author's protective watermark is separate. `watermark.md`. |
+| "They chose an audition, so go straight to assets" | Offer `selling-positioning` first: now, at the end, or skip. `selling-positioning.md` §1. |
 | "An icon per feature item will carry the section" | Three columns, three circled icons, three paragraphs is the template tell. None of the thirty measured sites do it. |
