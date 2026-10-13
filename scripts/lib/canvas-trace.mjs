@@ -124,6 +124,7 @@ async function listCanvases(page) {
         selector: selectorFor(el),
         context: el.__dfType === 'webgl2' || el.__dfType === 'webgl' || el.__dfType === '2d' ? el.__dfType : 'none',
         requested: el.__dfRequested ?? null,
+        area: el.getBoundingClientRect().width * el.getBoundingClientRect().height,
       }));
   });
 }
@@ -277,11 +278,12 @@ async function pageWeight(page) {
   };
 }
 
-export async function runCanvasTrace(page, { frames = 8, durationMs = 2000, settleMs = 1800, variants = true } = {}) {
+export async function runCanvasTrace(page, { frames = 8, durationMs = 2000, settleMs = 1800, variants = true, maxCanvases = 6 } = {}) {
   await settle(page, { quiet: settleMs });
   const url = page.url();
   const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
-  const found = await listCanvases(page);
+  // Pages with decorative canvases by the dozen: the largest ones are the technique, the rest cost minutes.
+  const found = (await listCanvases(page)).sort((a, b) => b.area - a.area).slice(0, maxCanvases);
   const records = [];
   for (const { selector, context, requested } of found) {
     await page.evaluate((sel) => {

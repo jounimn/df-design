@@ -56,6 +56,16 @@ export function validateRecord(raw) {
     reject('fontFaceCount', 'page rendered text but reported zero loaded faces');
   }
 
+  // Canvas tracing is newer than the older records, which carry no `canvases` field at all. A present field
+  // must be a list of records that can be addressed by selector; anything else is kept raw, not published.
+  if ('canvases' in raw) {
+    if (!Array.isArray(raw.canvases)) {
+      reject('canvases', 'canvas trace did not return a list; re-probe, the trace may have failed (see canvasError in the raw capture)');
+    } else if (raw.canvases.some((c) => !c || typeof c.selector !== 'string' || !c.selector)) {
+      reject('canvases', 'a canvas record has no selector, so it cannot be addressed or compared');
+    }
+  }
+
   // An absent hero is a measurement, not a failure. Spec §8.
   return { record, quarantine };
 }
