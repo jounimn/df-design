@@ -98,7 +98,7 @@ function build(kind) {
   }
 }
 
-export function motionFixture(kind) {
+export function motionFixture(kind, { beforeScene = '' } = {}) {
   const { body, call, pad } = build(kind);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'movimento teste '));
   const dir = path.join(root, 'página');
@@ -106,7 +106,7 @@ export function motionFixture(kind) {
   const scene = `${LIB}\n${pad ? `/*${'x'.repeat(PAD_BYTES)}*/\n` : ''}${call}\n`;
   fs.writeFileSync(path.join(dir, 'scene.js'), scene);
   fs.writeFileSync(path.join(dir, 'page.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${kind}</title>
-<style>html,body{margin:0;background:#fff}</style></head><body>${body}<script src="scene.js"></script></body></html>`);
+<style>html,body{margin:0;background:#fff}</style></head><body>${body}${beforeScene}<script src="scene.js"></script></body></html>`);
   const file = path.join(dir, 'page.html');
   return { root, dir, file, url: pathToFileURL(file).href, cleanup: () => fs.rmSync(root, { recursive: true, force: true }) };
 }
