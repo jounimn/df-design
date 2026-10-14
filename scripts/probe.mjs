@@ -47,7 +47,8 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
     } catch (err) {
       canvasError = String(err?.message ?? err);
     }
-    await page.evaluate(() => window.scrollTo(0, 0));
+    // The trace may have left the page mid-scroll, or the page may have died; neither may take the probe down.
+    await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
 
     const maxScroll = Math.max(staticResult.pageHeightPx - staticResult.viewportHeightPx, 0);
     for (let i = 0; i < 6; i += 1) {
@@ -85,7 +86,7 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
       archetype, archetypeReason: reason,
       canvases: canvasTrace ? canvasTrace.canvases : null,
       canvasJsBytes: canvasTrace ? { jsBytes: canvasTrace.jsBytes, motionJsBytes: canvasTrace.motionJsBytes } : null,
-      libraries: canvasTrace ? canvasTrace.libraries : [],
+      libraries: canvasTrace ? canvasTrace.libraries : null,
       ...(canvasError ? { canvasError } : {}),
       reducedMotion: {
         cssRules: staticResult.reducedMotionRules,

@@ -60,7 +60,11 @@ export function validateRecord(raw) {
   // must be a list of records that can be addressed by selector; anything else is kept raw, not published.
   if ('canvases' in raw) {
     if (!Array.isArray(raw.canvases)) {
-      reject('canvases', 'canvas trace did not return a list; re-probe, the trace may have failed (see canvasError in the raw capture)');
+      const why = 'canvas trace did not return a list; re-probe, the trace may have failed (see canvasError in the raw capture)';
+      reject('canvases', why);
+      // Weight and libraries come from the same trace: without it they are unknown, not zero.
+      if ('canvasJsBytes' in raw) reject('canvasJsBytes', why);
+      if ('libraries' in raw) reject('libraries', why);
     } else if (raw.canvases.some((c) => !c || typeof c.selector !== 'string' || !c.selector)) {
       reject('canvases', 'a canvas record has no selector, so it cannot be addressed or compared');
     }

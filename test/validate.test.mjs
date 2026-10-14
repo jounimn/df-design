@@ -106,3 +106,14 @@ test('a record from before canvas tracing (no canvases field) is untouched', () 
   assert.equal('canvases' in record, false);
   assert.equal(quarantine.length, 0);
 });
+
+test('a failed canvas trace quarantines canvases, canvasJsBytes and libraries together', () => {
+  const { record, quarantine } = validateRecord({ ...ok, canvases: null, canvasJsBytes: null, libraries: null });
+  assert.deepEqual(quarantine.map((q) => q.field).sort(), ['canvasJsBytes', 'canvases', 'libraries']);
+  for (const f of ['canvases', 'canvasJsBytes', 'libraries']) assert.equal(f in record, false);
+});
+
+test('a successful canvas trace keeps libraries and canvasJsBytes', () => {
+  const { quarantine } = validateRecord({ ...ok, canvases: [], canvasJsBytes: { jsBytes: 0, motionJsBytes: 0 }, libraries: [] });
+  assert.equal(quarantine.length, 0);
+});

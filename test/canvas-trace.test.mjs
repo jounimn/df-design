@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { launchBrowser, newPage, settle } from '../scripts/lib/browser.mjs';
 import { installCanvasTrace, runCanvasTrace } from '../scripts/lib/canvas-trace.mjs';
 import { motionFixture } from './helpers/motion-fixture.mjs';
+import { runStaticPass } from '../scripts/lib/static-pass.mjs';
 
 let browser;
 test.before(async () => { browser = await launchBrowser(); });
@@ -130,7 +131,12 @@ test('libraries: detected from a script URL and from a window global', async () 
     await page.goto(fx.url, { waitUntil: 'load' });
     const t = await runCanvasTrace(page, { frames: 2, durationMs: 400, settleMs: 200, variants: false });
     assert.deepEqual([...t.libraries].sort(), ['pixi', 'three']);
-    assert.ok(t.motionJsBytes >= 'window.__stub = 1;'.length, 'the library script counts toward motion JS');
+    const without = await trace('healthy', { variants: false });
+    // The only script this page has that the plain one lacks is the library stub, so it accounts for the whole
+    // difference, in the transferred sense of jsBytes (a route-fulfilled body of 18 bytes transfers 12).
+    const added = t.motionJsBytes - without.motionJsBytes;
+    assert.ok(added > 0, `with ${t.motionJsBytes}, without ${without.motionJsBytes}: the stub bytes must be added`);
+    assert.equal(added, t.jsBytes - without.jsBytes);
   } finally {
     await context.close();
     fx.cleanup();
@@ -166,4 +172,55 @@ test('variants:false leaves the variant fields null', async () => {
   assert.equal(c.reducedMotionAnimating, null);
   assert.equal(c.fallbackVisible, null);
   assert.equal(typeof c.drawCallsOffscreen, 'number');
+});
+
+// ---- Review fixes: variants, timing, static pass ----------------------------------------------------------
+
+test('a canvas hidden under reduced motion passes the reduced-motion variant without a 30 s wait', async () => {
+  const started = Date.now();
+  const [c] = (await trace('hiddenUnderReduce')).canvases;
+  assert.ok(Date.now() - started < 60000, 'the trace must not sit in Playwright\'s 30 s screenshot wait');
+  assert.equal(c.reducedMotionAnimating, false);
+  assert.equal(c.fallbackVisible, true);
+});
+
+test('a canvas removed under reduced motion reads as not animating there', async () => {
+  const [c] = (await trace('removedUnderReduce')).canvases;
+  assert.equal(c.reducedMotionAnimating, false);
+});
+
+test('a canvas replaced by its fallback without WebGL is judged by the area it occupied, not by the missing element', async () => {
+  const [c] = (await trace('swapsCanvasForFallback')).canvases;
+  assert.equal(c.fallbackVisible, true);
+  assert.deepEqual(c.fallbackErrors, []);
+});
+
+test('several rAF loops on one page do not multiply rafPerSec or collapse frameMs', async () => {
+  const [c] = (await trace('threeLoops')).canvases;
+  assert.ok(c.rafPerSec >= 20 && c.rafPerSec <= 75, `rafPerSec ${c.rafPerSec}`);
+  assert.ok(c.frameMs.p50 >= 8 && c.frameMs.p50 <= 40, `p50 ${c.frameMs.p50}`);
+});
+
+test('the static pass does not claim the context of a canvas the page initialises later', async () => {
+  const fx = motionFixture('lateTwoD');
+  const { page, context } = await newPage(browser);
+  try {
+    await installCanvasTrace(context);
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await runStaticPass(page);
+    const t = await runCanvasTrace(page, { frames: 3, durationMs: 600, settleMs: 2000, variants: true });
+    const [c] = t.canvases;
+    assert.equal(c.context, '2d');
+    assert.equal(c.requested, '2d');
+    assert.equal(c.fallbackVisible, null, 'a 2D canvas is not part of the WebGL fallback check');
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('the variants wait as long as the baseline: a canvas that arrives 1.5 s late is found in them', async () => {
+  const [c] = (await trace('lateCanvas', { settleMs: 2000 })).canvases;
+  assert.equal(c.reducedMotionAnimating, false);
+  assert.equal(c.fallbackVisible, true);
 });

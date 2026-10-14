@@ -96,6 +96,9 @@ export async function runStaticPass(page) {
 
     let webgl = false;
     for (const c of document.querySelectorAll('canvas')) {
+      // When the canvas trace is installed it already knows the type the page chose; asking getContext from here
+      // would create a context on a canvas the page has not initialised yet and claim it.
+      if (c.__dfType) { if (c.__dfType === 'webgl' || c.__dfType === 'webgl2') webgl = true; continue; }
       try {
         if (c.getContext('webgl2') || c.getContext('webgl')) webgl = true;
       } catch { /* context already claimed with different attrs */ }

@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 export const KINDS = [
   'healthy', 'frozen', 'blank', 'ignoresReducedMotion', 'neverPauses', 'noFallback', 'overweight',
   'staticCanvas', 'twoCanvases', 'noCanvas', 'hiddenCanvas', 'lateCanvas',
+  'hiddenUnderReduce', 'removedUnderReduce', 'swapsCanvasForFallback', 'threeLoops', 'lateTwoD',
 ];
 
 export const PAD_BYTES = 300000;
@@ -85,6 +86,16 @@ function build(kind) {
     case 'blank': return { body: holder('c'), call: "solid2d('c', {});" };
     case 'staticCanvas': return { body: holder('c'), call: "once2d('c');" };
     case 'twoCanvases': return { body: holder('a') + holder('b'), call: "glScene('a', {}); flat2d('b', {});" };
+    case 'hiddenUnderReduce': return { ...one("glScene('c', {});"), head: '<style>@media (prefers-reduced-motion: reduce){#c{display:none}}</style>' };
+    case 'removedUnderReduce': return one("if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.getElementById('c').remove(); else glScene('c', {});");
+    case 'swapsCanvasForFallback': return one(`const probe = document.createElement('canvas').getContext('webgl');
+      if (!probe) { const d = document.createElement('div'); d.style.cssText = 'width:400px;height:300px;background:linear-gradient(90deg,#112233,#ddaa44)'; document.getElementById('c').replaceWith(d); }
+      else glScene('c', {});`);
+    // Three independent rAF loops on one canvas: every frame fires three callbacks with the same timestamp.
+    case 'threeLoops': return { body: holder('c'), call: `const c = document.getElementById('c'); const x = c.getContext('2d');
+      for (let k = 0; k < 3; k += 1) { const loop = (ms) => { x.fillStyle = 'hsl(' + ((ms / 10 + k * 80) % 360) + ',70%,50%)'; x.fillRect(k * 130, 0, 130, 300); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }` };
+    // The page claims its 2D context 1.5 s in, after anything that probed the canvas for WebGL has run.
+    case 'lateTwoD': return { body: holder('c'), call: "setTimeout(() => { const x = document.getElementById('c').getContext('2d'); x.fillStyle = '#c33'; x.fillRect(0, 0, 400, 300); }, 1500);" };
     case 'noCanvas': return { body: '<h1>No canvas here</h1>', call: '' };
     case 'hiddenCanvas': return {
       body: `${canvasTag('h1', 'display:none')}<canvas id="h2" width="0" height="0"></canvas><section hidden>${canvasTag('h3')}</section>`,
@@ -99,14 +110,14 @@ function build(kind) {
 }
 
 export function motionFixture(kind, { beforeScene = '' } = {}) {
-  const { body, call, pad } = build(kind);
+  const { body, call, pad, head = '' } = build(kind);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'movimento teste '));
   const dir = path.join(root, 'página');
   fs.mkdirSync(dir);
   const scene = `${LIB}\n${pad ? `/*${'x'.repeat(PAD_BYTES)}*/\n` : ''}${call}\n`;
   fs.writeFileSync(path.join(dir, 'scene.js'), scene);
   fs.writeFileSync(path.join(dir, 'page.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${kind}</title>
-<style>html,body{margin:0;background:#fff}</style></head><body>${body}${beforeScene}<script src="scene.js"></script></body></html>`);
+<style>html,body{margin:0;background:#fff}</style>${head}</head><body>${body}${beforeScene}<script src="scene.js"></script></body></html>`);
   const file = path.join(dir, 'page.html');
   return { root, dir, file, url: pathToFileURL(file).href, cleanup: () => fs.rmSync(root, { recursive: true, force: true }) };
 }

@@ -8,6 +8,7 @@ export const CHANGED_SHARE_MIN = 0.0005;
 const CHANNEL_DELTA_MIN = 2;
 const OFFSCREEN_GRACE_MS = 400;
 const OFFSCREEN_COUNT_MS = 1000;
+const RAF_WINDOW_MS = 800;
 
 export const LIBRARY_PATTERNS = {
   three: /(^|[/@.-])three(\.module)?(\.min)?\.js|\/three@|three\/build\//i,
@@ -61,9 +62,13 @@ export async function installCanvasTrace(context) {
 
     const nativeGet = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function getContext(type, ...rest) {
+      // A probe running through page.evaluate (the static pass asks every canvas for webgl2) must not create a
+      // context the page has not asked for: that would claim the canvas and break the page's own getContext('2d').
+      if (/UtilityScript/.test(String(new Error().stack))) return this.__dfType === type ? nativeGet.call(this, type, ...rest) : null;
       const ctx = nativeGet.call(this, type, ...rest);
-      if (!this.__dfRequested) this.__dfRequested = type;
-      if (ctx && !this.__dfType) this.__dfType = type;
+      const kind = type === 'experimental-webgl' ? 'webgl' : type;
+      if (!this.__dfRequested) this.__dfRequested = kind;
+      if (ctx && !this.__dfType) this.__dfType = kind;
       const url = urlOfCaller();
       if (url) state.scriptUrls.add(url);
       return ctx;
@@ -125,6 +130,7 @@ async function listCanvases(page) {
         context: el.__dfType === 'webgl2' || el.__dfType === 'webgl' || el.__dfType === '2d' ? el.__dfType : 'none',
         requested: el.__dfRequested ?? null,
         area: el.getBoundingClientRect().width * el.getBoundingClientRect().height,
+        box: (() => { const r = el.getBoundingClientRect(); return { left: r.left + window.scrollX, top: r.top + window.scrollY, width: r.width, height: r.height }; })(),
       }));
   });
 }
@@ -206,6 +212,20 @@ async function countOffscreenDraws(page, selector) {
   }, selector);
 }
 
+// Judges the area a canvas occupied when the element itself is gone or hidden: scroll it into view and ask whether
+// one colour fills it.
+async function areaIsBlank(page, box) {
+  const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
+  await page.evaluate((y) => window.scrollTo(0, y), Math.max(0, Math.floor(box.top)));
+  const scrollY = await page.evaluate(() => window.scrollY);
+  const x = Math.max(0, Math.ceil(box.left));
+  const y = Math.max(0, Math.ceil(box.top - scrollY));
+  const width = Math.max(1, Math.min(Math.floor(box.width), viewport.width - x));
+  const height = Math.max(1, Math.min(Math.floor(box.height), viewport.height - y));
+  const buffer = await page.screenshot({ clip: { x, y, width, height } });
+  return (await compareFrames(page, [buffer])).blank;
+}
+
 const quantile = (sorted, q) => (sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] : 0);
 const round1 = (n) => Math.round(n * 10) / 10;
 
@@ -217,7 +237,8 @@ async function reducedMotionRun(browser, url, viewport, selectors, settleMs) {
     await settle(page, { quiet: settleMs });
     const out = new Map();
     for (const selector of selectors) {
-      if (!(await page.locator(selector).count())) { out.set(selector, null); continue; }
+      // Hidden or removed under reduce: nothing is moving there, and a screenshot would wait 30 s and throw.
+      if (!(await page.locator(selector).first().isVisible())) { out.set(selector, false); continue; }
       const s = await sampleCanvas(page, selector, 4, 900);
       out.set(selector, s.changedShare > CHANGED_SHARE_MIN);
     }
@@ -228,7 +249,7 @@ async function reducedMotionRun(browser, url, viewport, selectors, settleMs) {
 }
 
 // A browser launched with --disable-webgl: the page must still show something and must not throw.
-async function noWebglRun(url, viewport, selectors, settleMs) {
+async function noWebglRun(url, viewport, targets, settleMs) {
   const browser = await launchBrowser({ args: ['--disable-webgl'] });
   try {
     const context = await browser.newContext({ viewport });
@@ -238,10 +259,12 @@ async function noWebglRun(url, viewport, selectors, settleMs) {
     await page.goto(url, { waitUntil: 'load' });
     await settle(page, { quiet: settleMs });
     const out = new Map();
-    for (const selector of selectors) {
-      if (!(await page.locator(selector).count())) { out.set(selector, { visible: false, errors }); continue; }
-      const s = await sampleCanvas(page, selector, 2, 200);
-      out.set(selector, { visible: !s.blank, errors });
+    for (const { selector, box } of targets) {
+      // The page may swap the canvas for its fallback (display:none, replaceWith): then the element is gone but
+      // the fallback occupies its area, so the area is what gets judged.
+      const visible = await page.locator(selector).first().isVisible();
+      const blank = visible ? (await sampleCanvas(page, selector, 2, 200)).blank : await areaIsBlank(page, box);
+      out.set(selector, { visible: !blank, errors });
     }
     return out;
   } finally {
@@ -285,16 +308,22 @@ export async function runCanvasTrace(page, { frames = 8, durationMs = 2000, sett
   // Pages with decorative canvases by the dozen: the largest ones are the technique, the rest cost minutes.
   const found = (await listCanvases(page)).sort((a, b) => b.area - a.area).slice(0, maxCanvases);
   const records = [];
+  const boxes = new Map(found.map((f) => [f.selector, f.box]));
   for (const { selector, context, requested } of found) {
     await page.evaluate((sel) => {
       window.__dfTrace.rafTimes.length = 0; window.__dfTrace.longTasks = 0;
       document.querySelector(sel).__dfDraws = 0;
     }, selector);
     const sample = await sampleCanvas(page, selector, frames, durationMs);
-    const { rafTimes, longTasks, drawCalls } = await page.evaluate((sel) => ({
-      rafTimes: [...window.__dfTrace.rafTimes], longTasks: window.__dfTrace.longTasks, drawCalls: document.querySelector(sel).__dfDraws || 0,
-    }), selector);
-    const deltas = rafTimes.slice(1).map((t, i) => t - rafTimes[i]).sort((a, b) => a - b);
+    const drawCalls = await page.evaluate((sel) => document.querySelector(sel).__dfDraws || 0, selector);
+    // Timing is read in a window of its own, with no screenshots in it (they stall the frames they measure), and
+    // only from distinct timestamps: every rAF callback of one frame receives the same one.
+    await page.evaluate(() => { window.__dfTrace.rafTimes.length = 0; window.__dfTrace.longTasks = 0; });
+    await page.waitForTimeout(RAF_WINDOW_MS);
+    const { rafTimes, longTasks } = await page.evaluate(() => ({ rafTimes: [...window.__dfTrace.rafTimes], longTasks: window.__dfTrace.longTasks }));
+    const stamps = [...new Set(rafTimes)].sort((a, b) => a - b);
+    const deltas = stamps.slice(1).map((t, i) => t - stamps[i]).sort((a, b) => a - b);
+    const rafPerSec = stamps.length > 1 ? (stamps.length - 1) / ((stamps[stamps.length - 1] - stamps[0]) / 1000) : 0;
     records.push({
       selector,
       context,
@@ -303,7 +332,7 @@ export async function runCanvasTrace(page, { frames = 8, durationMs = 2000, sett
       animating: sample.changedShare > CHANGED_SHARE_MIN,
       blank: sample.blank,
       changedShare: sample.changedShare,
-      rafPerSec: round1(rafTimes.length / sample.elapsedSec),
+      rafPerSec: round1(rafPerSec),
       frameMs: { p50: round1(quantile(deltas, 0.5)), p95: round1(quantile(deltas, 0.95)) },
       longTasks,
       drawCalls,
@@ -319,11 +348,11 @@ export async function runCanvasTrace(page, { frames = 8, durationMs = 2000, sett
   const browser = page.context().browser();
   if (variants && records.length && browser && url && !url.startsWith('about:')) {
     const selectors = records.map((r) => r.selector);
-    const reduced = await reducedMotionRun(browser, url, viewport, selectors, Math.min(settleMs, 1500));
+    const reduced = await reducedMotionRun(browser, url, viewport, selectors, settleMs);
     for (const r of records) r.reducedMotionAnimating = reduced.get(r.selector);
     const webglOnes = records.filter((r) => r.requested === 'webgl' || r.requested === 'webgl2');
     if (webglOnes.length) {
-      const bare = await noWebglRun(url, viewport, webglOnes.map((r) => r.selector), Math.min(settleMs, 1500));
+      const bare = await noWebglRun(url, viewport, webglOnes.map((r) => ({ selector: r.selector, box: boxes.get(r.selector) })), settleMs);
       for (const r of webglOnes) {
         const got = bare.get(r.selector);
         r.fallbackVisible = got.visible;
