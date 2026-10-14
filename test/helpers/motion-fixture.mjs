@@ -93,7 +93,7 @@ function build(kind) {
     case 'blank': return { body: holder('c'), call: "solid2d('c', {});" };
     case 'staticCanvas': return { body: holder('c'), call: "once2d('c');" };
     case 'twoCanvases': return { body: holder('a') + holder('b'), call: "glScene('a', {}); flat2d('b', {});" };
-    case 'hiddenUnderReduce': return { ...one("glScene('c', {});"), head: '<style>@media (prefers-reduced-motion: reduce){#c{display:none}}</style>' };
+    case 'hiddenUnderReduce': return { ...one("glScene('c', {});"), head: '<style>@media (prefers-reduced-motion: reduce){#c{display:none !important}}</style>' };
     case 'removedUnderReduce': return one("if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.getElementById('c').remove(); else glScene('c', {});");
     case 'swapsCanvasForFallback': return one(`const probe = document.createElement('canvas').getContext('webgl');
       if (!probe) { const d = document.createElement('div'); d.style.cssText = 'width:400px;height:300px;background:linear-gradient(90deg,#112233,#ddaa44)'; document.getElementById('c').replaceWith(d); }

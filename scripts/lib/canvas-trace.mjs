@@ -6,7 +6,8 @@
 // Known limits: canvases inside iframes are not listed; DOM overlays above a canvas are part of what its area shows.
 import { launchBrowser, settle } from './browser.mjs';
 
-export const CHANGED_SHARE_MIN = 0.0005;
+export const VARIANT_SETTLE_MS = 1800;
+const CHANGED_SHARE_MIN = 0.0005;
 const CHANNEL_DELTA_MIN = 2;
 const OFFSCREEN_GRACE_MS = 400;
 const OFFSCREEN_COUNT_MS = 1000;
@@ -373,7 +374,8 @@ async function reducedMotionRun(browser, url, viewport, targets, settleMs) {
     const samples = await sampleAll(page, present, 4, 900, { timing: false });
     return new Map(targets.map((t) => {
       const mine = here.get(t.selector);
-      return [t.selector, mine ? samples.get(mine.id).changedShare > CHANGED_SHARE_MIN : false];
+      // Not found under reduce (hidden, removed, or renamed): the page's answer is unknown, not "honoured".
+      return [t.selector, mine ? samples.get(mine.id).changedShare > CHANGED_SHARE_MIN : null];
     }));
   } finally {
     await context.close();
@@ -487,14 +489,17 @@ export async function runCanvasTrace(page, { frames = 8, durationMs = 2000, sett
 
   const weight = await pageWeight(page);
 
+  // The variants reload the page from zero, so they wait as long as a first visit needs, whatever the caller's
+  // settleMs (probe passes 300 for a page that has already been loaded for a while).
+  const variantSettleMs = Math.max(settleMs, VARIANT_SETTLE_MS);
   const browser = page.context().browser();
   if (variants && records.length && browser && url && !url.startsWith('about:')) {
     const targets = found.map((f) => ({ selector: f.selector, box: f.box }));
-    const reduced = await reducedMotionRun(browser, url, viewport, targets, settleMs);
+    const reduced = await reducedMotionRun(browser, url, viewport, targets, variantSettleMs);
     for (const r of records) r.reducedMotionAnimating = reduced.get(r.selector);
     const webglOnes = found.filter((f) => f.requested === 'webgl' || f.requested === 'webgl2').map((f) => ({ selector: f.selector, box: f.box }));
     if (webglOnes.length) {
-      const bare = await noWebglRun(url, viewport, webglOnes, settleMs);
+      const bare = await noWebglRun(url, viewport, webglOnes, variantSettleMs);
       for (const r of records) {
         const got = bare.get(r.selector);
         if (!got) continue;

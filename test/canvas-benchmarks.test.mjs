@@ -5,10 +5,10 @@ import { summariseCanvases, renderBenchmarkSection, ceilingsFrom } from '../scri
 // A probe record, reduced to what the aggregator reads.
 const canvas = (over = {}) => ({
   selector: 'canvas#c', context: 'webgl', renderer: 'ANGLE (Test GPU)', animating: true, blank: false,
-  frameMs: { p50: 16.7, p95: 20 }, drawCallsOffscreen: 0, reducedMotionAnimating: false, fallbackVisible: true,
+  frameMs: { p50: 16.7, p95: 20 }, rafPerSec: 60, drawCallsOffscreen: 0, reducedMotionAnimating: false, fallbackVisible: true,
   ...over,
 });
-const record = (site, motionJsBytes, canvases) => ({ site, canvasJsBytes: { jsBytes: motionJsBytes + 1000, motionJsBytes }, canvases });
+const record = (site, motionJsBytes, canvases) => ({ site, measured_at: '2026-10-14', canvasJsBytes: { jsBytes: motionJsBytes + 1000, motionJsBytes }, canvases });
 
 const cohort = {
   'Clay 3D': { tier: 'high', sites: ['a.example', 'b.example', 'c.example', 'd.example'] },
@@ -28,8 +28,8 @@ test('median and p75 are computed on motion JS weight', () => {
   assert.equal(s.tiers.high.p75, 300000, 'nearest-rank p75 of four values is the third');
 });
 
-test('a technique with no records, or none with an animating canvas, is "not measured" and renders no number', () => {
-  const records = [record('e.example', 5000, [canvas({ animating: false })])];
+test('a technique with no usable records is "not measured" and renders no number', () => {
+  const records = [{ site: 'e.example', canvasJsBytes: null, canvases: null }];
   const s = summariseCanvases(records, cohort);
   assert.equal(s.techniques['ASCII art'], 'not measured');
   assert.equal(s.techniques['Neon glow'], 'not measured');
@@ -37,6 +37,47 @@ test('a technique with no records, or none with an animating canvas, is "not mea
   const row = md.split('\n').find((l) => l.includes('Neon glow'));
   assert.match(row, /not measured/);
   assert.equal(/\d/.test(row.replace('Neon glow', '')), false, `no number in: ${row}`);
+});
+
+test('a measured site without an animating canvas still gives its technique and tier a weight; only the canvas metrics are not measured', () => {
+  const records = [record('f.example', 8000, []), record('e.example', 20000, [canvas({ animating: false })])];
+  const s = summariseCanvases(records, cohort);
+  assert.deepEqual(s.techniques['Neon glow'].weight, { min: 8000, median: 8000, max: 8000 });
+  assert.equal(s.techniques['Neon glow'].canvases, 0);
+  assert.deepEqual(s.techniques['Neon glow'].frameMs, []);
+  assert.equal(s.techniques['Neon glow'].reducedMotionShare, null);
+  assert.equal(s.tiers.fast.p75, 8000);
+  assert.equal(s.tiers.medium.p75, 20000);
+  assert.deepEqual(ceilingsFrom(s), { fast: 8000, medium: 20000 });
+  const row = renderBenchmarkSection(s, '2026-10-14').split('\n').find((l) => l.startsWith('| Neon glow |'));
+  assert.match(row, /8 KB/);
+  assert.match(row, /not measured/);
+});
+
+test('frame time is counted once per page window, and a canvas with rafPerSec 0 is dropped', () => {
+  const same = { frameMs: { p50: 16, p95: 20 }, rafPerSec: 60 };
+  const records = [
+    record('a.example', 1, [canvas({ ...same }), canvas({ selector: 'canvas#2', ...same }), canvas({ selector: 'canvas#3', ...same, rafPerSec: 0, frameMs: { p50: 500, p95: 900 } })]),
+    record('b.example', 1, [canvas({ frameMs: { p50: 18, p95: 24 }, rafPerSec: 55 })]),
+  ];
+  const [row] = summariseCanvases(records, cohort).techniques['Clay 3D'].frameMs;
+  assert.equal(row.n, 2, 'two windows, not three canvases');
+  assert.deepEqual(row.p50, { min: 16, median: 17, max: 18 });
+});
+
+test('re-probes of one site count once per technique: the most recent record stays', () => {
+  const old = { ...record('a.example', 100000, [canvas()]), measured_at: '2026-10-01' };
+  const fresh = { ...record('a.example', 300000, [canvas()]), measured_at: '2026-10-10' };
+  const t = summariseCanvases([fresh, old], cohort).techniques['Clay 3D'];
+  assert.equal(t.sites, 1);
+  assert.equal(t.canvases, 1);
+  assert.deepEqual(t.weight, { min: 300000, median: 300000, max: 300000 });
+});
+
+test('a WebGL canvas with no renderer string is "unknown renderer", a 2D one has no GPU renderer', () => {
+  const records = [record('a.example', 1, [canvas({ renderer: null, context: 'webgl' }), canvas({ selector: 'canvas#2', renderer: null, context: '2d', rafPerSec: 60, frameMs: { p50: 9, p95: 11 } })])];
+  const labels = summariseCanvases(records, cohort).techniques['Clay 3D'].frameMs.map((r) => r.renderer).sort();
+  assert.deepEqual(labels, ['2d (no GPU renderer)', 'unknown renderer']);
 });
 
 test('frameMs is never compared across renderers: two renderers give two rows', () => {

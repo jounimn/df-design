@@ -180,13 +180,13 @@ test('a canvas hidden under reduced motion passes the reduced-motion variant wit
   const started = Date.now();
   const [c] = (await trace('hiddenUnderReduce')).canvases;
   assert.ok(Date.now() - started < 60000, 'the trace must not sit in Playwright\'s 30 s screenshot wait');
-  assert.equal(c.reducedMotionAnimating, false);
+  assert.equal(c.reducedMotionAnimating, null, 'not found under reduce: unknown, not "honoured"');
   assert.equal(c.fallbackVisible, true);
 });
 
-test('a canvas removed under reduced motion reads as not animating there', async () => {
+test('a canvas removed under reduced motion has an unknown reduced-motion result, not false', async () => {
   const [c] = (await trace('removedUnderReduce')).canvases;
-  assert.equal(c.reducedMotionAnimating, false);
+  assert.equal(c.reducedMotionAnimating, null);
 });
 
 test('a canvas replaced by its fallback without WebGL is judged by the area it occupied, not by the missing element', async () => {
@@ -223,6 +223,41 @@ test('the variants wait as long as the baseline: a canvas that arrives 1.5 s lat
   const [c] = (await trace('lateCanvas', { settleMs: 2000 })).canvases;
   assert.equal(c.reducedMotionAnimating, false);
   assert.equal(c.fallbackVisible, true);
+});
+
+test('the variants keep their own 1.8 s settle floor: probe passes settleMs 300 and a late canvas is still judged', async () => {
+  const fx = motionFixture('lateCanvas');
+  const { page, context } = await newPage(browser);
+  try {
+    await installCanvasTrace(context);
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await page.waitForTimeout(2200); // the baseline page has its canvas by now; a variant reload starts from zero
+    const [c] = (await runCanvasTrace(page, { frames: 4, durationMs: 800, settleMs: 300 })).canvases;
+    assert.equal(c.selector, 'canvas#late');
+    assert.equal(c.reducedMotionAnimating, false, 'found under reduce after the floor, and not moving');
+    assert.equal(c.fallbackVisible, true);
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('experimental-webgl is recorded as webgl', async () => {
+  const { page, context } = await newPage(browser);
+  try {
+    await installCanvasTrace(context);
+    // setContent does not run init scripts; a navigation does.
+    const html = `<canvas id="x" width="300" height="200" style="display:block"></canvas><script>
+      const gl = document.getElementById('x').getContext('experimental-webgl');
+      let k = 0; (function f() { k += 1; gl.clearColor((k % 60) / 60, 0.3, 0.6, 1); gl.clear(gl.COLOR_BUFFER_BIT); requestAnimationFrame(f); })();
+    </script>`;
+    await page.goto(`data:text/html,${encodeURIComponent(html)}`, { waitUntil: 'load' });
+    const [c] = (await runCanvasTrace(page, { frames: 4, durationMs: 800, settleMs: 300, variants: false })).canvases;
+    assert.equal(c.context, 'webgl');
+    assert.equal(c.requested, 'webgl');
+  } finally {
+    await context.close();
+  }
 });
 
 // ---- Every canvas is measured, wherever it sits ------------------------------------------------------------
