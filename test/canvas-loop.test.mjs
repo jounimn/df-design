@@ -147,3 +147,188 @@ test('stop() ends the loop', async () => {
     assert.equal(await draws(page), stopped);
   } finally { await close(); }
 });
+
+// ---- Context loss, fallback, slideshow, export ---------------------------------------------------------------
+
+// A WebGL canvas on the template, with the same markup as the motion fixtures (a fallback laid over the canvas).
+function glPage({ spacer = 3000 } = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'canvas loop gl '));
+  fs.writeFileSync(path.join(root, 'canvas-loop.js'), TEMPLATE);
+  fs.writeFileSync(path.join(root, 'page.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>gl loop</title>
+<style>html,body{margin:0}</style></head><body>
+<div style="position:relative;width:400px;height:300px">
+<canvas id="c" width="400" height="300" style="width:400px;height:300px;display:block"></canvas>
+<div id="fb" hidden style="position:absolute;top:0;left:0;width:400px;height:300px;background:linear-gradient(90deg,#112233,#ddaa44)"></div>
+</div><div style="height:${spacer}px"></div>
+<script src="canvas-loop.js"></script>
+<script>
+window.calls = { draw: 0, poster: 0, restore: 0 };
+const build = (gl) => {
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const pr = gl.createProgram();
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}'));
+  gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, 'precision mediump float;uniform float t;void main(){gl_FragColor=vec4(.5+.5*sin(t+gl_FragCoord.x*.02),.5+.5*cos(t*1.3+gl_FragCoord.y*.02),.6,1.);}'));
+  gl.linkProgram(pr); gl.useProgram(pr);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  return gl.getUniformLocation(pr, 't');
+};
+let uniform = null;
+const frame = (gl, s) => { gl.viewport(0, 0, gl.canvas.width, gl.canvas.height); gl.uniform1f(uniform, s); gl.drawArrays(gl.TRIANGLES, 0, 3); };
+window.loop = dfCanvasLoop(document.getElementById('c'), {
+  context: 'webgl',
+  draw(t, gl) { window.gl = gl; if (!uniform) uniform = build(gl); window.calls.draw += 1; frame(gl, t / 1000); },
+  poster(gl) { window.gl = gl; if (!uniform) uniform = build(gl); window.calls.poster += 1; frame(gl, 0); },
+  fallback: '#fb',
+  restore(gl) { window.calls.restore += 1; uniform = build(gl); },
+});
+</script></body></html>`);
+  const file = path.join(root, 'page.html');
+  return { root, file, url: pathToFileURL(file).href, cleanup: () => fs.rmSync(root, { recursive: true, force: true }) };
+}
+
+async function openGl({ init } = {}) {
+  const fx = glPage();
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
+  if (init) await context.addInitScript(init);
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(fx.url, { waitUntil: 'load' });
+  return { page, errors, close: async () => { await context.close(); fx.cleanup(); } };
+}
+const state = (page) => page.evaluate(() => {
+  const c = document.getElementById('c');
+  const fb = document.getElementById('fb');
+  return { loop: c.dataset.dfLoop, canvasDisplay: c.style.display, fallbackHidden: fb.hidden, fallbackShown: getComputedStyle(fb).display !== 'none' };
+});
+// A lost context hands out no extensions, so the extension object is taken while the context is alive.
+const LOSE = () => { window.ext = window.gl.getExtension('WEBGL_lose_context'); window.ext.loseContext(); };
+const RESTORE = () => window.ext.restoreContext();
+
+test('webglcontextlost stops the loop and shows the fallback element; webglcontextrestored resumes', async () => {
+  const { page, errors, close } = await openGl();
+  try {
+    await page.waitForFunction(() => window.calls.draw > 5);
+    await page.evaluate(LOSE);
+    await page.waitForFunction(() => document.getElementById('c').dataset.dfLoop === 'fallback');
+    const lost = await state(page);
+    assert.equal(lost.canvasDisplay, 'none');
+    assert.equal(lost.fallbackShown, true);
+    const stopped = await draws(page);
+    await page.waitForTimeout(400);
+    assert.equal(await draws(page), stopped, 'no draw while the context is lost');
+
+    await page.evaluate(RESTORE);
+    await page.waitForFunction(() => document.getElementById('c').dataset.dfLoop === 'running');
+    const back = await state(page);
+    assert.equal(back.canvasDisplay, 'block', 'the canvas gets back the display it had');
+    assert.equal(back.fallbackHidden, true);
+    assert.equal(await page.evaluate(() => window.calls.restore), 1, 'the page was told to rebuild its GL resources');
+    await resumed(page, stopped);
+    assert.deepEqual(errors, []);
+  } finally { await close(); }
+});
+
+const NO_WEBGL = () => {
+  const native = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function getContext(type, ...rest) { return /webgl/.test(type) ? null : native.call(this, type, ...rest); };
+};
+
+test('getContext returning null shows the fallback and does not throw', async () => {
+  const { page, errors, close } = await openGl({ init: NO_WEBGL });
+  try {
+    await page.waitForTimeout(500);
+    const s = await state(page);
+    assert.equal(s.loop, 'fallback');
+    assert.equal(s.fallbackShown, true);
+    assert.equal(s.canvasDisplay, 'none');
+    assert.equal(await draws(page), 0);
+    assert.deepEqual(errors, []);
+  } finally { await close(); }
+});
+
+test('a fallback selector that matches nothing logs one console warning and does not throw', async () => {
+  const fx = loopPage({ options: "fallback: '#missing'," });
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
+  // The page asks for a 2d context: make that fail, so the loop has to fall back.
+  await context.addInitScript(() => { HTMLCanvasElement.prototype.getContext = () => null; });
+  const page = await context.newPage();
+  const errors = [];
+  const warnings = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'warning') warnings.push(m.text()); });
+  try {
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await page.waitForTimeout(400);
+    assert.equal(await page.evaluate(() => document.getElementById('c').dataset.dfLoop), 'fallback');
+    assert.equal(warnings.filter((w) => w.includes('#missing')).length, 1, warnings.join(' | '));
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('with a slideshow (document df:slidechange), only a canvas inside slide detail.slide runs; moving on swaps them', async () => {
+  const { copyPresentationFixture } = await import('./helpers/presentation-fixture.mjs');
+  const fx = copyPresentationFixture();
+  fs.writeFileSync(path.join(fx.dir, 'canvas-loop.js'), TEMPLATE);
+  const file = path.join(fx.dir, 'presentation.html');
+  const html = fs.readFileSync(file, 'utf8')
+    .replace('<h2>01 · Miolo & Filhos</h2>', '<h2>01 · Miolo & Filhos</h2><canvas id="a" style="width:400px;height:200px;display:block"></canvas>')
+    .replace('<h2>02 · Concept</h2>', '<h2>02 · Concept</h2><canvas id="b" style="width:400px;height:200px;display:block"></canvas>')
+    .replace('<script src="slideshow.js"></script>', `<script src="slideshow.js"></script><script src="canvas-loop.js"></script><script>
+window.n = { a: 0, b: 0 };
+for (const id of ['a', 'b']) dfCanvasLoop(document.getElementById(id), { context: '2d', draw(t, ctx) { window.n[id] += 1; ctx.fillStyle = 'hsl(' + (t / 10 % 360) + ',70%,50%)'; ctx.fillRect(0, 0, 400, 200); }, poster() {}, fallback: '#none' });
+</script>`);
+  fs.writeFileSync(file, html);
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.n.a > 5);
+    const at = await page.evaluate(() => ({ ...window.n }));
+    await page.waitForTimeout(300);
+    assert.equal(await page.evaluate(() => window.n.b), at.b, 'the canvas on slide 2 does not run while slide 1 is in focus');
+    assert.ok(await page.evaluate(() => window.n.a) > at.a);
+
+    await page.evaluate(() => window.__DF_SLIDESHOW__.go(2));
+    await page.waitForFunction((n) => window.n.b > n + 5, at.b, { timeout: 4000 });
+    await page.waitForTimeout(200);
+    const a = await page.evaluate(() => window.n.a);
+    await page.waitForTimeout(300);
+    assert.equal(await page.evaluate(() => window.n.a), a, 'the canvas on slide 1 paused');
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('with window.__DF_EXPORT__ === true set by an init script, poster is called once, draw never, and dataset.dfPoster is done', async () => {
+  const fx = loopPage();
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 }, reducedMotion: 'no-preference' });
+  await context.addInitScript(() => { window.__DF_EXPORT__ = true; });
+  const page = await context.newPage();
+  try {
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await page.waitForTimeout(500);
+    assert.deepEqual(await page.evaluate(() => window.calls), { draw: 0, poster: 1 });
+    assert.deepEqual(await page.evaluate(() => [document.getElementById('c').dataset.dfLoop, document.getElementById('c').dataset.dfPoster]), ['poster', 'done']);
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('a loop-based page passes every check-motion check (by construction)', async () => {
+  const { runMotionChecks } = await import('../scripts/lib/motion-checks.mjs');
+  const fx = glPage();
+  try {
+    const result = await runMotionChecks(fx.file, { tier: 'high', browser, ceilings: { high: 200000 } });
+    assert.deepEqual(result.checks.filter((c) => c.status === 'fail'), []);
+    for (const c of result.checks) assert.equal(c.status, 'pass', `${c.name}: ${c.detail}`);
+    assert.equal(result.ok, true);
+  } finally { fx.cleanup(); }
+});
