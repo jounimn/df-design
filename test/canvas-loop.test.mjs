@@ -13,7 +13,7 @@ test.before(async () => { browser = await launchBrowser(); });
 test.after(async () => { await browser?.close(); });
 
 // A page with one 400x300 canvas at the top, 3000 px of room below it, the template and a recording draw/poster.
-function loopPage({ options = '', body = '', head = '' } = {}) {
+function loopPage({ options = '', body = '', head = '', draw = '' } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'canvas loop '));
   fs.writeFileSync(path.join(root, 'canvas-loop.js'), TEMPLATE);
   fs.writeFileSync(path.join(root, 'page.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>loop</title>${head}
@@ -24,7 +24,7 @@ function loopPage({ options = '', body = '', head = '' } = {}) {
 window.calls = { draw: 0, poster: 0 };
 window.loop = dfCanvasLoop(document.getElementById('c'), {
   context: '2d',
-  draw(t, ctx) { window.calls.draw += 1; ctx.fillStyle = 'hsl(' + (t / 10 % 360) + ',70%,50%)'; ctx.fillRect(0, 0, 400, 300); },
+  draw(t, ctx) { window.calls.draw += 1; ${draw} ctx.fillStyle = 'hsl(' + (t / 10 % 360) + ',70%,50%)'; ctx.fillRect(0, 0, 400, 300); },
   poster(ctx) { window.calls.poster += 1; ctx.fillStyle = '#336'; ctx.fillRect(0, 0, 400, 300); },
   fallback: '#fb',
   ${options}
@@ -158,7 +158,7 @@ function glPage({ spacer = 3000 } = {}) {
 <style>html,body{margin:0}</style></head><body>
 <div style="position:relative;width:400px;height:300px">
 <canvas id="c" width="400" height="300" style="width:400px;height:300px;display:block"></canvas>
-<div id="fb" hidden style="position:absolute;top:0;left:0;width:400px;height:300px;background:linear-gradient(90deg,#112233,#ddaa44)"></div>
+<div id="fb" hidden style="display:none;position:absolute;top:0;left:0;width:400px;height:300px;background:linear-gradient(90deg,#112233,#ddaa44)"></div>
 </div><div style="height:${spacer}px"></div>
 <script src="canvas-loop.js"></script>
 <script>
@@ -224,7 +224,7 @@ test('webglcontextlost stops the loop and shows the fallback element; webglconte
     await page.waitForFunction(() => document.getElementById('c').dataset.dfLoop === 'running');
     const back = await state(page);
     assert.equal(back.canvasDisplay, 'block', 'the canvas gets back the display it had');
-    assert.equal(back.fallbackHidden, true);
+    assert.equal(back.fallbackShown, false, 'the fallback is hidden again, even though it had an inline display');
     assert.equal(await page.evaluate(() => window.calls.restore), 1, 'the page was told to rebuild its GL resources');
     await resumed(page, stopped);
     assert.deepEqual(errors, []);
@@ -281,7 +281,7 @@ test('with a slideshow (document df:slidechange), only a canvas inside slide det
     .replace('<h2>02 · Concept</h2>', '<h2>02 · Concept</h2><canvas id="b" style="width:400px;height:200px;display:block"></canvas>')
     .replace('<script src="slideshow.js"></script>', `<script src="slideshow.js"></script><script src="canvas-loop.js"></script><script>
 window.n = { a: 0, b: 0 };
-for (const id of ['a', 'b']) dfCanvasLoop(document.getElementById(id), { context: '2d', draw(t, ctx) { window.n[id] += 1; ctx.fillStyle = 'hsl(' + (t / 10 % 360) + ',70%,50%)'; ctx.fillRect(0, 0, 400, 200); }, poster() {}, fallback: '#none' });
+for (const id of ['a', 'b']) dfCanvasLoop(document.getElementById(id), { context: '2d', draw(t, ctx) { window.n[id] += 1; ctx.fillStyle = 'hsl(' + (t / 10 % 360) + ',70%,50%)'; ctx.fillRect(0, 0, 400, 200); }, poster(ctx) { ctx.fillStyle = '#336'; ctx.fillRect(0, 0, 400, 200); }, fallback: '#none' });
 </script>`);
   fs.writeFileSync(file, html);
   const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
@@ -289,6 +289,9 @@ for (const id of ['a', 'b']) dfCanvasLoop(document.getElementById(id), { context
   try {
     await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
     await page.waitForFunction(() => window.n.a > 5);
+    // The canvas on slide 2 is not blank while its slide is out of focus: it already shows its poster, so the slide
+    // that comes in has something on it from the first frame.
+    assert.equal(await page.evaluate(() => document.getElementById('b').getContext('2d').getImageData(10, 10, 1, 1).data[3]), 255);
     const at = await page.evaluate(() => ({ ...window.n }));
     await page.waitForTimeout(300);
     assert.equal(await page.evaluate(() => window.n.b), at.b, 'the canvas on slide 2 does not run while slide 1 is in focus');
@@ -300,6 +303,104 @@ for (const id of ['a', 'b']) dfCanvasLoop(document.getElementById(id), { context
     const a = await page.evaluate(() => window.n.a);
     await page.waitForTimeout(300);
     assert.equal(await page.evaluate(() => window.n.a), a, 'the canvas on slide 1 paused');
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('an error inside draw stops the loop, logs once, and shows the fallback instead of freezing silently', async () => {
+  const fx = loopPage({ draw: 'if (window.calls.draw === 4) throw new Error("boom");' });
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
+  const page = await context.newPage();
+  const errors = [];
+  const logged = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') logged.push(m.text()); });
+  try {
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await page.waitForFunction(() => document.getElementById('c').dataset.dfLoop === 'fallback');
+    const stopped = await draws(page);
+    await page.waitForTimeout(400);
+    assert.equal(await draws(page), stopped, 'no more frames after the error');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('fb')).display !== 'none'), true, 'the fallback is visible');
+    assert.equal(logged.filter((l) => l.includes('boom')).length, 1, logged.join(' | '));
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+// Old webviews: no IntersectionObserver, no ResizeObserver, a MediaQueryList with only addListener.
+const OLD_BROWSER = () => {
+  delete window.IntersectionObserver;
+  delete window.ResizeObserver;
+  MediaQueryList.prototype.addEventListener = undefined;
+  MediaQueryList.prototype.removeEventListener = undefined;
+};
+
+test('without IntersectionObserver, ResizeObserver or MediaQueryList.addEventListener the loop still runs', async () => {
+  const fx = loopPage();
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
+  await context.addInitScript(OLD_BROWSER);
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  try {
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await page.waitForFunction(() => window.calls.draw > 5);
+    assert.equal(await page.evaluate(() => document.getElementById('c').dataset.dfLoop), 'running');
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('if the loop cannot start at all, the fallback shows and nothing throws', async () => {
+  const fx = loopPage();
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
+  await context.addInitScript(() => { window.matchMedia = undefined; });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  try {
+    await page.goto(fx.url, { waitUntil: 'load' });
+    assert.equal(await page.evaluate(() => document.getElementById('c').dataset.dfLoop), 'fallback');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('fb')).display !== 'none'), true);
+    assert.equal(errors.filter((e) => !e.includes('matchMedia')).length, 0, errors.join(' | '));
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('a canvas that starts out of view gets its poster at once, draws nothing, and runs when it scrolls in', async () => {
+  const fx = loopPage({ head: '<style>#c{margin-top:2500px !important}</style>' });
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 } });
+  const page = await context.newPage();
+  try {
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await page.waitForTimeout(400);
+    assert.deepEqual(await page.evaluate(() => window.calls), { draw: 0, poster: 1 });
+    assert.deepEqual(await page.evaluate(() => [document.getElementById('c').dataset.dfLoop, document.getElementById('c').dataset.dfPoster]), ['paused', 'done']);
+    await page.evaluate(() => window.scrollTo(0, 2400));
+    await page.waitForFunction(() => window.calls.draw > 5);
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('dfPoster is only "done" when a poster was really drawn', async () => {
+  const fx = loopPage({ options: 'poster: undefined,' });
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  try {
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await page.waitForTimeout(300);
+    assert.deepEqual(await page.evaluate(() => [document.getElementById('c').dataset.dfLoop, document.getElementById('c').dataset.dfPoster ?? null]), ['poster', null]);
   } finally {
     await context.close();
     fx.cleanup();
