@@ -11,6 +11,7 @@ export const KINDS = [
   'healthy', 'frozen', 'blank', 'ignoresReducedMotion', 'neverPauses', 'noFallback', 'overweight',
   'staticCanvas', 'twoCanvases', 'noCanvas', 'hiddenCanvas', 'lateCanvas',
   'hiddenUnderReduce', 'removedUnderReduce', 'swapsCanvasForFallback', 'threeLoops', 'lateTwoD',
+  'eightCanvases', 'eightOneRogue', 'shadowCanvas', 'fixedCanvas', 'offscreenWorker', 'opacityZero', 'resizing',
 ];
 
 export const PAD_BYTES = 300000;
@@ -18,9 +19,15 @@ export const PAD_BYTES = 300000;
 // Every scene function takes the canvas id and a set of switches. `pauses` wires an IntersectionObserver,
 // `honoursRM` draws one still frame under prefers-reduced-motion, `fallback` shows #fb when WebGL is missing.
 const LIB = `
+function find(id) {
+  const d = document.getElementById(id);
+  if (d) return d;
+  for (const el of document.querySelectorAll('*')) { const f = el.shadowRoot && el.shadowRoot.getElementById(id); if (f) return f; }
+  return null;
+}
 function glScene(id, { pauses = true, honoursRM = true, fallback = true, preserve = false } = {}) {
-  const c = document.getElementById(id);
-  const fb = document.getElementById('fb-' + id);
+  const c = find(id);
+  const fb = find('fb-' + id);
   const gl = c.getContext('webgl', { preserveDrawingBuffer: preserve });
   if (!gl && fallback) { if (fb) fb.style.display = 'block'; return; }
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
@@ -96,6 +103,28 @@ function build(kind) {
       for (let k = 0; k < 3; k += 1) { const loop = (ms) => { x.fillStyle = 'hsl(' + ((ms / 10 + k * 80) % 360) + ',70%,50%)'; x.fillRect(k * 130, 0, 130, 300); requestAnimationFrame(loop); }; requestAnimationFrame(loop); }` };
     // The page claims its 2D context 1.5 s in, after anything that probed the canvas for WebGL has run.
     case 'lateTwoD': return { body: holder('c'), call: "setTimeout(() => { const x = document.getElementById('c').getContext('2d'); x.fillStyle = '#c33'; x.fillRect(0, 0, 400, 300); }, 1500);" };
+    // Eight healthy canvases stacked 340px apart: a 900px viewport sees two at a time, so most start below the
+    // fold. In 'eightOneRogue' only k5 ignores the viewport and keeps drawing when scrolled out.
+    case 'eightCanvases':
+    case 'eightOneRogue': {
+      const ids = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => `k${i}`);
+      return {
+        body: ids.map((id) => holder(id, 'margin-bottom:40px;')).join(''),
+        call: ids.map((id) => `glScene('${id}', { pauses: ${kind === 'eightOneRogue' && id === 'k5' ? 'false' : 'true'} });`).join(' '),
+      };
+    }
+    case 'shadowCanvas': return {
+      body: '<div id="host"></div>',
+      call: `const sr = document.getElementById('host').attachShadow({ mode: 'open' });
+        sr.innerHTML = '<div style="position:relative;width:400px;height:300px"><canvas id="sc" width="400" height="300" style="width:400px;height:300px;display:block"></canvas></div>';
+        glScene('sc', { fallback: false });`,
+    };
+    case 'fixedCanvas': return one("glScene('c', {});", 'position:fixed;top:0;left:0;');
+    // The page draws from a worker: the main thread never calls getContext and no draw call is seen.
+    case 'offscreenWorker': return { body: holder('c'), call: `const src = 'onmessage=(e)=>{const c=e.data;const x=c.getContext("2d");let k=0;const f=()=>{k+=1;x.fillStyle="hsl("+(k*5%360)+",70%,50%)";x.fillRect(0,0,c.width,c.height);requestAnimationFrame(f)};f()}';
+        const w = new Worker(URL.createObjectURL(new Blob([src]))); const o = document.getElementById('c').transferControlToOffscreen(); w.postMessage(o, [o]);` };
+    case 'opacityZero': return { body: '<div style="opacity:0">' + holder('c') + '</div>', call: "glScene('c', {});" };
+    case 'resizing': return { body: holder('c'), call: "solid2d('c', {}); let w = 400; setInterval(() => { w = w === 400 ? 300 : 400; document.getElementById('c').style.width = w + 'px'; }, 150);" };
     case 'noCanvas': return { body: '<h1>No canvas here</h1>', call: '' };
     case 'hiddenCanvas': return {
       body: `${canvasTag('h1', 'display:none')}<canvas id="h2" width="0" height="0"></canvas><section hidden>${canvasTag('h3')}</section>`,
@@ -109,7 +138,7 @@ function build(kind) {
   }
 }
 
-export function motionFixture(kind, { beforeScene = '' } = {}) {
+export function motionFixture(kind, { beforeScene = '', spacer = true, inline = false } = {}) {
   const { body, call, pad, head = '' } = build(kind);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'movimento teste '));
   const dir = path.join(root, 'página');
@@ -117,7 +146,7 @@ export function motionFixture(kind, { beforeScene = '' } = {}) {
   const scene = `${LIB}\n${pad ? `/*${'x'.repeat(PAD_BYTES)}*/\n` : ''}${call}\n`;
   fs.writeFileSync(path.join(dir, 'scene.js'), scene);
   fs.writeFileSync(path.join(dir, 'page.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${kind}</title>
-<style>html,body{margin:0;background:#fff}</style>${head}</head><body>${body}${beforeScene}<script src="scene.js"></script></body></html>`);
+<style>html,body{margin:0;background:#fff}</style>${head}</head><body>${body}${kind === 'noCanvas' || !spacer ? '' : '<div style="height:2500px"></div>'}${beforeScene}${inline ? `<script>${scene}</script>` : '<script src="scene.js"></script>'}</body></html>`);
   const file = path.join(dir, 'page.html');
   return { root, dir, file, url: pathToFileURL(file).href, cleanup: () => fs.rmSync(root, { recursive: true, force: true }) };
 }

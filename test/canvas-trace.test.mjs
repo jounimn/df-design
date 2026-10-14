@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { launchBrowser, newPage, settle } from '../scripts/lib/browser.mjs';
-import { installCanvasTrace, runCanvasTrace } from '../scripts/lib/canvas-trace.mjs';
+import { installCanvasTrace, runCanvasTrace, LIBRARY_PATTERNS } from '../scripts/lib/canvas-trace.mjs';
 import { motionFixture } from './helpers/motion-fixture.mjs';
 import { runStaticPass } from '../scripts/lib/static-pass.mjs';
 
@@ -9,8 +9,8 @@ let browser;
 test.before(async () => { browser = await launchBrowser(); });
 test.after(async () => { await browser?.close(); });
 
-async function trace(kind, { reducedMotion = 'no-preference', ...opts } = {}) {
-  const fx = motionFixture(kind);
+async function trace(kind, { reducedMotion = 'no-preference', fixture = {}, ...opts } = {}) {
+  const fx = motionFixture(kind, fixture);
   const { page, context } = await newPage(browser, { reducedMotion });
   try {
     await installCanvasTrace(context);
@@ -223,4 +223,115 @@ test('the variants wait as long as the baseline: a canvas that arrives 1.5 s lat
   const [c] = (await trace('lateCanvas', { settleMs: 2000 })).canvases;
   assert.equal(c.reducedMotionAnimating, false);
   assert.equal(c.fallbackVisible, true);
+});
+
+// ---- Every canvas is measured, wherever it sits ------------------------------------------------------------
+
+const K = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => `canvas#k${i}`);
+
+test('eight canvases, most below the fold: all eight are in the record, animating, with their place in the document', async () => {
+  const started = Date.now();
+  const { canvases, skippedCanvases } = await trace('eightCanvases');
+  console.log(`# eightCanvases trace took ${((Date.now() - started) / 1000).toFixed(1)} s (page load and variants included)`);
+  assert.deepEqual(canvases.map((c) => c.selector), K);
+  assert.equal(skippedCanvases, 0);
+  for (const c of canvases) {
+    assert.equal(c.animating, true, `${c.selector} animating`);
+    assert.equal(c.blank, false, `${c.selector} blank`);
+    assert.equal(c.drawCallsOffscreen, 0, `${c.selector} pauses off-screen`);
+    assert.equal(c.reducedMotionAnimating, false, `${c.selector} reduced motion`);
+    assert.equal(c.fallbackVisible, true, `${c.selector} fallback`);
+  }
+  assert.deepEqual(canvases.map((c) => c.domIndex), [0, 1, 2, 3, 4, 5, 6, 7]);
+  const tops = canvases.map((c) => c.topPx);
+  assert.ok(tops.every((t, i) => i === 0 || t > tops[i - 1]), `topPx must rise: ${tops}`);
+  assert.ok(tops.filter((t) => t > 900).length >= 4, `at least four canvases start below the fold: ${tops}`);
+});
+
+test('the off-screen check stays isolated: one rogue canvas among eight is the only one that fails', async () => {
+  const { canvases } = await trace('eightOneRogue');
+  assert.equal(canvases.length, 8);
+  for (const c of canvases) {
+    assert.equal(c.animating, true, `${c.selector} animating`);
+    if (c.selector === 'canvas#k5') assert.ok(c.drawCallsOffscreen > 30, `k5 ${c.drawCallsOffscreen}`);
+    else assert.equal(c.drawCallsOffscreen, 0, `${c.selector} ${c.drawCallsOffscreen}`);
+  }
+});
+
+test('maxCanvases is only a test knob: it keeps the largest ones and counts what it left out', async () => {
+  const t = await trace('eightCanvases', { maxCanvases: 3, variants: false });
+  assert.equal(t.canvases.length, 3);
+  assert.equal(t.skippedCanvases, 5);
+});
+
+test('a canvas inside an open shadow root is listed and measured', async () => {
+  const { canvases } = await trace('shadowCanvas');
+  assert.equal(canvases.length, 1);
+  assert.equal(canvases[0].selector, 'canvas#sc');
+  assert.equal(canvases[0].animating, true);
+  assert.equal(canvases[0].drawCallsOffscreen, 0);
+});
+
+test('a canvas that cannot leave the viewport has drawCallsOffscreen null, not 0', async () => {
+  const [fixed] = (await trace('fixedCanvas', { variants: false })).canvases;
+  assert.equal(fixed.drawCallsOffscreen, null);
+  assert.equal(fixed.animating, true);
+  const fx = motionFixture('healthy', { spacer: false });
+  const { page, context } = await newPage(browser);
+  try {
+    await installCanvasTrace(context);
+    await page.goto(fx.url, { waitUntil: 'load' });
+    const [short] = (await runCanvasTrace(page, { frames: 3, durationMs: 600, settleMs: 300, variants: false })).canvases;
+    assert.equal(short.drawCallsOffscreen, null, 'a page shorter than the viewport cannot scroll the canvas out');
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('a canvas drawn from a worker made no draw call to judge: drawCallsOffscreen is null, not 0', async () => {
+  const [c] = (await trace('offscreenWorker', { variants: false })).canvases;
+  assert.equal(c.drawCalls, 0);
+  assert.equal(c.drawCallsOffscreen, null);
+  assert.equal(c.animating, true);
+});
+
+test('a canvas at opacity 0 is not visible and not listed', async () => {
+  assert.deepEqual((await trace('opacityZero')).canvases, []);
+});
+
+test('a canvas whose box changes size between frames is flagged resized and does not read as animating', async () => {
+  const [c] = (await trace('resizing', { variants: false })).canvases;
+  assert.equal(c.resized, true);
+  assert.equal(c.animating, false);
+});
+
+test('the page is left where it was and the counter is off', async () => {
+  const fx = motionFixture('eightCanvases');
+  const { page, context } = await newPage(browser);
+  try {
+    await installCanvasTrace(context);
+    await page.goto(fx.url, { waitUntil: 'load' });
+    await page.evaluate(() => window.scrollTo(0, 700));
+    await runCanvasTrace(page, { frames: 2, durationMs: 400, settleMs: 300, variants: false });
+    assert.deepEqual(await page.evaluate(() => [Math.round(window.scrollY), window.__dfTrace.counting]), [700, false]);
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
+test('JSON data blocks are not motion JS', async () => {
+  const withJson = '<script type="application/ld+json">' + 'x'.repeat(5000) + '</script>';
+  const a = await trace('healthy', { variants: false, fixture: { inline: true } });
+  const b = await trace('healthy', { variants: false, fixture: { inline: true, beforeScene: withJson } });
+  assert.ok(a.motionJsBytes > 0, 'the inline scene owns the canvas context, so it counts');
+  assert.equal(b.motionJsBytes, a.motionJsBytes);
+});
+
+test('the Rive pattern needs a word boundary: drive.js and derive.js are not Rive', () => {
+  assert.equal(LIBRARY_PATTERNS.rive.test('https://x.example/js/drive.js'), false);
+  assert.equal(LIBRARY_PATTERNS.rive.test('https://x.example/derive.js'), false);
+  assert.equal(LIBRARY_PATTERNS.rive.test('https://unpkg.com/@rive-app/canvas@2/rive.js'), true);
+  assert.equal(LIBRARY_PATTERNS.rive.test('https://cdn.example/rive.min.js'), true);
 });
