@@ -180,7 +180,7 @@ test('a canvas hidden under reduced motion passes the reduced-motion variant wit
   const started = Date.now();
   const [c] = (await trace('hiddenUnderReduce')).canvases;
   assert.ok(Date.now() - started < 60000, 'the trace must not sit in Playwright\'s 30 s screenshot wait');
-  assert.equal(c.reducedMotionAnimating, null, 'not found under reduce: unknown, not "honoured"');
+  assert.equal(c.reducedMotionAnimating, false, 'hidden under reduce (poster shown instead) is honoured');
   assert.equal(c.fallbackVisible, true);
 });
 

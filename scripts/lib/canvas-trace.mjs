@@ -372,11 +372,17 @@ async function reducedMotionRun(browser, url, viewport, targets, settleMs) {
     // Hidden or removed under reduce: nothing is moving there (and a screenshot of a hidden element waits 30 s).
     const present = targets.filter((t) => here.has(t.selector)).map((t) => ({ ...here.get(t.selector) }));
     const samples = await sampleAll(page, present, 4, 900, { timing: false });
-    return new Map(targets.map((t) => {
+    // Three cases for a canvas that was visible in the baseline:
+    //   visible here           -> pixel diff;
+    //   in the DOM, not visible -> false: hiding the canvas (and showing a poster) is a way of honouring reduce;
+    //   not in the DOM at all   -> null: removed or renamed, the page's answer is unknown.
+    const out = new Map();
+    for (const t of targets) {
       const mine = here.get(t.selector);
-      // Not found under reduce (hidden, removed, or renamed): the page's answer is unknown, not "honoured".
-      return [t.selector, mine ? samples.get(mine.id).changedShare > CHANGED_SHARE_MIN : null];
-    }));
+      if (mine) out.set(t.selector, samples.get(mine.id).changedShare > CHANGED_SHARE_MIN);
+      else out.set(t.selector, (await page.locator(t.selector).count()) > 0 ? false : null);
+    }
+    return out;
   } finally {
     await context.close();
   }
