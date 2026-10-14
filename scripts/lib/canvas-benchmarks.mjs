@@ -59,7 +59,7 @@ function frameTimes(measured) {
     const seen = new Set();
     for (const c of m.animating) {
       if (c.rafPerSec === 0 || !c.frameMs) continue;
-      const label = c.renderer ?? (c.context === '2d' ? '2d (no GPU renderer)' : 'unknown renderer');
+      const label = c.renderer ?? (c.context === '2d' ? '2d (no GPU renderer)' : c.context === 'none' ? 'no WebGL or 2D context (WebGPU or worker)' : 'unknown renderer');
       const key = `${label}|${c.frameMs.p50}|${c.frameMs.p95}`;
       if (seen.has(key)) continue;
       seen.add(key);

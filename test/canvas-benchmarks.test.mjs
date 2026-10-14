@@ -80,6 +80,12 @@ test('a WebGL canvas with no renderer string is "unknown renderer", a 2D one has
   assert.deepEqual(labels, ['2d (no GPU renderer)', 'unknown renderer']);
 });
 
+test('a canvas with no WebGL or 2D context (WebGPU, worker) is not called an unknown WebGL renderer', () => {
+  const records = [record('a.example', 1, [canvas({ renderer: null, context: 'none' })])];
+  const [row] = summariseCanvases(records, cohort).techniques['Clay 3D'].frameMs;
+  assert.equal(row.renderer, 'no WebGL or 2D context (WebGPU or worker)');
+});
+
 test('frameMs is never compared across renderers: two renderers give two rows', () => {
   const records = [
     record('a.example', 1, [canvas({ renderer: 'ANGLE (Intel UHD)', frameMs: { p50: 8, p95: 10 } })]),
