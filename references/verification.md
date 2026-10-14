@@ -99,6 +99,9 @@ grep -c "fill-tremor-content" dist/assets/*.css   # 0 means the namespace is und
 A unit test that compiles the exact class list and asserts each produces a
 rule turns this silent failure into a loud one.
 
+When the page has a canvas, run `check-motion` with the recorded tier; read
+the result, and tell the author "passed" or the problem in plain words.
+
 ---
 
 ## Before you trust what you are looking at
