@@ -104,6 +104,12 @@ recorded tier; read the result, and tell the author "passed" or the problem in
 plain words. On a Fast page it also opens the page with JavaScript off and
 fails when its headings, text or images are missing or hidden there.
 
+For a presentation, `check-presentation --tier <tier>` runs the same canvas
+checks, named `motion: ...`, once for each slide that has a canvas. It only
+looks at a canvas inside a `section[data-section]`: a canvas outside a slide
+gets no `motion:` check, and without a canvas the flag is not needed. A
+canvas in a slide with no `--tier` stops the run with exit code 2.
+
 ---
 
 ## Before you trust what you are looking at

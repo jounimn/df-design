@@ -27,6 +27,8 @@ export function copyPresentationFixture() {
 //   healthy     a WebGL shader that animates; a fallback laid over it when WebGL is missing
 //   frozen      a 2D canvas that is redrawn every frame but never changes
 //   slowPoster  like healthy's 2D twin, but the poster is drawn 1.5 s after the page loads (and returns a promise)
+//   noPoster    no poster option at all
+//   rejectingPoster  a poster whose promise rejects
 export const POSTER_RGB = [255, 0, 170];
 export function addCanvasSlide(dir, kind = 'healthy') {
   const template = fs.readFileSync(path.join(TEMPLATES, 'canvas-loop.js'));
@@ -41,6 +43,11 @@ export function addCanvasSlide(dir, kind = 'healthy') {
     slowPoster: `dfCanvasLoop(c, { context: '2d', fallback: '#fb',
       draw(t, x) { x.fillStyle = 'hsl(' + (t / 10 % 360) + ',70%,50%)'; x.fillRect(0, 0, c.width, c.height); },
       poster(x) { return new Promise((done) => setTimeout(() => { x.fillStyle = '#ff00aa'; x.fillRect(0, 0, c.width, c.height); done(); }, 1500)); } });`,
+    noPoster: `dfCanvasLoop(c, { context: '2d', fallback: '#fb',
+      draw(t, x) { x.fillStyle = 'hsl(' + (t / 10 % 360) + ',70%,50%)'; x.fillRect(0, 0, c.width, c.height); } });`,
+    rejectingPoster: `dfCanvasLoop(c, { context: '2d', fallback: '#fb',
+      draw(t, x) { x.fillStyle = 'hsl(' + (t / 10 % 360) + ',70%,50%)'; x.fillRect(0, 0, c.width, c.height); },
+      poster() { return Promise.reject(new Error('poster boom')); } });`,
   };
   if (!scenes[kind]) throw new Error(`unknown canvas slide kind: ${kind}`);
   const file = path.join(dir, 'presentation.html');

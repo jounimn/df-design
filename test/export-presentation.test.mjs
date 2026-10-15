@@ -440,3 +440,27 @@ test('a canvas that never finishes its poster fails the export with a message th
     f.cleanup();
   }
 });
+
+test('a canvas loop without a poster exports without waiting for one', { timeout: 300000 }, async () => {
+  const f = copyPresentationFixture();
+  try {
+    addCanvasSlide(f.dir, 'noPoster');
+    // With the old wait this would run into the 6 s limit and fail with "give dfCanvasLoop a poster".
+    await exportPresentation(f.dir, 'none', { browser, imageTimeoutMs: 6000 });
+    assert.ok(fs.existsSync(path.join(f.dir, 'final', 'slides', '02-concept.png')));
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('a poster that rejects fails the export at once, naming the canvas', { timeout: 300000 }, async () => {
+  const f = copyPresentationFixture();
+  try {
+    addCanvasSlide(f.dir, 'rejectingPoster');
+    const started = Date.now();
+    await assert.rejects(exportPresentation(f.dir, 'none', { browser, imageTimeoutMs: 60000 }), /poster of 1 canvas\(es\) threw or failed \(c\)/);
+    assert.ok(Date.now() - started < 30000, 'failed long before the 60 s timeout');
+  } finally {
+    f.cleanup();
+  }
+});

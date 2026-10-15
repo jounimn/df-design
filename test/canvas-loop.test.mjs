@@ -410,17 +410,33 @@ test('a poster that returns a promise sets dfPoster to done when it has finished
   }
 });
 
-test('dfPoster is only "done" when a poster was really drawn', async () => {
+test('dfPoster is only "done" when a poster was really drawn; without one it is "none"', async () => {
   const fx = loopPage({ options: 'poster: undefined,' });
   const context = await browser.newContext({ viewport: { width: 1000, height: 700 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   try {
     await page.goto(fx.url, { waitUntil: 'load' });
     await page.waitForTimeout(300);
-    assert.deepEqual(await page.evaluate(() => [document.getElementById('c').dataset.dfLoop, document.getElementById('c').dataset.dfPoster ?? null]), ['poster', null]);
+    assert.deepEqual(await page.evaluate(() => [document.getElementById('c').dataset.dfLoop, document.getElementById('c').dataset.dfPoster ?? null]), ['poster', 'none']);
   } finally {
     await context.close();
     fx.cleanup();
+  }
+});
+
+test('a poster that throws, or whose promise rejects, sets dfPoster to error', async () => {
+  for (const options of ["poster: () => { throw new Error('boom'); },", "poster: () => Promise.reject(new Error('boom')),"]) {
+    const fx = loopPage({ options });
+    const context = await browser.newContext({ viewport: { width: 1000, height: 700 }, reducedMotion: 'reduce' });
+    const page = await context.newPage();
+    page.on('console', () => {});
+    try {
+      await page.goto(fx.url, { waitUntil: 'load' });
+      await page.waitForFunction(() => document.getElementById('c').dataset.dfPoster === 'error', null, { timeout: 4000 });
+    } finally {
+      await context.close();
+      fx.cleanup();
+    }
   }
 });
 

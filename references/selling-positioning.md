@@ -407,6 +407,7 @@ Optional flags of `check-presentation.mjs`:
 | `--offline` | Skips the source-URL fetch when there is no network |
 | `--after-gate` | Also fails a site section still marked `data-pending` |
 | `--watermark <spec\|none>` | Says what the export was run with. `none` fails a leftover `preview/`; a spec fails a missing or stale one. Pass the same value given to the export |
+| `--tier <fast\|medium\|high\|custom>` | The tier the author chose. Required when a slide has a canvas, which then also gets the `motion:` canvas checks (`verification.md`) |
 
 The checker confirms the nine sections, the research counts, the licence
 rows, the preview and final split, every export size and the PDF page

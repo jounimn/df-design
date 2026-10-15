@@ -22,8 +22,9 @@
 //                console warning and the page carries on.
 //   Old          without IntersectionObserver the canvas counts as always in view; without ResizeObserver its size
 //   browsers     is read once; MediaQueryList.addListener stands in for addEventListener.
-//   State        canvas.dataset.dfLoop = 'running' | 'paused' | 'poster' | 'fallback'; canvas.dataset.dfPoster = 'done'
-//                once a poster has actually been drawn.
+//   State        canvas.dataset.dfLoop = 'running' | 'paused' | 'poster' | 'fallback'; canvas.dataset.dfPoster = 'done' once a poster
+//                has actually been drawn, 'none' when there is no poster (or no context) to draw, 'error' when it threw
+//                or its promise rejected.
 (() => {
   'use strict';
 
@@ -67,17 +68,18 @@
     // finished, which is what the export waits for before it takes the picture.
     const drawPoster = () => {
       posterDrawn = true;
-      if (typeof poster !== 'function' || !ctx) return;
       delete canvas.dataset.dfPoster;
+      if (typeof poster !== 'function' || !ctx) { canvas.dataset.dfPoster = 'none'; return; }
       const done = () => { canvas.dataset.dfPoster = 'done'; };
+      const failed = (what) => (err) => { canvas.dataset.dfPoster = 'error'; console.error(`dfCanvasLoop: poster ${what}.`, err); };
       let result;
       try {
         result = poster(ctx);
       } catch (err) {
-        console.error('dfCanvasLoop: poster threw.', err);
+        failed('threw')(err);
         return;
       }
-      if (result && typeof result.then === 'function') result.then(done, (err) => console.error('dfCanvasLoop: poster failed.', err));
+      if (result && typeof result.then === 'function') result.then(done, failed('failed'));
       else done();
     };
 
