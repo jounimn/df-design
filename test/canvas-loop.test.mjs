@@ -396,6 +396,20 @@ test('a canvas that starts out of view gets its poster at once, draws nothing, a
   }
 });
 
+test('a poster that returns a promise sets dfPoster to done when it has finished, not before', async () => {
+  const fx = loopPage({ options: "poster: () => new Promise((done) => setTimeout(done, 700))," });
+  const context = await browser.newContext({ viewport: { width: 1000, height: 700 }, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  try {
+    await page.goto(fx.url, { waitUntil: 'load' });
+    assert.equal(await page.evaluate(() => document.getElementById('c').dataset.dfPoster ?? null), null, 'not done while the poster is still drawing');
+    await page.waitForFunction(() => document.getElementById('c').dataset.dfPoster === 'done', null, { timeout: 4000 });
+  } finally {
+    await context.close();
+    fx.cleanup();
+  }
+});
+
 test('dfPoster is only "done" when a poster was really drawn', async () => {
   const fx = loopPage({ options: 'poster: undefined,' });
   const context = await browser.newContext({ viewport: { width: 1000, height: 700 }, reducedMotion: 'reduce' });

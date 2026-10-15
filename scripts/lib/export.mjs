@@ -214,6 +214,18 @@ async function waitForAssets(page, timeoutMs) {
   if (!done) throw new Error(`export: ${pending.length ? `${pending.length} image(s)` : 'fonts'} did not load within ${timeoutMs}ms${pending.length ? `: ${pending.join(', ')}` : ''}`);
 }
 
+// A canvas run by canvas-loop.js (data-df-loop) is captured only after it has drawn its poster: dfPoster is 'done'.
+// A canvas whose loop fell back (no context) has nothing to wait for.
+async function waitForPosters(page, timeoutMs) {
+  const { done, pending } = await page.evaluate(async (ms) => {
+    const waiting = () => [...document.querySelectorAll('canvas[data-df-loop]')].filter((c) => c.dataset.dfLoop !== 'fallback' && c.dataset.dfPoster !== 'done');
+    const start = Date.now();
+    while (waiting().length && Date.now() - start < ms) await new Promise((r) => setTimeout(r, 50));
+    return { done: waiting().length === 0, pending: waiting().map((c) => c.id || 'canvas') };
+  }, timeoutMs);
+  if (!done) throw new Error(`export: ${pending.length} canvas(es) did not draw their poster within ${timeoutMs}ms (${pending.join(', ')}): give dfCanvasLoop a poster that finishes`);
+}
+
 async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.height, scale = 1, layer, slidesOnly = false, artboard = false, imageTimeoutMs = 15000 } = {}) {
   // slidesOnly is the PDF render: print repeats a fixed layer on every page, so it keeps the saved fixed layer.
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
@@ -233,6 +245,7 @@ async function prepare(context, url, { layer, slidesOnly, artboard, imageTimeout
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.addStyleTag({ content: artboard ? EXPORT_CSS : EXPORT_CSS + HIDE_INNER_ARTBOARDS_CSS });
   await waitForAssets(page, imageTimeoutMs);
+  await waitForPosters(page, imageTimeoutMs);
   // `load` also waits for CSS backgrounds, stylesheets and frames, which the image and font waits above do not see.
   await page.waitForLoadState('load', { timeout: imageTimeoutMs }).catch(() => fail(`the page did not finish loading within ${imageTimeoutMs}ms; a stylesheet, script, frame or CSS background is still pending`));
   if (slidesOnly) {

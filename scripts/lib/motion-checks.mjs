@@ -61,9 +61,9 @@ export function parseMotionArgs(argv) {
   return { target, tier };
 }
 
-// An http(s) URL as given, or an existing file as a file:// URL; anything else is a usage error.
+// An http(s) or file:// URL as given, or an existing file as a file:// URL; anything else is a usage error.
 export function resolveTarget(target) {
-  if (/^https?:\/\//i.test(target)) return target;
+  if (/^(https?|file):\/\//i.test(target)) return target; // file:// with a #slide-N hash opens a presentation on that slide
   const file = path.resolve(target);
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) throw new UsageError(`${target} is neither an http(s) URL nor an existing file`);
   return pathToFileURL(file).href;
@@ -87,7 +87,7 @@ function verdict(name, canvases, judge, { naDetail, passDetail }) {
   return { name, status: 'pass', detail: passDetail(judged.length) };
 }
 
-export function evaluateMotion(trace, { tier, ceilings, content = null }) {
+export function evaluateMotion(trace, { tier, ceilings, content = null, includeWithoutJs = true }) {
   const { canvases } = trace;
   const none = 'no canvas on the page';
   const checks = [];
@@ -145,7 +145,8 @@ export function evaluateMotion(trace, { tier, ceilings, content = null }) {
     checks.push({ name: CHECK_NAMES[4], status: 'pass', detail: `motion JS is ${kb(bytes)}, within the ${kb(ceiling)} ceiling of the ${tier} tier` });
   }
 
-  checks.push(withoutJsCheck(content, tier));
+  // A presentation's slideshow needs its script by design, so check-presentation asks for the canvas checks only.
+  if (includeWithoutJs) checks.push(withoutJsCheck(content, tier));
 
   return { checks, ok: checks.every((c) => c.status !== 'fail') };
 }
@@ -245,7 +246,7 @@ function withoutJsCheck(content, tier) {
 }
 
 // Loads the page with its loop running (no __DF_EXPORT__: the export freezes it) and judges the trace.
-export async function runMotionChecks(target, { tier, browser, ceilings = loadCeilings() }) {
+export async function runMotionChecks(target, { tier, browser, ceilings = loadCeilings(), includeWithoutJs = true }) {
   if (!TIERS.includes(tier)) throw new UsageError(`unknown tier "${tier}"`);
   const url = resolveTarget(target);
   const { page, context } = await newPage(browser, { reducedMotion: 'no-preference' });
@@ -255,6 +256,7 @@ export async function runMotionChecks(target, { tier, browser, ceilings = loadCe
     await settle(page);
     const trace = await runCanvasTrace(page);
     const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
+    if (!includeWithoutJs) return evaluateMotion(trace, { tier, ceilings, includeWithoutJs });
     const withJs = await contentWithJs(page);
     const withoutJs = await contentWithoutJs(browser, url, viewport);
     return evaluateMotion(trace, { tier, ceilings, content: { withJs, withoutJs } });

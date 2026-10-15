@@ -3,7 +3,7 @@
 //   const loop = dfCanvasLoop(canvas, {
 //     context: '2d' | 'webgl' | 'webgl2',
 //     draw(t, ctx) {},      // one frame; t is the rAF timestamp in ms
-//     poster(ctx) {},       // one still frame: reduced motion, export and the first paint of a paused loop
+//     poster(ctx) {},       // one still frame: reduced motion, export and the first paint of a paused loop; may return a promise
 //     fallback: '#selector' // shown when the canvas cannot be drawn (no context, a lost context, a draw that throws)
 //     maxDpr: 2,            // the canvas is never sized past clientWidth × maxDpr
 //     restore(ctx) {},      // optional: after a lost WebGL context comes back, rebuild its programs and buffers
@@ -63,11 +63,22 @@
       return changed;
     };
 
+    // poster(ctx) may draw later (it waits for an image, say) and return a promise: dfPoster is 'done' when it is
+    // finished, which is what the export waits for before it takes the picture.
     const drawPoster = () => {
       posterDrawn = true;
       if (typeof poster !== 'function' || !ctx) return;
-      poster(ctx);
-      canvas.dataset.dfPoster = 'done';
+      delete canvas.dataset.dfPoster;
+      const done = () => { canvas.dataset.dfPoster = 'done'; };
+      let result;
+      try {
+        result = poster(ctx);
+      } catch (err) {
+        console.error('dfCanvasLoop: poster threw.', err);
+        return;
+      }
+      if (result && typeof result.then === 'function') result.then(done, (err) => console.error('dfCanvasLoop: poster failed.', err));
+      else done();
     };
 
     const fallbackElement = () => {
