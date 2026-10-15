@@ -1,5 +1,5 @@
 // Checks that the canvas of a page is alive, honours reduced motion, pauses off-screen, falls back without WebGL,
-// and that the page's motion JS is within the ceiling of its tier.
+// that the page's motion JS is within the ceiling of its tier, and (tier fast) that it works without JavaScript.
 // Usage: node scripts/check-motion.mjs <page.html|url> --tier <fast|medium|high|custom>
 // Exit code 0 = no check failed (n/a and report lines do not fail); 1 = a check failed or the page would not open;
 // 2 = bad command line.

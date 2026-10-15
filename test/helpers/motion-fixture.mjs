@@ -12,8 +12,10 @@ export const KINDS = [
   'staticCanvas', 'twoCanvases', 'noCanvas', 'hiddenCanvas', 'lateCanvas',
   'hiddenUnderReduce', 'removedUnderReduce', 'swapsCanvasForFallback', 'threeLoops', 'lateTwoD',
   'eightCanvases', 'eightOneRogue', 'shadowCanvas', 'fixedCanvas', 'offscreenWorker', 'opacityZero', 'resizing',
+  'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty',
 ];
 
+const NO_SPACER = new Set(['noCanvas', 'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty']);
 export const PAD_BYTES = 300000;
 
 // Every scene function takes the canvas id and a set of switches. `pauses` wires an IntersectionObserver,
@@ -81,6 +83,14 @@ const canvasTag = (id, extra = '') => `<canvas id="${id}" width="400" height="30
 const fbTag = (id) => `<div id="fb-${id}" style="display:none;position:absolute;top:0;left:0;width:400px;height:300px;background:linear-gradient(90deg,#112233,#ddaa44)"></div>`;
 const holder = (id, extra = '') => `<div style="position:relative;width:400px;height:300px;${extra}">${canvasTag(id)}${fbTag(id)}</div>`;
 
+const REVEAL_CSS = '<style>.r{opacity:0;transition:opacity .2s}.r.in{opacity:1}</style>';
+// Adds .in to each .r block as it is scrolled into view, the way a reveal-on-scroll script does.
+const REVEAL_JS = "const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) e.target.classList.add('in'); }), { threshold: 0.1 }); document.querySelectorAll('.r').forEach((el) => io.observe(el));";
+// n blocks, each a heading and a paragraph in a 600 px tall section, so most of them start below the fold.
+const contentBlocks = (n, attrs) => Array.from({ length: n }, (_, i) => `<section style="height:600px"><h2${attrs(i)}>Heading ${i + 1}</h2><p${attrs(i)}>Text of block ${i + 1}, long enough to be a real paragraph.</p></section>`).join('');
+// One h1 and nineteen paragraphs; the first `hidden` paragraphs are revealed by script only.
+const twentyItems = (hidden) => `<h1>Twenty items</h1>${Array.from({ length: 19 }, (_, i) => `<p${i < hidden ? ' class="r"' : ''}>Item number ${i + 1} of the page.</p>`).join('')}`;
+
 function build(kind) {
   const one = (call, wrapExtra = '') => ({ body: holder('c', wrapExtra), call });
   switch (kind) {
@@ -125,6 +135,17 @@ function build(kind) {
         const w = new Worker(URL.createObjectURL(new Blob([src]))); const o = document.getElementById('c').transferControlToOffscreen(); w.postMessage(o, [o]);` };
     case 'opacityZero': return { body: '<div style="opacity:0">' + holder('c') + '</div>', call: "glScene('c', {});" };
     case 'resizing': return { body: holder('c'), call: "solid2d('c', {}); let w = 400; setInterval(() => { w = w === 400 ? 300 : 400; document.getElementById('c').style.width = w + 'px'; }, 150);" };
+    // Pages without a canvas, for the "works without JS" check. cssOnly shows everything with plain CSS;
+    // revealOnScroll keeps its content at opacity 0 until the script adds a class as each block is scrolled to;
+    // jsRendered builds its content in the script. reveal*OfTwenty hide that many of twenty content items.
+    case 'cssOnly': return { body: contentBlocks(6, () => ''), call: '' };
+    case 'revealOnScroll': return { head: REVEAL_CSS, body: contentBlocks(6, () => ' class="r"'), call: REVEAL_JS };
+    case 'jsRendered': return {
+      body: '<div id="app"></div>',
+      call: "document.getElementById('app').innerHTML = '<h1>Rendered by script</h1>' + [1, 2, 3, 4, 5].map((n) => '<p>Paragraph ' + n + ' of a page built in JS.</p>').join('') + '<ul><li>One</li><li>Two</li></ul>';",
+    };
+    case 'revealOneOfTwenty': return { head: REVEAL_CSS, body: twentyItems(1), call: REVEAL_JS };
+    case 'revealTwoOfTwenty': return { head: REVEAL_CSS, body: twentyItems(2), call: REVEAL_JS };
     case 'noCanvas': return { body: '<h1>No canvas here</h1>', call: '' };
     case 'hiddenCanvas': return {
       body: `${canvasTag('h1', 'display:none')}<canvas id="h2" width="0" height="0"></canvas><section hidden>${canvasTag('h3')}</section>`,
@@ -146,7 +167,7 @@ export function motionFixture(kind, { beforeScene = '', spacer = true, inline = 
   const scene = `${LIB}\n${pad ? `/*${'x'.repeat(PAD_BYTES)}*/\n` : ''}${call}\n`;
   fs.writeFileSync(path.join(dir, 'scene.js'), scene);
   fs.writeFileSync(path.join(dir, 'page.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${kind}</title>
-<style>html,body{margin:0;background:#fff}</style>${head}</head><body>${body}${kind === 'noCanvas' || !spacer ? '' : '<div style="height:2500px"></div>'}${beforeScene}${inline ? `<script>${scene}</script>` : '<script src="scene.js"></script>'}</body></html>`);
+<style>html,body{margin:0;background:#fff}</style>${head}</head><body>${body}${NO_SPACER.has(kind) || !spacer ? '' : '<div style="height:2500px"></div>'}${beforeScene}${inline ? `<script>${scene}</script>` : '<script src="scene.js"></script>'}</body></html>`);
   const file = path.join(dir, 'page.html');
   return { root, dir, file, url: pathToFileURL(file).href, cleanup: () => fs.rmSync(root, { recursive: true, force: true }) };
 }

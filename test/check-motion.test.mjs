@@ -49,7 +49,8 @@ for (const [kind, failing] of MATRIX) {
       // The frozen and blank fixtures are 2D canvases that never move: there is no WebGL fallback to compare, and a
       // canvas that does not animate has nothing to hold still under reduced motion or to pause off-screen (n/a).
       const inert = ['frozen', 'blank'].includes(kind) && c.name !== 'canvas is alive' && c.name !== 'motion weight within tier';
-      const expected = inert ? 'na' : 'pass';
+      // The canvas fixtures carry no headings, text or images, so there is no content to compare without JS.
+      const expected = inert || c.name === 'works without JS' ? 'na' : 'pass';
       if (!failing.includes(c.name)) assert.equal(c.status, expected, `${kind}: ${c.name} is ${c.status} (${c.detail})`);
     }
   });
@@ -142,6 +143,58 @@ test('parseMotionArgs rejects a missing tier, a bogus tier, a tier twice, an unk
   ]) assert.throws(() => parseMotionArgs(argv), UsageError, argv.join(' '));
 });
 
+// ---- works without JS ---------------------------------------------------------------------------------------
+
+test('works without JS: a page of plain CSS passes on the fast tier', async () => {
+  const result = await check('cssOnly', { tier: 'fast' });
+  const c = byName(result)['works without JS'];
+  assert.equal(c.status, 'pass', c.detail);
+  assert.equal(result.ok, true);
+});
+
+test('works without JS: content that stays at opacity 0 until a script reveals it fails the fast tier, and only this check', async () => {
+  const result = await check('revealOnScroll', { tier: 'fast' });
+  assert.deepEqual(failedNames(result), ['works without JS']);
+  assert.equal(result.ok, false);
+  const { detail } = byName(result)['works without JS'];
+  assert.match(detail, /without JavaScript/);
+  assert.match(detail, /Heading 1/, 'it names examples');
+  assert.ok((detail.match(/"[^"]+"/g) ?? []).length <= 5, `at most five examples: ${detail}`);
+});
+
+test('works without JS: content built by the script is missing without it, and fails the fast tier', async () => {
+  const result = await check('jsRendered', { tier: 'fast' });
+  assert.deepEqual(failedNames(result), ['works without JS']);
+  assert.match(byName(result)['works without JS'].detail, /Rendered by script|Paragraph 1/);
+});
+
+test('works without JS: medium, high and custom only report it', async () => {
+  for (const tier of ['medium', 'high', 'custom']) {
+    const result = await check('revealOnScroll', { tier });
+    const c = byName(result)['works without JS'];
+    assert.equal(c.status, 'report', `${tier}: ${c.detail}`);
+    assert.equal(result.ok, true, tier);
+  }
+});
+
+test('works without JS: more than 5 % of the content missing fails; exactly 5 % passes', async () => {
+  const one = await check('revealOneOfTwenty', { tier: 'fast' });
+  assert.equal(byName(one)['works without JS'].status, 'pass', byName(one)['works without JS'].detail);
+  const two = await check('revealTwoOfTwenty', { tier: 'fast' });
+  assert.equal(byName(two)['works without JS'].status, 'fail');
+});
+
+test('works without JS: a page with no content to compare is n/a', async () => {
+  const result = await check('healthy', { tier: 'fast' });
+  assert.equal(byName(result)['works without JS'].status, 'na');
+});
+
+test('the fast tier has no weight ceiling: the weight is reported even when the ceilings file names one', async () => {
+  const result = await check('overweight', { tier: 'fast', ceilings: { fast: 1000 } });
+  assert.equal(byName(result)['motion weight within tier'].status, 'report');
+  assert.equal(failedNames(result).includes('motion weight within tier'), false);
+});
+
 const cli = (...args) => spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', timeout: 240000 });
 
 test('the CLI exits 2 with a plain one-line message for bad arguments and for a missing file', () => {
@@ -164,6 +217,18 @@ test('the CLI exits 0 on a healthy page and 1 on a frozen one', () => {
     const bad = cli(frozen.file, '--tier', 'custom');
     assert.equal(bad.status, 1, bad.stdout + bad.stderr);
     assert.match(bad.stdout, /FAIL +canvas is alive/);
+    // An uncaught exit code from the check that only fails the fast tier.
+    const reveal = motionFixture('revealOnScroll');
+    try {
+      const fast = cli(reveal.file, '--tier', 'fast');
+      assert.equal(fast.status, 1, fast.stdout + fast.stderr);
+      assert.match(fast.stdout, /FAIL +works without JS/);
+      const medium = cli(reveal.file, '--tier', 'medium');
+      assert.equal(medium.status, 0, medium.stdout + medium.stderr);
+      assert.match(medium.stdout, /REPORT +works without JS/);
+    } finally {
+      reveal.cleanup();
+    }
   } finally {
     healthy.cleanup();
     frozen.cleanup();

@@ -16,6 +16,7 @@ export const CHECK_NAMES = [
   'canvas pauses off-screen',
   'fallback without WebGL',
   'motion weight within tier',
+  'works without JS',
 ];
 
 const CEILINGS_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'motion-ceilings.json');
@@ -86,7 +87,7 @@ function verdict(name, canvases, judge, { naDetail, passDetail }) {
   return { name, status: 'pass', detail: passDetail(judged.length) };
 }
 
-export function evaluateMotion(trace, { tier, ceilings }) {
+export function evaluateMotion(trace, { tier, ceilings, content = null }) {
   const { canvases } = trace;
   const none = 'no canvas on the page';
   const checks = [];
@@ -129,13 +130,14 @@ export function evaluateMotion(trace, { tier, ceilings }) {
     passDetail: (n) => `a fallback shows without WebGL (${plural(n, 'WebGL canvas')} checked)`,
   }));
 
-  const ceiling = tier === 'custom' ? undefined : ceilings?.[tier];
+  // custom has no ceiling, and neither does fast: its page is checked by rule (works without JS), not by weight.
+  const ceiling = tier === 'custom' || tier === 'fast' ? undefined : ceilings?.[tier];
   const bytes = trace.motionJsBytes;
   if (typeof ceiling !== 'number') {
     checks.push({
       name: CHECK_NAMES[4],
       status: 'report',
-      detail: `motion JS is ${kb(bytes)}; ${tier === 'custom' ? 'the custom tier has no ceiling' : `there is no measured ceiling for the ${tier} tier yet`}`,
+      detail: `motion JS is ${kb(bytes)}; ${tier === 'custom' ? 'the custom tier has no ceiling' : tier === 'fast' ? 'the fast tier has no weight ceiling; it is checked by the works-without-JS rule' : `there is no measured ceiling for the ${tier} tier yet`}`,
     });
   } else if (bytes > ceiling) {
     checks.push({ name: CHECK_NAMES[4], status: 'fail', detail: `motion JS is ${kb(bytes)}, over the ${kb(ceiling)} ceiling of the ${tier} tier.` });
@@ -143,7 +145,103 @@ export function evaluateMotion(trace, { tier, ceilings }) {
     checks.push({ name: CHECK_NAMES[4], status: 'pass', detail: `motion JS is ${kb(bytes)}, within the ${kb(ceiling)} ceiling of the ${tier} tier` });
   }
 
+  checks.push(withoutJsCheck(content, tier));
+
   return { checks, ok: checks.every((c) => c.status !== 'fail') };
+}
+
+// ---- works without JS -----------------------------------------------------------------------------------------
+
+const CONTENT_SELECTOR = 'h1,h2,h3,h4,h5,h6,p,li,img,a,button,figure,blockquote';
+const MISSING_SHARE_MAX = 0.05; // more than this share of the content missing or hidden fails the fast tier
+const MAX_EXAMPLES = 5;
+
+// Runs in the page: every content element with a key to find it by in the other render, and whether it can be seen.
+// Seen = checkVisibility (display, visibility, content-visibility) plus no ancestor at opacity 0 and a box with area.
+function readContent(selector) {
+  const norm = (text) => (text || '').replace(/\s+/g, ' ').trim().slice(0, 100);
+  const parentOf = (n) => n.parentElement ?? (n.parentNode instanceof ShadowRoot ? n.parentNode.host : null);
+  const seen = (el) => {
+    if (!el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false;
+    for (let n = el; n; n = parentOf(n)) if (parseFloat(getComputedStyle(n).opacity) === 0) return false;
+    const r = el.getBoundingClientRect();
+    return r.width >= 1 && r.height >= 1;
+  };
+  const out = [];
+  const walk = (root) => {
+    for (const el of root.querySelectorAll('*')) {
+      if (el.shadowRoot) walk(el.shadowRoot);
+      if (!el.matches(selector)) continue;
+      const tag = el.localName;
+      const label = tag === 'img'
+        ? `${(el.getAttribute('src') || '').split('/').pop()}|${norm(el.getAttribute('alt'))}`
+        : norm(el.textContent) || norm(el.getAttribute('aria-label')) || (tag === 'a' ? norm(el.getAttribute('href')) : '');
+      if (!label) continue;
+      out.push({ key: `${tag}|${label}`, tag, label, seen: seen(el) });
+    }
+  };
+  walk(document);
+  return out;
+}
+
+// With scripts on, scroll the page once from top to bottom, so content a script reveals as it is reached is out, then
+// read what can be seen. Anything seen here is what a visitor with JavaScript gets.
+async function contentWithJs(page) {
+  const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  for (let y = 0, steps = 0; y < height && steps < 60; y += Math.round(viewport.height * 0.8), steps += 1) {
+    await page.evaluate((to) => window.scrollTo(0, to), y);
+    await page.waitForTimeout(120);
+  }
+  await page.waitForTimeout(300);
+  const items = await page.evaluate(readContent, CONTENT_SELECTOR);
+  await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
+  return items.filter((i) => i.seen);
+}
+
+// The same page in a context with JavaScript off: what exists there, and what can be seen.
+async function contentWithoutJs(browser, url, viewport) {
+  const context = await browser.newContext({ viewport, javaScriptEnabled: false, reducedMotion: 'no-preference' });
+  try {
+    const page = await context.newPage();
+    await page.goto(url, { waitUntil: 'load' });
+    await page.waitForTimeout(1500); // a CSS entrance (fade, slide) has finished by now
+    return await page.evaluate(readContent, CONTENT_SELECTOR);
+  } finally {
+    await context.close();
+  }
+}
+
+// content: { withJs, withoutJs } as read above, or null when it was not read.
+function withoutJsCheck(content, tier) {
+  const name = CHECK_NAMES[5];
+  if (!content) return { name, status: 'na', detail: 'the page was not opened without JavaScript' };
+  if (!content.withJs.length) return { name, status: 'na', detail: 'no headings, text, images or links to compare' };
+  const available = new Map(); // key -> how many of that item exist, and how many of those can be seen, without JS
+  for (const i of content.withoutJs) {
+    const slot = available.get(i.key) ?? { seen: 0, any: 0 };
+    slot.any += 1;
+    if (i.seen) slot.seen += 1;
+    available.set(i.key, slot);
+  }
+  const missing = [];
+  for (const i of content.withJs) {
+    const slot = available.get(i.key);
+    if (slot?.seen) { slot.seen -= 1; slot.any -= 1; continue; }
+    if (slot?.any) slot.any -= 1;
+    missing.push({ ...i, why: slot ? 'hidden' : 'absent' });
+  }
+  const total = content.withJs.length;
+  const share = missing.length / total;
+  const examples = missing.slice(0, MAX_EXAMPLES).map((m) => `${m.tag} "${m.label.replace(/^.*\|/, '') || m.label}" (${m.why})`);
+  const more = missing.length > MAX_EXAMPLES ? `, and ${missing.length - MAX_EXAMPLES} more` : '';
+  const summary = `${missing.length} of ${plural(total, 'content item')} (${Math.round(share * 100)} %) missing or hidden without JavaScript`;
+  if (!missing.length) return { name, status: tier === 'fast' ? 'pass' : 'report', detail: `all ${plural(total, 'content item')} show without JavaScript` };
+  const detail = `${summary}: ${examples.join(', ')}${more}.`;
+  if (tier !== 'fast') return { name, status: 'report', detail: `${detail} (only the fast tier fails on this)` };
+  return share > MISSING_SHARE_MAX
+    ? { name, status: 'fail', detail: `${detail} The fast tier must work without JavaScript.` }
+    : { name, status: 'pass', detail: `${summary} (within the ${Math.round(MISSING_SHARE_MAX * 100)} % allowed): ${examples.join(', ')}${more}.` };
 }
 
 // Loads the page with its loop running (no __DF_EXPORT__: the export freezes it) and judges the trace.
@@ -156,7 +254,10 @@ export async function runMotionChecks(target, { tier, browser, ceilings = loadCe
     await page.goto(url, { waitUntil: 'load' });
     await settle(page);
     const trace = await runCanvasTrace(page);
-    return evaluateMotion(trace, { tier, ceilings });
+    const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
+    const withJs = await contentWithJs(page);
+    const withoutJs = await contentWithoutJs(browser, url, viewport);
+    return evaluateMotion(trace, { tier, ceilings, content: { withJs, withoutJs } });
   } finally {
     await context.close();
   }
