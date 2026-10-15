@@ -213,7 +213,7 @@ mostly belongs to other parts of the site, not to the CSS recipe (see the notes 
 
 | Tier | Sites | p75 |
 |---|---|---|
-| fast | 5 | 99 KB |
+| fast | 5 | no ceiling (checked by rule: works without JS); page-weight p75 for context: 99 KB |
 | medium | 5 | 139 KB |
 | high | 5 | 340 KB |
 
@@ -242,4 +242,4 @@ that shows the recipe, and some of it belongs to other parts of that site:
 - stripe.com: its figure is the WebGL gradient in the hero (the High "Gradient mesh" row), not the `multiply` blends the
   Additive blends card cites; its canvases are left out of that Fast row for the same reason.
 - apple.com: 0 KB, DOM only.
-The Fast ceiling is the p75 of these page figures. It says how much motion JS a Fast page may carry, not what a recipe costs.
+The Fast p75 above (99 KB over 5 sites) is context only: the measured weight is the page's, and the 70-99 KB come from other parts of the site, not from the CSS technique. The Fast tier is checked by rule instead of by weight: the page must work without JS (check-motion, `works without JS`).
