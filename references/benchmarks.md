@@ -155,30 +155,43 @@ RM rules = count of `@media (prefers-reduced-motion)` blocks reachable in
 same-origin stylesheets. Cross-origin sheets cannot be enumerated, so this
 is a floor, not an exact figure.
 
-## Canvas and WebGL, measured 2026-10-14
+## Canvas and WebGL, measured 2026-10-15
 
 Production sites probed one at a time in headless Chromium. Frame times are only comparable within one renderer:
 software rendering (SwiftShader) is several times slower than a GPU, so every number names its renderer.
 This run used an Intel UHD Graphics GPU through ANGLE (Direct3D11), not SwiftShader. Each row is a technique at the
 tier of the version its sites ship (technique plus tier), with the sites listed below the tables.
 Weight is a page field: a site counts for it even when no canvas of it animates, and then the canvas columns read
-"not measured". n/a means no canvas could be judged. Fast has one DOM-only site (motion JS 0 KB), so its p75 is
-0 KB from n = 1 and is not written to `scripts/lib/motion-ceilings.json`.
+"not measured". n/a means no canvas could be judged. For the Fast rows the weight is the whole page's motion JS, which
+mostly belongs to other parts of the site, not to the CSS recipe (see the notes below the tables).
 
 ### Per technique
 
 | Technique | Tier | Sites | Canvases | Motion JS (min / median / max) | Reduced motion honoured | Pauses off-screen | Fallback without WebGL |
 |---|---|---|---|---|---|---|---|
-| Particles (High) | high | 1 | 1 | 340 KB / 340 KB / 340 KB | 0 % | n/a | 100 % |
+| Ambient dot grid (Fast) | fast | 1 | not measured | 0 KB / 0 KB / 0 KB | not measured | not measured | not measured |
+| Corner glow (Fast) | fast | 1 | not measured | 0 KB / 0 KB / 0 KB | not measured | not measured | not measured |
+| Edge fade (Fast) | fast | 2 | not measured | 0 KB / 35 KB / 70 KB | not measured | not measured | not measured |
+| Dot grid and hairlines as masks (Fast) | fast | 1 | not measured | 70 KB / 70 KB / 70 KB | not measured | not measured | not measured |
+| Noise (Fast) | fast | 2 | not measured | 70 KB / 84 KB / 99 KB | not measured | not measured | not measured |
+| Shimmer sweep (Fast) | fast | 1 | not measured | 99 KB / 99 KB / 99 KB | not measured | not measured | not measured |
+| Marquee (Fast) | fast | 1 | not measured | 70 KB / 70 KB / 70 KB | not measured | not measured | not measured |
+| Additive blends on a dark ground (Fast) | fast | 2 | not measured | 0 KB / 157 KB / 315 KB | not measured | not measured | not measured |
+| Scroll-linked (Fast) | | not measured | | | | | |
+| Sticky narrative (Fast) | | not measured | | | | | |
+| Counters that mean something (Fast) | | not measured | | | | | |
+| Text that performs its sentence (Fast) | | not measured | | | | | |
+| Image reveal through the identity's device (Fast) | | not measured | | | | | |
+| Glassmorphism (Fast) | fast | 1 | not measured | 0 KB / 0 KB / 0 KB | not measured | not measured | not measured |
 | Particles (Medium) | medium | 1 | not measured | 139 KB / 139 KB / 139 KB | not measured | not measured | not measured |
+| Glassmorphism (Medium) | medium | 2 | 1 | 0 KB / 141 KB / 282 KB | 0 % | 100 % | 100 % |
+| ASCII art (Medium) | medium | 1 | not measured | 0 KB / 0 KB / 0 KB | not measured | not measured | not measured |
+| Halftone (Medium) | medium | 1 | not measured | 7 KB / 7 KB / 7 KB | not measured | not measured | not measured |
+| Particles (High) | high | 1 | 1 | 340 KB / 340 KB / 340 KB | 0 % | n/a | 100 % |
 | Holographic (High) | high | 1 | 1 | 340 KB / 340 KB / 340 KB | 0 % | n/a | 100 % |
 | Wireframe 3D (High) | high | 1 | 3 | 180 KB / 180 KB / 180 KB | 67 % | n/a | n/a |
-| Glassmorphism (Fast) | fast | 1 | not measured | 0 KB / 0 KB / 0 KB | not measured | not measured | not measured |
-| Glassmorphism (Medium) | medium | 2 | 1 | 0 KB / 141 KB / 282 KB | 0 % | 100 % | 100 % |
 | Clay 3D (High) | high | 2 | 4 | 180 KB / 410 KB / 640 KB | 75 % | n/a | 100 % |
-| ASCII art (Medium) | medium | 1 | not measured | 0 KB / 0 KB / 0 KB | not measured | not measured | not measured |
 | Gradient mesh (High) | high | 2 | 7 | 282 KB / 299 KB / 315 KB | 50 % | 86 % | 100 % |
-| Halftone (Medium) | medium | 1 | not measured | 7 KB / 7 KB / 7 KB | not measured | not measured | not measured |
 | Liquid morph | | not measured | | | | | |
 | Neon glow | | not measured | | | | | |
 | Split-flap | | not measured | | | | | |
@@ -188,10 +201,10 @@ Weight is a page field: a site counts for it even when no canvas of it animates,
 
 | Technique | Renderer | Canvases | p50 ms (min / median / max) | p95 ms (min / median / max) |
 |---|---|---|---|---|
+| Glassmorphism (Medium) | ANGLE (Intel, Intel(R) UHD Graphics (0x00009B41) Direct3D11 vs_5_0 ps_5_0, D3D11) | 1 | 49.9 / 49.9 / 49.9 | 216.6 / 216.6 / 216.6 |
 | Particles (High) | ANGLE (Intel, Intel(R) UHD Graphics (0x00009B41) Direct3D11 vs_5_0 ps_5_0, D3D11) | 1 | 16.7 / 16.7 / 16.7 | 16.9 / 16.9 / 16.9 |
 | Holographic (High) | ANGLE (Intel, Intel(R) UHD Graphics (0x00009B41) Direct3D11 vs_5_0 ps_5_0, D3D11) | 1 | 16.7 / 16.7 / 16.7 | 16.9 / 16.9 / 16.9 |
 | Wireframe 3D (High) | no WebGL or 2D context (WebGPU or worker) | 3 | 16.7 / 16.7 / 16.8 | 33.1 / 33.4 / 33.7 |
-| Glassmorphism (Medium) | ANGLE (Intel, Intel(R) UHD Graphics (0x00009B41) Direct3D11 vs_5_0 ps_5_0, D3D11) | 1 | 49.9 / 49.9 / 49.9 | 216.6 / 216.6 / 216.6 |
 | Clay 3D (High) | ANGLE (Intel, Intel(R) UHD Graphics (0x00009B41) Direct3D11 vs_5_0 ps_5_0, D3D11) | 1 | 16.7 / 16.7 / 16.7 | 17 / 17 / 17 |
 | Clay 3D (High) | no WebGL or 2D context (WebGPU or worker) | 3 | 16.7 / 16.7 / 16.8 | 33.1 / 33.4 / 33.7 |
 | Gradient mesh (High) | ANGLE (Intel, Intel(R) UHD Graphics (0x00009B41) Direct3D11 vs_5_0 ps_5_0, D3D11) | 6 | 16.7 / 16.7 / 49.9 | 16.8 / 17.05 / 216.6 |
@@ -200,15 +213,33 @@ Weight is a page field: a site counts for it even when no canvas of it animates,
 
 | Tier | Sites | p75 |
 |---|---|---|
-| fast | 1 | 0 KB |
+| fast | 5 | 99 KB |
 | medium | 5 | 139 KB |
 | high | 5 | 340 KB |
 
 ### Sites per row
 
-Particles (High): activetheory.net. Particles (Medium): shopify.com/editions/spring2026 (its canvas sits far down the
-page and was not listed as visible, so only weight counts). Holographic (High): activetheory.net. Wireframe 3D (High):
-spline.design (a grid floor in a WebGPU scene). Glassmorphism (Fast): apple.com. Glassmorphism (Medium): nothing.tech,
-raycast.com. Clay 3D (High): spline.design, github.com. ASCII art (Medium): ghostty.org (DOM text, no canvas).
-Gradient mesh (High): stripe.com, raycast.com. Halftone (Medium): shaders.paper.design. Liquid morph, Neon glow,
-Split-flap and Retro VHS have no site: not measured. Probed 2026-10-14, each once; no site failed.
+Fast, probed 2026-10-15 unless noted: Ambient dot grid and Corner glow: linear.app. Edge fade: linear.app and hex.tech.
+Dot grid and hairlines as masks: hex.tech. Noise: neon.tech and hex.tech. Shimmer sweep: neon.tech. Marquee: hex.tech.
+Additive blends on a dark ground: linear.app and stripe.com (stripe.com probed 2026-10-14). Glassmorphism (Fast): apple.com
+(2026-10-14). Scroll-linked, Sticky narrative, Counters, Text that performs its sentence and Image reveal cite no
+production URL that can be probed (Sticky narrative names Antigravity and Observable without one): not measured.
+
+New techniques, probed 2026-10-14: Particles (Medium): shopify.com/editions/spring2026 (its canvas sits far down the
+page and was not listed as visible, so only weight counts). Particles (High) and Holographic (High): activetheory.net.
+Wireframe 3D (High): spline.design (a grid floor in a WebGPU scene). Glassmorphism (Medium): nothing.tech, raycast.com.
+Clay 3D (High): spline.design, github.com. ASCII art (Medium): ghostty.org (DOM text, no canvas). Gradient mesh (High):
+stripe.com, raycast.com. Halftone (Medium): shaders.paper.design. Liquid morph, Neon glow, Split-flap and Retro VHS have
+no site: not measured. Each site was probed once; no site failed.
+
+### Reading the Fast weights
+
+The Fast recipes are CSS, so their own cost is close to nothing. The number in a Fast row is the motion JS of the page
+that shows the recipe, and some of it belongs to other parts of that site:
+- linear.app: 0 KB, no canvas and no named animation library.
+- hex.tech: 70 KB of page JS, no canvas listed.
+- neon.tech: 99 KB, with four animating 2D canvases on the page; they are not part of the CSS recipes, so the canvas columns of the Noise and Shimmer rows stay not measured.
+- stripe.com: its figure is the WebGL gradient in the hero (the High "Gradient mesh" row), not the `multiply` blends the
+  Additive blends card cites; its canvases are left out of that Fast row for the same reason.
+- apple.com: 0 KB, DOM only.
+The Fast ceiling is the p75 of these page figures. It says how much motion JS a Fast page may carry, not what a recipe costs.

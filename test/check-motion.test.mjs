@@ -99,10 +99,11 @@ test('a tier missing from the ceilings is reported, not judged', async () => {
   assert.equal(byName(result)['motion weight within tier'].status, 'report');
 });
 
-test('the shipped ceilings are read from motion-ceilings.json, with no fast key until it is measured', () => {
+test('the shipped ceilings are read from motion-ceilings.json: a number of bytes per measured tier, rising with the tier', () => {
   const ceilings = loadCeilings();
-  assert.equal(typeof ceilings.high, 'number');
-  assert.equal('fast' in ceilings, false);
+  for (const tier of ['fast', 'medium', 'high']) assert.equal(typeof ceilings[tier], 'number', tier);
+  assert.ok(ceilings.fast <= ceilings.medium && ceilings.medium <= ceilings.high, JSON.stringify(ceilings));
+  assert.equal('custom' in ceilings, false);
 });
 
 test('loadCeilings: a missing file is no ceilings; malformed JSON is an error; a value that is not a number is dropped', () => {
