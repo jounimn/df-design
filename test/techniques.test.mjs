@@ -83,6 +83,47 @@ for (const [name, edits, rule] of CASES) {
   });
 }
 
+// The API check is a deny list: each word of it is caught, in any case, wherever it sits in layers 1-5.
+const API_SNIPPETS = [
+  'three.js', 'THREE.JS', 'GSAP', 'gsap', 'Lottie', 'WebGPU', 'ScrollTrigger', 'Spline', 'mix-blend-mode', 'mask-image',
+  '@property', 'animation-timeline', 'vertex shader', 'fragment shader', 'uniform shader', 'WebGL', 'GLSL', 'getContext',
+];
+for (const snippet of API_SNIPPETS) {
+  test(`no-api-in-top-layers: "${snippet}" in layer 1 is caught`, () => {
+    assert.deepEqual(rules(lint({ 'techniques/fast.md': [['small dots', `small ${snippet} dots`]] })), ['no-api-in-top-layers']);
+  });
+}
+
+test('no-api-in-top-layers: "Three.js" opening a sentence is still a library; "Three" and "Spline" mid-title words are not checked in the card title', () => {
+  assert.deepEqual(rules(lint({ 'techniques/fast.md': [['A handful of small dots', 'Three.js draws a handful of small dots']] })), ['no-api-in-top-layers']);
+  assert.deepEqual(rules(lint({ 'techniques/fast.md': [['A handful of small dots', 'Spline curves carry a handful of small dots']] })), []);
+});
+
+// A new card whose title is an API word: the title is a name, so it is not read as prose.
+const card = (name, below) => [
+  `## ${name}`, '', '### What it is', '', 'A soft colour field.', '', '### Suits', '', 'Calm brands.', '',
+  '### What it costs the visitor', '', 'not measured', '',
+  ...(below ? ['### Lighter version', '', `No lighter version: the field is already one gradient.`, ''] : []),
+  '### For the builder', '', 'A gradient.', '', '#### Where the cost was measured', '', MEASURED_LINE, '', '- Not measured.', '',
+].join('\n');
+
+test('a card titled "Shader gradient" does not fail the API check', () => {
+  assert.deepEqual(lint({ 'techniques/fast.md': [['- example.com, 2026-10-14.\n', `- example.com, 2026-10-14.\n\n${card('Shader gradient', false)}`]] }), []);
+});
+
+test('lighter-resolves: "No lighter version" needs a colon and a reason', () => {
+  for (const bare of ['No lighter version', 'No lighter version.', 'No lighter version: n/a']) {
+    assert.deepEqual(rules(lint({ 'techniques/high.md': [['[Particles](medium.md#particles): the same idea with hundreds of dots.', bare]] })), ['lighter-resolves'], bare);
+  }
+});
+
+test('measured-heading: the fixed line comes right after the heading, and the list is never "references" or "inspiration"', () => {
+  assert.deepEqual(rules(lint({ 'techniques/fast.md': [['#### Where the cost was measured\n\n', '#### Where the cost was measured\n\nSome sites.\n\n']] })), ['measured-heading']);
+  for (const title of ['References', 'Inspiration sites']) {
+    assert.deepEqual(rules(lint({ 'techniques/fast.md': [['- example.com, 2026-10-14.', `#### ${title}\n\n- example.com, 2026-10-14.`]] })), ['measured-heading'], title);
+  }
+});
+
 test('files: a missing tier file fails only files', () => {
   assert.deepEqual(rules(lint({}, { remove: ['techniques/high.md'] })), ['files']);
 });
@@ -96,6 +137,12 @@ test('an error names the card it is about', () => {
 test('Three at the start of a sentence is a number, not a library; "no lighter version" is allowed with a reason', () => {
   assert.deepEqual(lint({ 'techniques/fast.md': [['A handful of small dots that drift slowly behind the headline.', 'Three small dots drift slowly behind the headline.']] }), []);
   assert.deepEqual(lint({ 'techniques/high.md': [['[Particles](medium.md#particles): the same idea with hundreds of dots.', 'No lighter version: the effect is the technique itself.']] }), []);
+});
+
+// This rule has nothing to wait for: it runs on the real repository already (README, SKILL.md, references/).
+test('the real repository: every recipes-motion.md §N reference resolves', () => {
+  const unresolved = lintTechniques(REPO).errors.filter((e) => e.rule === 'recipes-section-refs-resolve');
+  assert.deepEqual(unresolved, []);
 });
 
 // Until the cards are written (Tasks 11-14) the real references do not pass; Task 15 turns this on.

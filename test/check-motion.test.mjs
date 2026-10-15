@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { launchBrowser } from '../scripts/lib/browser.mjs';
 import { CHECK_NAMES, UsageError, loadCeilings, parseMotionArgs, runMotionChecks } from '../scripts/lib/motion-checks.mjs';
@@ -45,8 +46,10 @@ for (const [kind, failing] of MATRIX) {
     assert.equal(result.ok, failing.length === 0);
     assert.deepEqual(result.checks.map((c) => c.name), CHECK_NAMES);
     for (const c of result.checks) {
-      // The frozen and blank fixtures are 2D canvases: there is no WebGL fallback to compare, so that check is n/a.
-      const expected = ['frozen', 'blank'].includes(kind) && c.name === 'fallback without WebGL' ? 'na' : 'pass';
+      // The frozen and blank fixtures are 2D canvases that never move: there is no WebGL fallback to compare, and a
+      // canvas that does not animate has nothing to hold still under reduced motion or to pause off-screen (n/a).
+      const inert = ['frozen', 'blank'].includes(kind) && c.name !== 'canvas is alive' && c.name !== 'motion weight within tier';
+      const expected = inert ? 'na' : 'pass';
       if (!failing.includes(c.name)) assert.equal(c.status, expected, `${kind}: ${c.name} is ${c.status} (${c.detail})`);
     }
   });
@@ -100,7 +103,23 @@ test('the shipped ceilings are read from motion-ceilings.json, with no fast key 
   const ceilings = loadCeilings();
   assert.equal(typeof ceilings.high, 'number');
   assert.equal('fast' in ceilings, false);
-  assert.deepEqual(loadCeilings('/no/such/file.json'), {});
+});
+
+test('loadCeilings: a missing file is no ceilings; malformed JSON is an error; a value that is not a number is dropped', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tetos teste '));
+  try {
+    assert.deepEqual(loadCeilings(path.join(dir, 'missing.json')), {});
+    const write = (name, text) => { const f = path.join(dir, name); fs.writeFileSync(f, text); return f; };
+    assert.throws(() => loadCeilings(write('bad.json', '{ "high": 340, ')), /not valid JSON/);
+    assert.throws(() => loadCeilings(write('list.json', '[1, 2]')), /object/);
+    assert.throws(() => loadCeilings(dir), /EISDIR|illegal operation|EPERM|EACCES/i, 'an unreadable path is an error, not "no ceilings"');
+    assert.deepEqual(
+      loadCeilings(write('mixed.json', '{ "fast": "200 KB", "medium": null, "high": 340000, "custom": 5, "huge": 9 }')),
+      { high: 340000 },
+    );
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 // ---- Command line ------------------------------------------------------------------------------------------

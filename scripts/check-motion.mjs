@@ -24,10 +24,11 @@ try {
   result = await runMotionChecks(options.target, { tier: options.tier, browser });
 } catch (err) {
   console.error(`could not check ${options.target}: ${err.message}`);
-  process.exit(1);
+  process.exitCode = 1; // not process.exit: the finally below must still close the browser
 } finally {
   await browser.close();
 }
+if (!result) process.exit(1);
 
 const label = { pass: 'PASS  ', fail: 'FAIL  ', na: 'N/A   ', report: 'REPORT' };
 for (const c of result.checks) console.log(`${label[c.status]} ${c.name}${c.detail ? '  — ' + c.detail : ''}`);

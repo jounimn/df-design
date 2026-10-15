@@ -21,9 +21,13 @@ export const MEASURED_LINE = "Fixed measurement examples; the project's referenc
 const L = { what: 'What it is', history: 'Where it comes from', suits: 'Suits', cost: 'What it costs the visitor', lighter: 'Lighter version', builder: 'For the builder' };
 
 // Words that belong to the builder, not to a reader who has not met the technique yet. Layers 1-5 may not use them.
+// "Three" and "Spline" are also ordinary words at the start of a sentence; "three.js" never is.
 const API_WORDS = [
-  /WebGL/i, /shader/i, /canvas/i, /(?<!^|[.!?]\s)\bThree\b/m, /\bogl\b/i, /requestAnimationFrame/i, /getContext/i,
-  /backdrop-filter/i, /clip-path/i, /@keyframes/i, /GLSL/i,
+  /WebGL/i, /WebGPU/i, /shader/i, /\b(?:uniform|vertex|fragment)\s+shader/i, /canvas/i, /GLSL/i,
+  /\bthree\.js\b/i, /(?<!^|[.!?]\s)\bThree\b/m, /\bogl\b/i,
+  /\bGSAP\b/i, /Lottie/i, /ScrollTrigger/i, /(?<!^|[.!?]\s)\bSpline\b/m,
+  /requestAnimationFrame/i, /getContext/i,
+  /backdrop-filter/i, /clip-path/i, /mix-blend-mode/i, /mask-image/i, /@keyframes/i, /@property/i, /animation-timeline/i,
 ];
 
 const slug = (title) => title.toLowerCase().trim().replace(/[^\p{L}\p{N}\s-]/gu, '').replace(/\s/g, '-');
@@ -61,7 +65,9 @@ function parseCards(text) {
       const layerEnd = all[k + 1]?.line ?? end;
       layers.push({ title: l3.title, text: lines.slice(l3.line + 1, layerEnd).join('\n'), line: l3.line });
     });
-    cards.push({ name: h.title, slug: h.slug, text: lines.slice(h.line, end).join('\n'), layers, builderStart: layers.find((l) => l.title === L.builder)?.line });
+    const builderStart = layers.find((l) => l.title === L.builder)?.line;
+    // The card's title is a name, not prose: the API check starts on the line after it.
+    cards.push({ name: h.title, slug: h.slug, text: lines.slice(h.line, end).join('\n'), top: lines.slice(h.line + 1, builderStart ?? end).join('\n'), layers, builderStart });
   });
   return cards;
 }
@@ -111,8 +117,7 @@ export function lintTechniques(root) {
       }
 
       // no-api-in-top-layers: everything before "For the builder".
-      const top = card.builderStart === undefined ? card.text : card.text.split('\n').slice(0, card.builderStart - f.headings.find((h) => h.title === card.name && h.level === 2).line).join('\n');
-      const topText = stripLinkTargets(top);
+      const topText = stripLinkTargets(card.top);
       for (const word of API_WORDS) {
         const hit = topText.match(word);
         if (hit) at('no-api-in-top-layers', `"${hit[0]}" belongs in "${L.builder}", not in layers 1-5`);
@@ -133,7 +138,8 @@ export function lintTechniques(root) {
 
       // lighter-resolves
       const lighter = layer(L.lighter);
-      if (below && lighter && !/^\s*No lighter version\b/i.test(lighter.text.trim())) {
+      // "No lighter version:" is allowed only with a reason, so a missing fallback is a decision someone wrote down.
+      if (below && lighter && !/^No lighter version:\s*\S.{9,}/.test(lighter.text.trim())) {
         const target = linksIn(lighter.text).find((l) => !/^(https?:|mailto:)/i.test(l));
         if (!target) at('lighter-resolves', `"${L.lighter}" needs a link to the card one tier down (${below}.md)`);
         else {
@@ -148,9 +154,15 @@ export function lintTechniques(root) {
       // measured-heading: the title and the fixed line inside "For the builder".
       const builder = layer(L.builder);
       if (builder) {
-        const at4 = builder.text.split('\n').findIndex((l) => new RegExp(`^#{4,6}\\s+${MEASURED_TITLE}\\s*$`).test(l));
+        const lines = builder.text.split('\n');
+        const at4 = lines.findIndex((l) => new RegExp(`^#{4,6}\\s+${MEASURED_TITLE}\\s*$`).test(l));
         if (at4 < 0) at('measured-heading', `"${L.builder}" needs a heading "${MEASURED_TITLE}"`);
-        else if (!builder.text.split('\n').slice(at4 + 1).some((l) => l.trim() === MEASURED_LINE)) at('measured-heading', `"${MEASURED_TITLE}" must be followed by the line: ${MEASURED_LINE}`);
+        else if (lines.slice(at4 + 1).find((l) => l.trim() !== '')?.trim() !== MEASURED_LINE) at('measured-heading', `"${MEASURED_TITLE}" must be followed at once by the line: ${MEASURED_LINE}`);
+        // The sites are cost examples, never "references" or "inspiration" (that would stand in for the project's research).
+        for (const l of lines) {
+          const h = l.match(/^#{4,6}\s+(.*?)\s*$/);
+          if (h && /references?|inspiration/i.test(h[1])) at('measured-heading', `the heading "${h[1]}" calls cost examples references or inspiration; use "${MEASURED_TITLE}"`);
+        }
       }
     }
 
@@ -169,7 +181,7 @@ export function lintTechniques(root) {
   return { errors };
 }
 
-const SKIP_DIRS = new Set(['node_modules', '.git', '.cog', 'docs', 'captures', 'test']);
+const SKIP_DIRS = new Set(['node_modules', '.git', '.cog', '.claude-flow', 'docs', 'captures', 'test']);
 function markdownFiles(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     if (e.isDirectory()) return SKIP_DIRS.has(e.name) ? [] : markdownFiles(path.join(dir, e.name));

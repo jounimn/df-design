@@ -21,12 +21,24 @@ export const CHECK_NAMES = [
 const CEILINGS_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'motion-ceilings.json');
 
 // { fast?, medium?, high? } in bytes. Absent file, or a tier missing from it: the weight is reported, not judged.
+// Only a missing file means "no ceilings yet": an unreadable or malformed one is a mistake to see, not to hide, and a
+// value that is not a number of bytes is dropped (that tier is then reported, not judged).
 export function loadCeilings(file = CEILINGS_FILE) {
+  let text;
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
-  } catch {
-    return {};
+    text = fs.readFileSync(file, 'utf8');
+  } catch (err) {
+    if (err.code === 'ENOENT') return {};
+    throw err;
   }
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (err) {
+    throw new Error(`${path.basename(file)} is not valid JSON: ${err.message}`);
+  }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error(`${path.basename(file)} must be an object of tier: bytes`);
+  return Object.fromEntries(Object.entries(parsed).filter(([tier, bytes]) => TIERS.includes(tier) && tier !== 'custom' && Number.isFinite(bytes) && bytes >= 0));
 }
 
 export function parseMotionArgs(argv) {
@@ -92,7 +104,8 @@ export function evaluateMotion(trace, { tier, ceilings }) {
   }));
 
   checks.push(verdict(CHECK_NAMES[1], canvases, (c) => {
-    if (c.reducedMotionAnimating === null || c.reducedMotionAnimating === undefined) return null;
+    // A canvas that does not move in the normal run has nothing to hold still: that is the alive check's business.
+    if (!c.animating || c.reducedMotionAnimating === null || c.reducedMotionAnimating === undefined) return null;
     return c.reducedMotionAnimating === false ? true : `${c.selector} keeps moving when the visitor asks for reduced motion.`;
   }, {
     naDetail: canvases.length ? 'could not compare the canvas under reduced motion' : none,
@@ -100,7 +113,7 @@ export function evaluateMotion(trace, { tier, ceilings }) {
   }));
 
   checks.push(verdict(CHECK_NAMES[2], canvases, (c) => {
-    if (c.drawCallsOffscreen === null || c.drawCallsOffscreen === undefined) return null;
+    if (!c.animating || c.drawCallsOffscreen === null || c.drawCallsOffscreen === undefined) return null;
     return c.drawCallsOffscreen === 0 ? true : `${c.selector} keeps drawing (${plural(c.drawCallsOffscreen, 'draw call')}) while scrolled out of view.`;
   }, {
     naDetail: canvases.length ? 'could not scroll the canvas out of view to compare' : none,
