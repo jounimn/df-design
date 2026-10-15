@@ -159,7 +159,10 @@ function glPage({ spacer = 3000 } = {}) {
 <div style="position:relative;width:400px;height:300px">
 <canvas id="c" width="400" height="300" style="width:400px;height:300px;display:block"></canvas>
 <div id="fb" hidden style="display:none;position:absolute;top:0;left:0;width:400px;height:300px;background:linear-gradient(90deg,#112233,#ddaa44)"></div>
-</div><div style="height:${spacer}px"></div>
+</div>
+<h1>A canvas on the loop</h1>
+<p>A real page has words around its canvas; the without-JS check needs something to compare.</p>
+<div style="height:${spacer}px"></div>
 <script src="canvas-loop.js"></script>
 <script>
 window.calls = { draw: 0, poster: 0, restore: 0 };

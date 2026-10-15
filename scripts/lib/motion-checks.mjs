@@ -236,7 +236,7 @@ function withoutJsCheck(content, tier) {
   const examples = missing.slice(0, MAX_EXAMPLES).map((m) => `${m.tag} "${m.label.replace(/^.*\|/, '') || m.label}" (${m.why})`);
   const more = missing.length > MAX_EXAMPLES ? `, and ${missing.length - MAX_EXAMPLES} more` : '';
   const summary = `${missing.length} of ${plural(total, 'content item')} (${Math.round(share * 100)} %) missing or hidden without JavaScript`;
-  if (!missing.length) return { name, status: tier === 'fast' ? 'pass' : 'report', detail: `all ${plural(total, 'content item')} show without JavaScript` };
+  if (!missing.length) return { name, status: 'pass', detail: `all ${plural(total, 'content item')} show without JavaScript` };
   const detail = `${summary}: ${examples.join(', ')}${more}.`;
   if (tier !== 'fast') return { name, status: 'report', detail: `${detail} (only the fast tier fails on this)` };
   return share > MISSING_SHARE_MAX
