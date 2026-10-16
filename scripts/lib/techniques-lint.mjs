@@ -102,6 +102,7 @@ export function lintTechniques(root) {
   for (const [tier, f] of Object.entries(files)) {
     const fileLabel = rel(f.file);
     const below = TIERS[TIERS.indexOf(tier) - 1];
+    const lower = TIERS.slice(0, TIERS.indexOf(tier)); // the lighter version may sit in any lower tier
 
     for (const card of f.cards) {
       const at = (rule, message) => add(fileLabel, card.name, rule, message);
@@ -141,13 +142,14 @@ export function lintTechniques(root) {
       // "No lighter version:" is allowed only with a reason, so a missing fallback is a decision someone wrote down.
       if (below && lighter && !/^No lighter version:\s*\S.{9,}/.test(lighter.text.trim())) {
         const target = linksIn(lighter.text).find((l) => !/^(https?:|mailto:)/i.test(l));
-        if (!target) at('lighter-resolves', `"${L.lighter}" needs a link to the card one tier down (${below}.md)`);
+        if (!target) at('lighter-resolves', `"${L.lighter}" needs a link to the same technique in a lower tier (${lower.map((x) => `${x}.md`).join(' or ')})`);
         else {
           const [p, anchor] = target.split('#');
           const resolved = path.resolve(path.dirname(f.file), p);
-          if (resolved !== path.join(techniquesDir, `${below}.md`)) at('lighter-resolves', `"${L.lighter}" must link to ${below}.md, the tier below ${tier} (found ${target})`);
-          else if (anchor !== card.slug) at('lighter-resolves', `"${L.lighter}" must be the same technique one tier down (card "${card.name}"), not "${anchor ?? ''}"`);
-          else if (!files[below]?.cards.some((c) => c.slug === anchor)) at('lighter-resolves', `${below}.md has no card "${card.name}"`);
+          const lowerTier = lower.find((x) => resolved === path.join(techniquesDir, `${x}.md`));
+          if (!lowerTier) at('lighter-resolves', `"${L.lighter}" must link to ${lower.map((x) => `${x}.md`).join(' or ')}, a tier below ${tier} (found ${target})`);
+          else if (anchor !== card.slug) at('lighter-resolves', `"${L.lighter}" must be the same technique in a lower tier (card "${card.name}"), not "${anchor ?? ''}"`);
+          else if (!files[lowerTier]?.cards.some((c) => c.slug === anchor)) at('lighter-resolves', `${lowerTier}.md has no card "${card.name}"`);
         }
       }
 

@@ -117,6 +117,12 @@ test('lighter-resolves: "No lighter version" needs a colon and a reason', () => 
   }
 });
 
+test('lighter-resolves: a High card may link to the Fast card; a link to its own tier still fails', () => {
+  const high = (to) => ({ 'techniques/high.md': [['(medium.md#particles)', `(${to}#particles)`]] });
+  assert.deepEqual(lint(high('fast.md')), []);
+  assert.deepEqual(rules(lint(high('high.md'))), ['lighter-resolves']);
+});
+
 test('measured-heading: the fixed line comes right after the heading, and the list is never "references" or "inspiration"', () => {
   assert.deepEqual(rules(lint({ 'techniques/fast.md': [['#### Where the cost was measured\n\n', '#### Where the cost was measured\n\nSome sites.\n\n']] })), ['measured-heading']);
   for (const title of ['References', 'Inspiration sites']) {
