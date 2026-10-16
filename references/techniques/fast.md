@@ -44,7 +44,7 @@ Product and developer brands that want a quiet sign of life: [Monochrome mono-ty
 
 ### What it costs the visitor
 
-not measured
+On one site (linear.app, measured 2026-10-15) the page's motion code weighed 0 KB: the dot grid is only CSS and adds no script ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -96,7 +96,7 @@ opacity — the texture survives, the movement does not.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- linear.app: where the recipe was read. Cost not measured.
+- linear.app, probed 2026-10-15: where the recipe was read. Motion code of the page 0 KB, no canvas and no named animation library.
 
 ## Corner glow
 
@@ -114,7 +114,7 @@ Dark product interfaces with a few cards in a row: [Dark mode neon dashboard](..
 
 ### What it costs the visitor
 
-not measured
+On one site (linear.app, measured 2026-10-15) the page's motion code weighed 0 KB: the glow is only CSS and adds no script ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -144,7 +144,7 @@ of cards is not four copies of the same highlight. Linear ships all three.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- linear.app: where the recipe was read ("Read verbatim off linear.app"). Cost not measured.
+- linear.app, probed 2026-10-15: where the recipe was read ("Read verbatim off linear.app"). Motion code of the page 0 KB, no canvas and no named animation library.
 
 ## Edge fade
 
@@ -162,7 +162,7 @@ Any row that runs past the edge of the page: [Editorial design](../identities/pr
 
 ### What it costs the visitor
 
-not measured
+On two sites (linear.app and hex.tech, measured 2026-10-15) the page's motion code weighed 0 KB and 70 KB, median 35 KB. The 70 KB is hex.tech's page, not the fade, which is only CSS ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -187,7 +187,8 @@ or they read as broken rather than continuing.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- linear.app (80px) and hex.tech (30px): where the recipe was read. Cost not measured.
+- linear.app (80px), probed 2026-10-15: where the recipe was read. Motion code of the page 0 KB.
+- hex.tech (30px), probed 2026-10-15: where the recipe was read. Motion code of the page 70 KB, no canvas listed; that weight is the page's, not the fade's.
 
 ## Dot grid and hairlines as masks
 
@@ -205,7 +206,7 @@ Plan-like, technical and Swiss brands: [Blueprint / cyanotype](../identities/pri
 
 ### What it costs the visitor
 
-not measured
+On one site (hex.tech, measured 2026-10-15) the page's motion code weighed 70 KB. That weight is the page's, not the technique's: the masks are only CSS and add no script ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -234,7 +235,7 @@ Two of the most useful lines of CSS in the whole survey.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- hex.tech: where the recipe was read. Cost not measured.
+- hex.tech, probed 2026-10-15: where the recipe was read. Motion code of the page 70 KB, no canvas listed; that weight is the page's, not the masks'.
 
 ## Noise
 
@@ -252,7 +253,7 @@ Print, paper and zine brands: [Archival newsprint](../identities/print-craft.md#
 
 ### What it costs the visitor
 
-not measured
+On two sites (neon.tech and hex.tech, measured 2026-10-15) the page's motion code weighed 99 KB and 70 KB, median 84 KB. That weight belongs to other parts of those pages (neon.tech also runs animated drawings of its own), not to the grain, which is only CSS ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -280,7 +281,8 @@ being dirt.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- neon.tech (the noise mask) and hex.tech (the animated background position): where the recipe was read. Cost not measured.
+- neon.tech (the noise mask), probed 2026-10-15: where the recipe was read. Motion code of the page 99 KB, with four animating 2D canvases that are not part of the recipe.
+- hex.tech (the animated background position), probed 2026-10-15: where the recipe was read. Motion code of the page 70 KB, no canvas listed. In both, the weight is the page's, not the noise's.
 
 ## Shimmer sweep
 
@@ -298,7 +300,7 @@ Live products and loading states: [Fintech trust](../identities/industry.md#fint
 
 ### What it costs the visitor
 
-not measured
+On one site (neon.tech, measured 2026-10-15) the page's motion code weighed 99 KB. That weight is the page's (it also runs animated drawings of its own), not the sweep's, which is only CSS ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -324,7 +326,7 @@ decoration on static content.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- neon.tech: where the recipe was read. Cost not measured.
+- neon.tech, probed 2026-10-15: where the recipe was read. Motion code of the page 99 KB, with four animating 2D canvases that are not part of the recipe; the weight is the page's, not the sweep's.
 
 ## Marquee
 
@@ -342,7 +344,7 @@ Labels, publishers and sponsor rows: [Record label / musician](../identities/ind
 
 ### What it costs the visitor
 
-not measured
+On one site (hex.tech, measured 2026-10-15) the page's motion code weighed 70 KB. That weight is the page's, not the marquee's, which is only CSS ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -365,7 +367,7 @@ Pair with the [Edge fade](#edge-fade) card.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- hex.tech: where the recipe was read. Cost not measured.
+- hex.tech, probed 2026-10-15: where the recipe was read. Motion code of the page 70 KB, no canvas listed; the weight is the page's, not the marquee's.
 
 ## Additive blends on a dark ground
 
@@ -383,7 +385,7 @@ Neon, night and dashboard brands: [Dark mode neon dashboard](../identities/digit
 
 ### What it costs the visitor
 
-not measured
+On two sites (linear.app, measured 2026-10-15, and stripe.com, measured 2026-10-14) the page's motion code weighed 0 KB and 315 KB, median 157 KB. The 315 KB is the animated gradient in stripe.com's hero, not the blends the card cites, which are only CSS ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -407,7 +409,8 @@ nothing at all, silently.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- linear.app (`overlay` ×7, `lighten` ×6, `screen` ×5) and stripe.com (`multiply` ×4): where the counts were read. Cost not measured.
+- linear.app (`overlay` ×7, `lighten` ×6, `screen` ×5), probed 2026-10-15: where the counts were read. Motion code of the page 0 KB.
+- stripe.com (`multiply` ×4), probed 2026-10-14: where the count was read. Motion code of the page 315 KB, which is the WebGL gradient in its hero (the High "Gradient mesh" row), not the blends; its canvases are left out of this row.
 
 ## Scroll-linked
 
@@ -425,7 +428,7 @@ Editorial and long-read brands: [Editorial design](../identities/print-craft.md#
 
 ### What it costs the visitor
 
-not measured
+not measured: the recipe cites no production site that can be probed.
 
 ### For the builder
 
@@ -477,7 +480,7 @@ pages end up with content that never appears.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- No site is cited by the recipe; the support figure (~84% global) is the recipe's own. Cost not measured.
+- No site is cited by the recipe, so none was probed on 2026-10-15; the support figure (~84% global) is the recipe's own. Cost not measured.
 
 ## Sticky narrative
 
@@ -495,7 +498,7 @@ Explainers and data stories: [Editorial design](../identities/print-craft.md#edi
 
 ### What it costs the visitor
 
-not measured
+not measured: the sites it names (Antigravity and Observable) have no address that can be probed.
 
 ### For the builder
 
@@ -522,7 +525,7 @@ A taller outer container makes the horizontal travel feel slower.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- Antigravity and Observable (27 sticky elements): where the pattern was read. Cost not measured.
+- Antigravity and Observable (27 sticky elements): where the pattern was read. Named without a URL, so not probed on 2026-10-15. Cost not measured.
 
 ## Counters that mean something
 
@@ -540,7 +543,7 @@ Finance, climate and data brands: [Fintech trust](../identities/industry.md#fint
 
 ### What it costs the visitor
 
-not measured
+not measured: the recipe cites no production site that can be probed.
 
 ### For the builder
 
@@ -577,7 +580,7 @@ whole row reflows on every frame.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- No site is cited by the recipe. Cost not measured.
+- No site is cited by the recipe, so none was probed on 2026-10-15. Cost not measured.
 
 ## Text that performs its sentence
 
@@ -595,7 +598,7 @@ Expressive type and music brands: [Grid-breaking experimental typography](../ide
 
 ### What it costs the visitor
 
-not measured
+not measured: the recipe cites no production site that can be probed.
 
 ### For the builder
 
@@ -631,7 +634,7 @@ Total stagger must stay under ~500ms. At `i * 0.012` that is 40 characters.
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- No site is cited by the recipe. Cost not measured.
+- No site is cited by the recipe, so none was probed on 2026-10-15. Cost not measured.
 
 ## Image reveal through the identity's device
 
@@ -649,7 +652,7 @@ Print, photography and halftone brands: [Halftone / duotone](../identities/print
 
 ### What it costs the visitor
 
-not measured
+not measured: the recipe cites no production site that can be probed.
 
 ### For the builder
 
@@ -733,7 +736,7 @@ document.querySelectorAll('.img-ink, .img-develop, .img-halftone').forEach((el) 
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- No site is cited by the recipe; the Faísca example build is the failure it was learned from. Cost not measured.
+- No site is cited by the recipe, so none was probed on 2026-10-15; the Faísca example build is the failure it was learned from. Cost not measured.
 
 ## Particles
 
@@ -1036,7 +1039,7 @@ Dashboards over imagery, wellness and OS-like product shells: [Glassmorphism](..
 
 ### What it costs the visitor
 
-On one site (apple.com, measured 2026-10-14) the page's motion code weighed 0 KB, so a still frosted panel needs no script to move. That figure is for the whole page, not for the panel, and the time the browser takes to paint the blur was never timed ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-14)).
+On one site (apple.com, measured 2026-10-14) the page's motion code weighed 0 KB, so a still frosted panel needs no script to move. That figure is for the whole page, not for the panel, and the time the browser takes to paint the blur was never timed ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### For the builder
 
@@ -1071,7 +1074,7 @@ The panel has something to blur only if the background has detail behind it (a g
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- apple.com: motion code 0 KB, one site, measured 2026-10-14 ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-14)). The weight is that of the whole page, so it shows the glass needs no script, not what the blur costs to paint.
+- apple.com, probed 2026-10-14: motion code of the page 0 KB, DOM only, one site ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)). The weight is that of the whole page, so it shows the glass needs no script, not what the blur costs to paint.
 
 ## Gradient mesh
 
