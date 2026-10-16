@@ -151,7 +151,6 @@ test('the real repository: every recipes-motion.md §N reference resolves', () =
   assert.deepEqual(unresolved, []);
 });
 
-// Until the cards are written (Tasks 11-14) the real references do not pass; Task 15 turns this on.
-test('the real references/techniques/*.md pass', { todo: 'until the cards land (Tasks 11-15)' }, () => {
+test('the real references/techniques/*.md pass', () => {
   assert.deepEqual(lintTechniques(REPO).errors, []);
 });

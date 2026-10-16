@@ -137,13 +137,48 @@ serves the identity. Unnecessary cost is always wrong.
 
 | Tier | Typically | Budget sense |
 |---|---|---|
-| **Fast expensive loading** | CSS only (gradients, masks, clip-path, blend modes, `@keyframes`, scroll-driven animations), SVG, system fonts or one or two subset webfonts, small vanilla JS | Adds roughly nothing past the fonts; works without JS |
-| **Medium expensive loading** | Several webfonts, a small motion library (GSAP core, Motion One, Lenis), Lottie for a few illustrations, heavy optimised imagery, `backdrop-filter` across panels | Tens of KB of JS, or noticeable image weight and GPU work |
-| **High expensive loading** | WebGL / Three.js / shader scenes, 3D models, physics, background video, large Lottie or Rive sets, canvas particle systems | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
+| **[Fast expensive loading](techniques/fast.md)** | CSS only (gradients, masks, clip-path, blend modes, `@keyframes`, scroll-driven animations), SVG, system fonts or one or two subset webfonts, small vanilla JS | Adds roughly nothing past the fonts; works without JS |
+| **[Medium expensive loading](techniques/medium.md)** | Several webfonts, a small motion library (GSAP core, Motion One, Lenis), Lottie for a few illustrations, heavy optimised imagery, `backdrop-filter` across panels | Tens of KB of JS, or noticeable image weight and GPU work |
+| **[High expensive loading](techniques/high.md)** | WebGL / Three.js / shader scenes, 3D models, physics, background video, large Lottie or Rive sets, canvas particle systems | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
 
 The measured finding (`benchmarks.md`) supports starting cheap: premium
 pages are built mostly from **masks, clip paths and blend modes**, which
 are fast-tier CSS, not from heavy libraries.
+
+### What each tier holds
+
+The technique cards are the way in from this table: plain words first, the code behind. Each tier has its own file of cards, with what the visitor sees, which identities it suits, what it costs and the recipe. This is a menu for the tier message; the author still chooses only a tier.
+
+The number beside a technique is the motion code of a production page that shows it, probed in headless Chromium (`benchmarks.md`). For a CSS or SVG technique it is the weight of the whole page, not of the effect, so a large number there does not make the effect expensive. The High ceiling is 340 KB.
+
+**[Fast](techniques/fast.md), 23 techniques:** CSS or SVG, no script the effect depends on.
+
+- [Ambient dot grid](techniques/fast.md#ambient-dot-grid): 0 KB
+- [Corner glow](techniques/fast.md#corner-glow): 0 KB
+- [Edge fade](techniques/fast.md#edge-fade): 0 to 70 KB
+- [Dot grid and hairlines as masks](techniques/fast.md#dot-grid-and-hairlines-as-masks): 70 KB
+- [Noise](techniques/fast.md#noise): 70 to 99 KB
+- [Shimmer sweep](techniques/fast.md#shimmer-sweep): 99 KB
+- [Marquee](techniques/fast.md#marquee): 70 KB
+- [Additive blends on a dark ground](techniques/fast.md#additive-blends-on-a-dark-ground): 0 to 315 KB
+- [Glassmorphism](techniques/fast.md#glassmorphism): 0 KB
+- Not measured yet: [Scroll-linked](techniques/fast.md#scroll-linked), [Sticky narrative](techniques/fast.md#sticky-narrative), [Counters that mean something](techniques/fast.md#counters-that-mean-something), [Text that performs its sentence](techniques/fast.md#text-that-performs-its-sentence), [Image reveal through the identity's device](techniques/fast.md#image-reveal-through-the-identitys-device), [Particles](techniques/fast.md#particles), [Liquid morph](techniques/fast.md#liquid-morph), [Holographic](techniques/fast.md#holographic), [Neon glow](techniques/fast.md#neon-glow), [Wireframe 3D](techniques/fast.md#wireframe-3d), [Gradient mesh](techniques/fast.md#gradient-mesh), [Split-flap](techniques/fast.md#split-flap), [Retro VHS](techniques/fast.md#retro-vhs), [Halftone](techniques/fast.md#halftone)
+
+**[Medium](techniques/medium.md), 4 techniques:** a small script, a drawing area or GPU work. Each links the lighter Fast version, which is its fallback, or says why there is none.
+
+- [Particles](techniques/medium.md#particles): 139 KB
+- [ASCII art](techniques/medium.md#ascii-art): 0 KB (built from page text, with no drawing)
+- [Halftone](techniques/medium.md#halftone): 7 KB
+- [Glassmorphism](techniques/medium.md#glassmorphism): 0 to 282 KB
+
+**[High](techniques/high.md), 7 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version and ends with its measured weight against the ceiling.
+
+- [Particles](techniques/high.md#particles): 340 KB, the ceiling itself
+- [Holographic](techniques/high.md#holographic): 340 KB, the ceiling itself
+- [Wireframe 3D](techniques/high.md#wireframe-3d): 180 KB
+- [Gradient mesh](techniques/high.md#gradient-mesh): 282 to 315 KB
+- [Clay 3D](techniques/high.md#clay-3d): 180 to 640 KB, the heavier above the ceiling
+- Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Halftone](techniques/high.md#halftone)
 
 ### The tier is the author's choice, not yours
 
