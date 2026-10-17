@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { exportPresentation, rewriteRelativeUrls } from '../scripts/lib/export.mjs';
 import { pngSize, pdfPageCount } from '../scripts/lib/image-meta.mjs';
 import { hasWatermark } from '../scripts/lib/watermark.mjs';
-import { copyPresentationFixture } from './helpers/presentation-fixture.mjs';
+import { copyPresentationFixture, addCanvasSlide } from './helpers/presentation-fixture.mjs';
 
 const SECTIONS = ['opening', 'concept', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
 const pad = (n) => String(n).padStart(2, '0');
@@ -366,3 +366,101 @@ test('a mockup PNG also leaves out what <html> paints, and an ancestor pseudo-el
   }
 });
 "});"  
+
+// ---- Canvas: the export captures the poster frame, and waits for it ----------------------------------------------
+
+// The share of a PNG that is the fixture's poster magenta.
+async function magentaShare(file) {
+  const context = await browser.newContext();
+  try {
+    const page = await context.newPage();
+    const data = `data:image/png;base64,${fs.readFileSync(file).toString('base64')}`;
+    return await page.evaluate(async (src) => {
+      const img = new Image();
+      img.src = src;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      const px = g.getImageData(0, 0, c.width, c.height).data;
+      let n = 0;
+      for (let i = 0; i < px.length; i += 4) if (px[i] > 240 && px[i + 1] < 20 && px[i + 2] > 150 && px[i + 2] < 190) n += 1;
+      return n / (c.width * c.height);
+    }, data);
+  } finally {
+    await context.close();
+  }
+}
+
+async function exportedCanvasSlide(kind) {
+  const f = copyPresentationFixture();
+  try {
+    addCanvasSlide(f.dir, kind);
+    await exportPresentation(f.dir, 'none', { browser });
+    return f;
+  } catch (err) {
+    f.cleanup();
+    throw err;
+  }
+}
+
+test('export of the canvas slide shows the poster frame, not a blank canvas, and is identical across two exports', { timeout: 300000 }, async () => {
+  const a = await exportedCanvasSlide('healthy');
+  const b = await exportedCanvasSlide('healthy');
+  try {
+    const slide = (f) => path.join(f.dir, 'final', 'slides', '02-concept.png');
+    const share = await magentaShare(slide(a));
+    assert.ok(share > 0.2, `the poster covers ${(share * 100).toFixed(1)} % of slide 2, expected a 500 px band of it`);
+    assert.ok(fs.readFileSync(slide(a)).equals(fs.readFileSync(slide(b))), 'two exports of the same page are byte for byte the same');
+  } finally {
+    a.cleanup();
+    b.cleanup();
+  }
+});
+
+test('the export waits for a slow poster (drawn 1.5 s after the page loads)', { timeout: 300000 }, async () => {
+  const f = await exportedCanvasSlide('slowPoster');
+  try {
+    const share = await magentaShare(path.join(f.dir, 'final', 'slides', '02-concept.png'));
+    assert.ok(share > 0.2, `the poster covers ${(share * 100).toFixed(1)} % of slide 2: the export did not wait for it`);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('a canvas that never finishes its poster fails the export with a message that names it', { timeout: 300000 }, async () => {
+  const f = copyPresentationFixture();
+  try {
+    addCanvasSlide(f.dir, 'slowPoster');
+    const file = path.join(f.dir, 'presentation.html');
+    fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace('1500)); } });', '600000)); } });'));
+    await assert.rejects(exportPresentation(f.dir, 'none', { browser, imageTimeoutMs: 2500 }), /canvas.*did not draw their poster within 2500ms \(c\)/);
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('a canvas loop without a poster exports without waiting for one', { timeout: 300000 }, async () => {
+  const f = copyPresentationFixture();
+  try {
+    addCanvasSlide(f.dir, 'noPoster');
+    // With the old wait this would run into the 6 s limit and fail with "give dfCanvasLoop a poster".
+    await exportPresentation(f.dir, 'none', { browser, imageTimeoutMs: 6000 });
+    assert.ok(fs.existsSync(path.join(f.dir, 'final', 'slides', '02-concept.png')));
+  } finally {
+    f.cleanup();
+  }
+});
+
+test('a poster that rejects fails the export at once, naming the canvas', { timeout: 300000 }, async () => {
+  const f = copyPresentationFixture();
+  try {
+    addCanvasSlide(f.dir, 'rejectingPoster');
+    const started = Date.now();
+    await assert.rejects(exportPresentation(f.dir, 'none', { browser, imageTimeoutMs: 60000 }), /poster of 1 canvas\(es\) threw or failed \(c\)/);
+    assert.ok(Date.now() - started < 30000, 'failed long before the 60 s timeout');
+  } finally {
+    f.cleanup();
+  }
+});

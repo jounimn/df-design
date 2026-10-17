@@ -57,6 +57,7 @@ Every entry in `identities/*.md` has:
 - **Fits / Misfits:** subjects it serves and subjects it fights
 - **Trap:** how it goes wrong on the web; for industry archetypes, the generic default and how the best escape it
 - **Load:** the cheapest tier that does it faithfully (`audition.md` §4)
+- **Techniques that suit it:** (optional) cards from `techniques/` that fit this identity, each a link to its card
 - **Seen at:** live sites that ship it. URLs were checked live on 2026-10-05; look at a site before quoting a detail from it
 - **Search:** queries, gallery tags and wiki pages that find more references
 

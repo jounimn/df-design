@@ -75,3 +75,45 @@ test('quarantining never removes the record itself', () => {
   });
   assert.equal(record.site, 'example.com');
 });
+
+test('a well-formed canvases array is kept', () => {
+  const canvases = [{ selector: 'canvas#c', context: 'webgl', animating: true }];
+  const { record, quarantine } = validateRecord({ ...ok, canvases, libraries: ['three'], canvasJsBytes: { jsBytes: 10, motionJsBytes: 5 } });
+  assert.deepEqual(record.canvases, canvases);
+  assert.equal(quarantine.length, 0);
+});
+
+test('an empty canvases list is legal (a page with no canvas)', () => {
+  const { record, quarantine } = validateRecord({ ...ok, canvases: [] });
+  assert.deepEqual(record.canvases, []);
+  assert.equal(quarantine.length, 0);
+});
+
+test('canvases that is not a list is quarantined with a reason, and the raw value is preserved', () => {
+  const { record, quarantine } = validateRecord({ ...ok, canvases: null });
+  assert.equal('canvases' in record, false);
+  assert.equal(quarantine[0].field, 'canvases');
+  assert.match(quarantine[0].reason, /list/);
+});
+
+test('a canvas entry with no selector quarantines the whole canvases field', () => {
+  const { quarantine } = validateRecord({ ...ok, canvases: [{ context: 'webgl' }] });
+  assert.equal(quarantine[0].field, 'canvases');
+});
+
+test('a record from before canvas tracing (no canvases field) is untouched', () => {
+  const { record, quarantine } = validateRecord({ ...ok });
+  assert.equal('canvases' in record, false);
+  assert.equal(quarantine.length, 0);
+});
+
+test('a failed canvas trace quarantines canvases, canvasJsBytes and libraries together', () => {
+  const { record, quarantine } = validateRecord({ ...ok, canvases: null, canvasJsBytes: null, libraries: null });
+  assert.deepEqual(quarantine.map((q) => q.field).sort(), ['canvasJsBytes', 'canvases', 'libraries']);
+  for (const f of ['canvases', 'canvasJsBytes', 'libraries']) assert.equal(f in record, false);
+});
+
+test('a successful canvas trace keeps libraries and canvasJsBytes', () => {
+  const { quarantine } = validateRecord({ ...ok, canvases: [], canvasJsBytes: { jsBytes: 0, motionJsBytes: 0 }, libraries: [] });
+  assert.equal(quarantine.length, 0);
+});

@@ -5,6 +5,7 @@ import { runStaticPass } from './lib/static-pass.mjs';
 import { runInventory } from './lib/motion-inventory.mjs';
 import { runPropertyTrace } from './lib/property-trace.mjs';
 import { runScrollTrace } from './lib/scroll-trace.mjs';
+import { installCanvasTrace, runCanvasTrace } from './lib/canvas-trace.mjs';
 import { classifyArchetype } from './lib/archetype.mjs';
 import { validateRecord } from './lib/validate.mjs';
 import { bundleDir, writeBundle, renderContactSheet } from './lib/bundle.mjs';
@@ -25,6 +26,7 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
     // Motion pass — reduced motion OFF, because the point is to see the motion.
     // This is the inversion of verification.md, which emulates it to suppress motion.
     const { page, context } = await newPage(browser, { reducedMotion: 'no-preference' });
+    await installCanvasTrace(context);
     await page.goto(url, { waitUntil: 'load' });
     await settle(page);
 
@@ -35,6 +37,19 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
     const scroll = await runScrollTrace(page, { selectors, steps: 12 });
 
     const frames = [];
+    // Last of the motion pass: it scrolls canvases into view and reopens the page twice (reduced motion,
+    // no WebGL). A failure is kept as `canvasError` and the field quarantined, never silently an empty list.
+    let canvasTrace = null;
+    let canvasError = null;
+    try {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      canvasTrace = await runCanvasTrace(page, { frames: 6, durationMs: 1500, settleMs: 300 });
+    } catch (err) {
+      canvasError = String(err?.message ?? err);
+    }
+    // The trace may have left the page mid-scroll, or the page may have died; neither may take the probe down.
+    await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
+
     const maxScroll = Math.max(staticResult.pageHeightPx - staticResult.viewportHeightPx, 0);
     for (let i = 0; i < 6; i += 1) {
       await page.evaluate((y) => window.scrollTo(0, y), Math.round((maxScroll * i) / 5));
@@ -69,6 +84,10 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
       site, url, cohort, measured_at: date, probe_version: '1.0.0',
       ...staticResult,
       archetype, archetypeReason: reason,
+      canvases: canvasTrace ? canvasTrace.canvases : null,
+      canvasJsBytes: canvasTrace ? { jsBytes: canvasTrace.jsBytes, motionJsBytes: canvasTrace.motionJsBytes } : null,
+      libraries: canvasTrace ? canvasTrace.libraries : null,
+      ...(canvasError ? { canvasError } : {}),
       reducedMotion: {
         cssRules: staticResult.reducedMotionRules,
         animationsNormally: inventory.animations.length,

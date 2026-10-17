@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Clay 3D example presentation</title>
+  <link rel="stylesheet" href="slideshow.css">
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f4efe6; color: #1c1a17; }
+    section { padding: 64px 96px; box-sizing: border-box; border-bottom: 1px solid #1c1a17; }
+    h2 { font-size: 56px; margin: 0 0 32px; }
+    p { font-size: 28px; }
+    .row { display: flex; gap: 48px; align-items: flex-start; }
+    .m { overflow: hidden; background: #d9cdb8; }
+    .m img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .poster { width: 540px; height: 720px; max-width: 100%; }
+    .card { width: 640px; height: 360px; max-width: 100%; }
+    .artboards { display: flex; flex-wrap: wrap; gap: 48px; padding: 48px; background: #fff; }
+    @media (max-width: 900px) {
+      section { padding: 32px 20px; }
+      .row { flex-direction: column; }
+      .poster, .card { height: auto; }
+      .poster { aspect-ratio: 3 / 4; }
+      .card { aspect-ratio: 16 / 9; }
+    }
+    [data-social] { background: #1c1a17; color: #f4efe6; font-size: 64px; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+  <section data-section="opening">
+    <h2>01 · Miolo & Filhos</h2>
+    <p>Fixture copy for opening. <a href="#closing">Skip to closing</a></p>
+  </section>
+  <section data-section="concept">
+    <h2>02 · Concept</h2>
+    <div class="stage" style="position:relative;height:420px">
+  <canvas id="clay" style="width:100%;height:100%"></canvas>
+  <img id="clay-fallback" src="clay-poster.jpg" alt="Three soft clay lumps" hidden style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+</div>
+    <p>Fixture copy for concept.</p>
+  </section>
+  <section data-section="audience">
+    <h2>04 · Audience</h2>
+    <p>Fixture copy for audience.</p>
+  </section>
+  <section data-section="logo-construction">
+    <h2>05 · Logo construction</h2>
+    <p>Fixture copy for logo-construction.</p>
+  </section>
+  <section data-section="logo-system">
+    <h2>06 · Logo system</h2>
+    <p>Fixture copy for logo-system.</p>
+  </section>
+  <section data-section="colour-type">
+    <h2>07 · Colour and type</h2>
+    <p>Fixture copy for colour-type.</p>
+  </section>
+  <section data-section="mockups">
+    <h2>08 · Mockups</h2>
+    <div class="row">
+      <div data-mockup="poster" class="m poster"><img src="assets/mockup.png" alt="Poster mockup"></div>
+      <div data-mockup="card" class="m card"><img data-reveal src="assets/mockup.png" alt="Card mockup"></div>
+    </div>
+  </section>
+  <section data-section="site">
+    <h2>09 · Site</h2>
+    <p>Fixture copy for site.</p>
+  </section>
+  <section data-section="closing" id="closing">
+    <h2>10 · Closing</h2>
+    <p>Fixture copy for closing.</p>
+  </section>
+  <div class="artboards">
+    <div data-social="square">Square</div>
+    <div data-social="story">Story</div>
+  </div>
+  <script src="slideshow.js"></script>
+<script src="canvas-loop.js"></script>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js';
+
+const canvas = document.getElementById('clay');
+
+// A matcap made in code: one lit sphere drawn once on a small 2D canvas, so there is no image to download.
+// The material reads its colour from this picture by the direction the surface faces, so it needs no lights.
+function makeMatcap() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const g = c.getContext('2d');
+  const sphere = g.createRadialGradient(100, 88, 6, 128, 128, 132);   // light from the upper left
+  sphere.addColorStop(0, '#fff1e4');
+  sphere.addColorStop(0.45, '#e9a07a');
+  sphere.addColorStop(1, '#6a392a');
+  g.fillStyle = sphere;
+  g.fillRect(0, 0, 256, 256);
+  const texture = new THREE.CanvasTexture(c);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+// A lump: a sphere pushed in and out by a few sine waves, once. Clay is never perfectly round.
+const bump = (v) => 1 + 0.12 * Math.sin(v.x * 3 + 1) * Math.cos(v.y * 2.5) + 0.08 * Math.sin(v.z * 4 + v.x * 2);
+function makeLump() {
+  const geometry = new THREE.IcosahedronGeometry(1, 6);
+  const pos = geometry.attributes.position;
+  const normals = new Float32Array(pos.count * 3);
+  const v = new THREE.Vector3(), t1 = new THREE.Vector3(), t2 = new THREE.Vector3();
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  const at = (dir, out) => out.copy(dir).multiplyScalar(bump(dir));
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i).normalize();
+    t1.set(v.y, -v.x, 0.001).cross(v).normalize();            // two directions along the surface
+    t2.copy(v).cross(t1).normalize();
+    at(v, a);
+    at(b.copy(v).addScaledVector(t1, 0.01).normalize(), b);
+    at(c.copy(v).addScaledVector(t2, 0.01).normalize(), c);
+    b.sub(a); c.sub(a);
+    b.cross(c).normalize();                                    // the real normal of the lumpy surface, so it shades smooth
+    if (b.dot(v) < 0) b.negate();
+    pos.setXYZ(i, a.x, a.y, a.z);
+    normals.set([b.x, b.y, b.z], i * 3);
+  }
+  geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
+  return geometry;
+}
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 50);
+camera.position.set(0, 0, 6);
+const material = new THREE.MeshMatcapMaterial({ matcap: makeMatcap() });
+const geometry = makeLump();
+const big = new THREE.Mesh(geometry, material);
+const small = new THREE.Mesh(geometry, material);
+const tiny = new THREE.Mesh(geometry, material);
+small.scale.setScalar(0.45); small.position.set(1.7, -0.7, 0.4);
+tiny.scale.setScalar(0.28);  tiny.position.set(-1.6, 0.9, 0.6);
+scene.add(big, small, tiny);
+
+// Create the renderer first: it makes the WebGL 2 context, and the loop then asks for the same one.
+let renderer = null;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch { /* no 3D graphics: the loop shows the fallback */ }
+
+let width = 0, height = 0;
+function render(t) {
+  if (canvas.width !== width || canvas.height !== height) {      // the loop owns the size of the backing store
+    width = canvas.width; height = canvas.height;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  }
+  big.rotation.set(0.3, t * 0.0003, 0);
+  big.scale.setScalar(1 + 0.015 * Math.sin(t * 0.0012));         // a slow breath
+  small.rotation.y = t * -0.0005;
+  tiny.rotation.x = t * 0.0006;
+  renderer.render(scene, camera);
+}
+
+dfCanvasLoop(canvas, {
+  context: 'webgl2',
+  draw: (t) => render(t),
+  poster: () => render(0),                                       // one fixed-time frame
+  // After a lost context comes back, three rebuilds its programs and buffers itself, but the restored context's
+  // viewport is not the canvas size and three does not know: set it, or it draws into a single pixel.
+  restore: (gl) => gl.viewport(0, 0, canvas.width, canvas.height),
+  fallback: '#clay-fallback',                                    // the poster saved as a picture
+});
+</script>
+</body>
+</html>

@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { licenceNeedsCredit, licenceIsPlaceholder } from './licence.mjs';
 import { hasWatermark } from './watermark.mjs';
 import { pngSize, pdfPageCount } from './image-meta.mjs';
+import { TIERS, UsageError, runMotionChecks } from './motion-checks.mjs';
 import { EXPORT_CSS, HIDE_INNER_ARTBOARDS_CSS, srcsetUrls, mapImageSetStrings } from './export.mjs';
 
 export const REQUIRED_SECTIONS = ['opening', 'concept', 'audience', 'logo-construction', 'logo-system', 'colour-type', 'mockups', 'site', 'closing'];
@@ -165,7 +166,7 @@ export function parseAssetRows(md) {
 
 const FLAGS = ['--offline', '--after-gate'];
 export function parseCheckArgs(argv) {
-  const out = { dir: undefined, offline: false, afterGate: false, watermark: undefined };
+  const out = { dir: undefined, offline: false, afterGate: false, watermark: undefined, tier: undefined };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--offline') out.offline = true;
@@ -174,8 +175,13 @@ export function parseCheckArgs(argv) {
       const value = a === '--watermark' ? argv[++i] : a.slice('--watermark='.length);
       if (!value || value.startsWith('--')) throw new Error('--watermark needs a value: none or a watermark spec');
       out.watermark = value;
+    } else if (a === '--tier' || a.startsWith('--tier=')) {
+      if (out.tier !== undefined) throw new Error('--tier was given twice');
+      const value = a === '--tier' ? argv[++i] : a.slice('--tier='.length);
+      if (!TIERS.includes(value)) throw new Error(`--tier needs one of ${TIERS.join(', ')} (got ${value === undefined ? 'nothing' : `"${value}"`})`);
+      out.tier = value;
     } else if (a.startsWith('-')) {
-      throw new Error(`unknown option ${a} (known: ${[...FLAGS, '--watermark <spec|none>'].join(', ')})`);
+      throw new Error(`unknown option ${a} (known: ${[...FLAGS, '--watermark <spec|none>', '--tier <fast|medium|high|custom>'].join(', ')})`);
     } else if (out.dir === undefined) out.dir = a;
     else throw new Error(`unexpected extra argument: ${a}`);
   }
@@ -434,7 +440,28 @@ export function isVector(src) {
   try { return /\.svg$/i.test(new URL(src).pathname); } catch { return false; }
 }
 
-export async function runChecks(dir, { offline = false, afterGate = false, browser, watermark } = {}) {
+// The §4 canvas checks of check-motion, on each slide that has a canvas, with that slide in focus (the slideshow opens
+// on #slide-N), so a canvas on a slide that is not in view is not judged as blank. Own contexts, without __DF_EXPORT__:
+// the loop has to run for the checks to mean anything. One result per check; any slide failing fails it.
+async function motionResults(browser, file, canvasSlides, tier) {
+  const merged = new Map();
+  for (const n of canvasSlides) {
+    const r = await runMotionChecks(`${pathToFileURL(file).href}#slide-${n}`, { tier, browser, includeWithoutJs: false });
+    for (const c of r.checks) {
+      const mine = merged.get(c.name) ?? { statuses: [], details: [] };
+      mine.statuses.push(c.status);
+      mine.details.push(canvasSlides.length > 1 ? `slide ${n}: ${c.detail}` : c.detail);
+      merged.set(c.name, mine);
+    }
+  }
+  return [...merged].map(([name, { statuses, details }]) => {
+    const status = statuses.includes('fail') ? 'fail' : statuses.includes('pass') ? 'pass' : statuses.includes('report') ? 'report' : 'na';
+    const prefix = status === 'na' ? 'n/a: ' : status === 'report' ? 'reported, not judged: ' : '';
+    return { name: `motion: ${name}`, ok: status !== 'fail', detail: `${prefix}${details.join(' | ')}` };
+  });
+}
+
+export async function runChecks(dir, { offline = false, afterGate = false, browser, watermark, tier } = {}) {
   const results = [];
   const check = (name, ok, detail = '') => results.push({ name, ok, detail });
   const root = path.resolve(dir);
@@ -454,11 +481,14 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
       sections: [...document.querySelectorAll('section[data-section]')].map((s) => ({ name: s.dataset.section, over: s.scrollHeight > sh || s.scrollWidth > sw, box: `${s.scrollWidth}×${s.scrollHeight}` })),
       sitePending: site ? site.getAttribute('data-pending') : null,
       mockups: document.querySelectorAll('[data-mockup]').length,
+      canvasSlides: [...document.querySelectorAll('section[data-section]')].map((s, i) => (s.querySelector('canvas') ? i + 1 : 0)).filter(Boolean),
       social: ['square', 'story'].filter((k) => document.querySelector(`[data-social="${k}"]`)),
     };
   }, { sw: SLIDE.width, sh: SLIDE.height });
   const mockups = await mockupSources(slides.page);
   await slides.context.close();
+  // A canvas needs a tier to be judged against: asking for one is a command-line problem (exit 2), not a failed check.
+  if (expected.canvasSlides.length && !tier) throw new UsageError(`the presentation has a canvas (slide ${expected.canvasSlides.join(', ')}): add --tier <${TIERS.join('|')}>, the tier the author chose`);
 
   // Markup contract, read from the rendered DOM
   const names = expected.sections.map((s) => s.name);
@@ -494,6 +524,8 @@ export async function runChecks(dir, { offline = false, afterGate = false, brows
     const problem = await checkSlideshow(browser, file, w, h);
     check(`${label}: slideshow works`, problem === '', problem);
   }
+
+  if (expected.canvasSlides.length) results.push(...await motionResults(browser, file, expected.canvasSlides, tier));
 
   // Mockup photos must be local files in this folder; each is recorded with a source URL and a licence that needs no credit.
   const used = new Map(); // relative path -> label

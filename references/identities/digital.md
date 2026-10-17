@@ -267,6 +267,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Fits:** cloud/infra SaaS, logistics, fintech explainers, games (puzzle). **Misfits:** human/emotional brands, luxury, editorial.
 - **Trap:** generic 2018 SaaS cliché; tiny detail unreadable on mobile; huge SVGs; style clash with UI screenshots.
 - **Load:** fast–medium (SVG weight).
+- **Techniques that suit it:** [Scroll-linked](../techniques/fast.md#scroll-linked), [Sticky narrative](../techniques/fast.md#sticky-narrative), [Image reveal through the identity's device](../techniques/fast.md#image-reveal-through-the-identitys-device). The scene is built or explained step by step as the reader scrolls.
 - **Seen at:** https://www.monumentvalleygame.com — isometric impossible-architecture game brand; https://www.lapa.ninja/category/isometric — gallery of isometric landing pages.
 - **Search:** Lapa Ninja "isometric"; Dribbble "isometric illustration"; "isometric SaaS hero"; "isometric CSS transform"; Monument Valley art.
 
@@ -324,6 +325,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Trap:** used as a skin on a conventional layout. The offset shadows
   without the rawness read as a theme.
 - **Load:** fast.
+- **Techniques that suit it:** [Marquee](../techniques/fast.md#marquee), [Split-flap](../techniques/fast.md#split-flap), [Text that performs its sentence](../techniques/fast.md#text-that-performs-its-sentence). Loud, mechanical and flat, with no blur and no soft easing.
 - **Seen at:** gumroad.com: the canonical neo-brutalist commerce site (black borders, hard offset shadows, flat pink and yellow); neobrutalism.dev: a shadcn-based component library in the style.
 - **Search:** trends.daisyui.com/trend/neubrutalism/; awwwards.com/websites/neo-brutalism/; brutalistwebsites.com (raw brutalism, the parent); Godly "brutalist"; Dribbble "neubrutalism".
 
@@ -355,6 +357,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Trap:** pixel fonts at body size; smoothed scaling (use
   `image-rendering: pixelated` and integer scales).
 - **Load:** fast.
+- **Techniques that suit it:** [Retro VHS](../techniques/fast.md#retro-vhs), [Text that performs its sentence](../techniques/fast.md#text-that-performs-its-sentence), [ASCII art](../techniques/medium.md#ascii-art). Everything stays on a coarse grid: scan lines, letters that appear one at a time, characters standing in for pixels.
 - **Seen at:** lexaloffle.com/pico-8.php: the PICO-8 fantasy-console site with pixel UI and palette; wizardshock.xyz: pixel studio site (enlighten-media pixel-art page); stardewvalley.net: game site using the game's pixel art *(own read)*.
 - **Search:** design-styles.enlighten-media.net/pages/pixel-art/; trends.daisyui.com/trend/pixel-art/ and /trend/rpg-pixel-art/; awwwards.com/websites/pixel-art/; One Page Love "pixel"; Fonts In Use "bitmap" / "pixel fonts".
 

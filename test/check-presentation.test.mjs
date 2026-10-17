@@ -11,7 +11,9 @@ import { licenceNeedsCredit } from '../scripts/lib/licence.mjs';
 import {
   REQUIRED_SECTIONS, missingSections, sectionsInOrder, parseResearchLog, researchFailures, sitePending, parseCheckArgs, runChecks, isVector, parseAssetRows,
 } from '../scripts/lib/presentation-checks.mjs';
-import { copyPresentationFixture } from './helpers/presentation-fixture.mjs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { copyPresentationFixture, addCanvasSlide } from './helpers/presentation-fixture.mjs';
 
 const items = (n, host = 'x.example') => Array.from({ length: n }, (_, i) => `- https://${host}/${i}`).join('\n');
 const log = ({ behance = 30, mockups = 30, tail = '' } = {}) =>
@@ -124,9 +126,9 @@ test('licences that need credit: Creative Commons Attribution, -ShareAlike/-NonC
 });
 
 test('parseCheckArgs is strict', () => {
-  assert.deepEqual(parseCheckArgs(['d']), { dir: 'd', offline: false, afterGate: false, watermark: undefined });
-  assert.deepEqual(parseCheckArgs(['d', '--offline', '--after-gate', '--watermark', 'text:x']), { dir: 'd', offline: true, afterGate: true, watermark: 'text:x' });
-  assert.deepEqual(parseCheckArgs(['--watermark=none', 'd']), { dir: 'd', offline: false, afterGate: false, watermark: 'none' });
+  assert.deepEqual(parseCheckArgs(['d']), { dir: 'd', offline: false, afterGate: false, watermark: undefined, tier: undefined });
+  assert.deepEqual(parseCheckArgs(['d', '--offline', '--after-gate', '--watermark', 'text:x']), { dir: 'd', offline: true, afterGate: true, watermark: 'text:x', tier: undefined });
+  assert.deepEqual(parseCheckArgs(['--watermark=none', 'd']), { dir: 'd', offline: false, afterGate: false, watermark: 'none', tier: undefined });
   assert.deepEqual(parseCheckArgs(['--watermark=text:a=b', 'd']).watermark, 'text:a=b');
   for (const bad of [[], ['d', '--watermark'], ['d', '--watermark', '--offline'], ['--watermark=', 'd'], ['d', '--wat'], ['d', '--offlin'], ['d', 'e'], ['--after-gate']]) {
     assert.throws(() => parseCheckArgs(bad), Error, JSON.stringify(bad));
@@ -542,4 +544,55 @@ test('image-set() strings in a linked stylesheet are resolved against the sheet'
     edit(dir, 'presentation.html', (h) => h.replace('</head>', () => '<link rel="stylesheet" href="css/extra.css"></head>'));
   };
   assert.deepEqual((await check(mutate)).failed, RECORD('assets/set.png'));
+});
+
+// ---- Motion: a presentation with a canvas gets the check-motion canvas checks ---------------------------------------
+
+const MOTION = ['motion: canvas is alive', 'motion: canvas honours reduced motion', 'motion: canvas pauses off-screen', 'motion: fallback without WebGL', 'motion: motion weight within tier'];
+const CLI = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'check-presentation.mjs');
+
+test('parseCheckArgs: --tier takes fast, medium, high or custom, once; unknown flags are still rejected', () => {
+  assert.equal(parseCheckArgs(['dir', '--tier', 'high']).tier, 'high');
+  assert.equal(parseCheckArgs(['--tier=custom', 'dir']).tier, 'custom');
+  assert.equal(parseCheckArgs(['dir']).tier, undefined);
+  for (const argv of [['dir', '--tier'], ['dir', '--tier', 'bogus'], ['dir', '--tier', 'fast', '--tier', 'high'], ['dir', '--tier=fast', '--tier=high'], ['dir', '--tiers', 'high']]) {
+    assert.throws(() => parseCheckArgs(argv), Error, argv.join(' '));
+  }
+});
+
+test('a presentation without a canvas has no motion: checks, with or without --tier', async () => {
+  for (const options of [{}, { tier: 'high' }]) {
+    const { results, failed } = await check(() => {}, options);
+    assert.deepEqual(results.filter((r) => r.name.startsWith('motion:')), []);
+    assert.deepEqual(failed, []);
+  }
+});
+
+test('healthy canvas slide: the five motion: checks run, none fails', async () => {
+  const { results, failed } = await check((dir) => addCanvasSlide(dir, 'healthy'), { tier: 'high' });
+  assert.deepEqual(results.filter((r) => r.name.startsWith('motion:')).map((r) => r.name), MOTION);
+  assert.deepEqual(failed, []);
+});
+
+test('a frozen canvas on slide 2 fails only motion: canvas is alive', async () => {
+  const { failed, results } = await check((dir) => addCanvasSlide(dir, 'frozen'), { tier: 'high' });
+  assert.deepEqual(failed, ['motion: canvas is alive']);
+  assert.match(results.find((r) => r.name === 'motion: canvas is alive').detail, /frozen/);
+});
+
+test('--tier missing with a canvas present is a command-line problem: runChecks throws UsageError and the CLI exits 2', async () => {
+  const { UsageError } = await import('../scripts/lib/motion-checks.mjs');
+  await assert.rejects(check((dir) => addCanvasSlide(dir, 'healthy')), UsageError);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'apresentação teste '));
+  const dir = path.join(root, 'apresentação');
+  try {
+    fs.cpSync(base.dir, dir, { recursive: true });
+    addCanvasSlide(dir, 'healthy');
+    const r = spawnSync(process.execPath, [CLI, dir, '--offline'], { encoding: 'utf8', timeout: 300000 });
+    assert.equal(r.status, 2, r.stdout + r.stderr);
+    assert.match(r.stderr, /--tier/);
+    assert.equal(/\n\s+at /.test(r.stderr), false, `no stack trace: ${r.stderr}`);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });

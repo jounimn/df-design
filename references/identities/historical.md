@@ -30,6 +30,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Fits:** hotels, cocktail bars, spirits, theatre, jewellery, galas, luxury residential. **Misfits:** SaaS dashboards, healthcare, children's products, anything needing dense data.
 - **Trap:** Gatsby-party pastiche; gold text on black fails contrast at body sizes; all-caps display faces used for paragraphs; metallic gradients rendered as flat mustard on screens.
 - **Load:** fast (SVG ornament, one display + one text face); medium if foil textures are raster.
+- **Techniques that suit it:** [Shimmer sweep](../techniques/fast.md#shimmer-sweep), [Image reveal through the identity's device](../techniques/fast.md#image-reveal-through-the-identitys-device). A slow glint across the gold, and images that open like a fan or a stepped frame.
 - **Seen at:** https://videinfra.com/work/poklonnaya-9 (Poklonnaya 9 — Awwwards SOTD residential site built on its Deco facade, stepped frames, gold-on-dark); https://www.awwwards.com/sites/varani-gin (Varani Gin — 1920s/Gatsby gin journey, Deco–Nouveau ornament; Awwwards entry); https://www.awwwards.com/inspiration/art-deco-hero-section-doof-media (Art Deco hero section by antidefault).
 - **Search:** fontsinuse.com/tags/2431/art-deco; trends.daisyui.com/trend/art-deco/; aesthetics.fandom.com/wiki/Art_Deco; "art deco website" Awwwards; "art deco hotel website design".
 
@@ -66,6 +67,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Fits:** design schools, architecture, museums, furniture, tooling, typography projects. **Misfits:** luxury, romance, wellness, heritage food.
 - **Trap:** "three shapes and primaries" cliché; yellow text fails contrast; geometric shapes as decoration rather than structure.
 - **Load:** fast.
+- **Techniques that suit it:** [Scroll-linked](../techniques/fast.md#scroll-linked), [Dot grid and hairlines as masks](../techniques/fast.md#dot-grid-and-hairlines-as-masks), [Image reveal through the identity's device](../techniques/fast.md#image-reveal-through-the-identitys-device). The page moves because the reader scrolls, and the lines and shapes stay flat and geometric.
 - **Seen at:** https://www.bauhaus-dessau.de (Bauhaus Dessau Foundation — institutional identity); https://www.awwwards.com/sites/100-years-of-bauhaus (bauhaus100 jubilee portal; Awwwards HM, 2019); https://www.awwwards.com/sites/bauhaus-2-0 (Bauhaus 2.0 — one font, one colour, simple graphics; Awwwards entry).
 - **Search:** trends.daisyui.com/trend/bauhaus/; aesthetics.fandom.com/wiki/Bauhaus; Awwwards "bauhaus" search; Fonts In Use "Architype Bayer"; "Herbert Bayer universal alphabet web".
 
