@@ -161,7 +161,7 @@ not measured: no production site was found that ships this effect.
 
 ### Lighter version
 
-No lighter version: the Medium tier has no version of this effect. The Fast version, [Liquid morph](fast.md#liquid-morph), is the fallback: the same merging shapes drawn as an SVG filter, without the lit, thick-drop body.
+The Fast version, [Liquid morph](fast.md#liquid-morph), is the lighter one: the same merging shapes drawn as an SVG filter, without the lit, thick-drop body.
 
 ### For the builder
 
@@ -281,7 +281,7 @@ On one site (activetheory.net, measured 2026-10-14, the same page and the same d
 
 ### Lighter version
 
-No lighter version: the Medium tier has no version of this effect. The Fast version, [Holographic](fast.md#holographic), is the fallback: a turning rainbow gradient on a flat card, without a solid that rotates.
+The Fast version, [Holographic](fast.md#holographic), is the lighter one: a turning rainbow gradient on a flat card, without a solid that rotates.
 
 ### For the builder
 
@@ -388,7 +388,7 @@ On one site (spline.design, measured 2026-10-14) the page's motion code weighed 
 
 ### Lighter version
 
-No lighter version: the Medium tier has no version of this effect. The Fast version, [Wireframe 3D](fast.md#wireframe-3d), is the fallback: a cube of bordered faces turned by CSS, good for boxes and flat plates but not for curved objects.
+The Fast version, [Wireframe 3D](fast.md#wireframe-3d), is the lighter one: a cube of bordered faces turned by CSS, good for boxes and flat plates but not for curved objects.
 
 ### For the builder
 
@@ -477,7 +477,7 @@ On two sites (stripe.com and raycast.com, measured 2026-10-14) the page's motion
 
 ### Lighter version
 
-No lighter version: the Medium tier has no version of this effect. The Fast version, [Gradient mesh](fast.md#gradient-mesh), is the fallback: three large colour pools drifting by CSS, with no per-pixel blending and no grain.
+The Fast version, [Gradient mesh](fast.md#gradient-mesh), is the lighter one: three large colour pools drifting by CSS, with no per-pixel blending and no grain.
 
 ### For the builder
 
