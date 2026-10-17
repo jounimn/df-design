@@ -49,7 +49,7 @@ warrant heavy motion, a bakery usually does not.
 |---|---|
 | `fast` | CSS only: slide and fade transitions, `clip-path` reveals for images (`[data-reveal]`). Built into the runtime (§7) |
 | `medium` | A small library (GSAP core or Motion One) for choreographed image and mockup reveals, hooked on the runtime's `df:slidechange` event |
-| `high` | WebGL or shader transitions between slides, with the fast tier as the fallback |
+| `high` | Techniques from [`techniques/high.md`](techniques/high.md), run by `canvas-loop.js` inside the slide in focus. Every export shows the poster frame, and the lighter version appears without WebGL; under reduced motion the poster frame stays |
 
 `prefers-reduced-motion` turns all of it off, at every tier. If the author
 answers **skip**, no tier is asked or recorded.
@@ -407,6 +407,9 @@ Optional flags of `check-presentation.mjs`:
 | `--offline` | Skips the source-URL fetch when there is no network |
 | `--after-gate` | Also fails a site section still marked `data-pending` |
 | `--watermark <spec\|none>` | Says what the export was run with. `none` fails a leftover `preview/`; a spec fails a missing or stale one. Pass the same value given to the export |
+| `--tier <fast\|medium\|high\|custom>` | The tier the author chose. Required when a slide has a canvas, which then also gets the `motion:` canvas checks (`verification.md`) |
+
+When the presentation has a canvas, `check-presentation` also runs the same motion checks as a page (`verification.md`) against the `tier=` recorded for it, and each is prefixed `motion:`. Without a canvas it adds nothing.
 
 The checker confirms the nine sections, the research counts, the licence
 rows, the preview and final split, every export size and the PDF page

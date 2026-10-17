@@ -2,6 +2,10 @@
 
 Working implementations, each traced to a site that ships it. Every value
 here was read off a production page — see `benchmarks.md` for the method.
+The techniques themselves are cards, one file per tier: [fast](techniques/fast.md) (23 cards),
+[medium](techniques/medium.md) (4) and [high](techniques/high.md) (7). Open the file of the tier the
+author chose, then the card for the effect. Each card says what it is, which identities it suits, what it
+costs the visitor and how to build it. This file keeps the rules that apply to all of them.
 
 **The governing idea:** the sites that read as expensive are not running
 more animations. They are compositing — masks, clip paths, blend modes and
@@ -34,296 +38,75 @@ roughly 80% of transitions. The other two are for exceptions you can name.
 
 ---
 
-## 2. Ambient dot grid — Linear
+## 2. Ambient dot grid → references/techniques/fast.md
 
-Linear's hero sits on a grid of dots where individual dots step between
-`opacity: 0.3` and `1` on a staggered schedule. It ships as dozens of
-generated `@keyframes grid-dot-R-C-upDown` rules; one keyframe plus a
-per-dot delay reads identically and is a fraction of the CSS.
-
-This is the **ambient layer** — the thing a page without one is missing.
-It costs one element and no JavaScript.
-
-```css
-.dot-grid {
-  display: grid;
-  grid-template-columns: repeat(var(--cols), 1fr);
-  gap: 28px;
-  /* Fade the field out at the edges so it never fights the content. */
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, #000 30%, transparent 75%);
-}
-.dot-grid i {
-  width: 3px; height: 3px; border-radius: 50%;
-  background: rgb(var(--ink) / 1);
-  opacity: 0.3;
-  animation: dot-pulse 7s var(--ease-signature) infinite;
-  animation-delay: var(--d);   /* set per dot, see below */
-}
-@keyframes dot-pulse {
-  0%, 62%, 100% { opacity: 0.18; }
-  70%           { opacity: 1; }
-}
-```
-
-```tsx
-// Delays are deliberately irregular: an even sweep reads as a loading bar,
-// a scattered one reads as something alive.
-const dots = Array.from({ length: cols * rows }, (_, i) => (
-  <i key={i} style={{ "--d": `${(i * 977) % 7000}ms` } as React.CSSProperties} />
-));
-```
-
-Under reduced motion, drop the animation and keep the field at its resting
-opacity — the texture survives, the movement does not.
+Moved to [its card](techniques/fast.md#ambient-dot-grid).
 
 ---
 
-## 3. Corner glow — Linear
+## 3. Corner glow → references/techniques/fast.md
 
-Linear's cards carry a soft highlight anchored at one corner. It is a mask,
-not a gradient background, so the glow reveals whatever is underneath.
-
-```css
-/* Read verbatim off linear.app */
-.card-glow::before {
-  content: "";
-  position: absolute; inset: 0;
-  background: rgb(var(--brand));
-  mask-image: radial-gradient(200px 200px at 0% 0%,
-    #000 0%, rgb(0 0 0 / 0.6) 30%, rgb(0 0 0 / 0.2) 50%, transparent 70%);
-  pointer-events: none;
-}
-```
-
-Move the anchor (`at 0% 0%`, `at 8% 0%`, `at 100% 0%`) card by card so a row
-of cards is not four copies of the same highlight. Linear ships all three.
+Moved to [its card](techniques/fast.md#corner-glow).
 
 ---
 
-## 4. Edge fade for anything that scrolls sideways
+## 4. Edge fade → references/techniques/fast.md
 
-Marquees, logo rows and overflow tables all need their cut edges softened,
-or they read as broken rather than continuing.
-
-```css
-/* linear.app: 80px. hex.tech uses 30px on a tighter component. */
-.edge-fade {
-  mask-image: linear-gradient(to right,
-    transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
-}
-/* hex.tech, for a panel that should dissolve into the section below */
-.bottom-fade { mask-image: linear-gradient(#000 0%, #000 90%, transparent 100%); }
-```
+Moved to [its card](techniques/fast.md#edge-fade).
 
 ---
 
-## 5. Dot grid and hairlines as masks — Hex
+## 5. Dot grid and hairlines as masks → references/techniques/fast.md
 
-Two of the most useful lines of CSS in the whole survey.
-
-```css
-/* A dot grid with no elements at all. */
-.dotted {
-  background: rgb(var(--ink) / 0.25);
-  mask-image: radial-gradient(#fff, #fff 1px, transparent 1px, transparent);
-  mask-size: 16px 16px;
-}
-/* A 1px hairline drawn by masking, so it can carry a gradient. */
-.hairline-right {
-  background: linear-gradient(to bottom, transparent, rgb(var(--brand)), transparent);
-  mask-image: linear-gradient(to right,
-    transparent, transparent calc(100% - 1px), #fff calc(100% - 1px), #fff);
-}
-```
+Moved to [its card](techniques/fast.md#dot-grid-and-hairlines-as-masks).
 
 ---
 
-## 6. Noise
+## 6. Noise → references/techniques/fast.md
 
-Neon masks with a noise SVG; Hex animates the background position of one,
-which is the cheapest possible film-grain.
-
-```css
-.grain::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
-  animation: grain-drift 8s steps(6) infinite;   /* hex.tech */
-  opacity: 0.04;
-}
-@keyframes grain-drift { from { background-position: -1024px -1024px; } to { background-position: 0 0; } }
-```
-
-Keep it under `opacity: 0.05`. Above that it stops being texture and starts
-being dirt.
+Moved to [its card](techniques/fast.md#noise).
 
 ---
 
-## 7. Shimmer sweep — Neon
+## 7. Shimmer sweep → references/techniques/fast.md
 
-```css
-/* neon.tech: @keyframes shimmer { 100% { transform: translate(100%) } } */
-.shimmer { position: relative; overflow: hidden; }
-.shimmer::after {
-  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgb(var(--brand) / 0.18), transparent);
-  animation: shimmer 2.4s var(--ease-signature) infinite;
-}
-@keyframes shimmer { to { transform: translateX(100%); } }
-```
-
-Use for loading placeholders and for a single "this is live" cue. Not for
-decoration on static content.
+Moved to [its card](techniques/fast.md#shimmer-sweep).
 
 ---
 
-## 8. Marquee — Hex
+## 8. Marquee → references/techniques/fast.md
 
-```css
-/* hex.tech: @keyframes ticker { 0% { translateX(0) } 100% { translateX(-20%) } }
-   The -20% works because the list is rendered five times. */
-.ticker { display: flex; width: max-content; animation: ticker 40s linear infinite; }
-@keyframes ticker { to { transform: translateX(-20%); } }
-```
-
-`linear` is correct here — it is the one case where constant speed is right,
-because any easing makes a continuous loop visibly stutter at the seam.
-Pair with the edge fade from §4.
+Moved to [its card](techniques/fast.md#marquee).
 
 ---
 
-## 9. Additive blends on a dark ground — Linear
+## 9. Additive blends on a dark ground → references/techniques/fast.md
 
-Linear's glowing hairlines and haloed panels are `mix-blend-mode`, measured
-at `overlay` ×7, `lighten` ×6, `screen` ×5.
-
-```css
-.glow-line { mix-blend-mode: screen; }    /* light adds, dark disappears */
-.tint-panel { mix-blend-mode: overlay; }  /* keeps the underlying texture */
-```
-
-Rule of thumb: `screen` / `lighten` on dark grounds, `multiply` on light
-ones (Stripe ships `multiply` ×4). A blend mode on the wrong ground does
-nothing at all, silently.
+Moved to [its card](techniques/fast.md#additive-blends-on-a-dark-ground).
 
 ---
 
-## 10. Scroll-linked, two ways
+## 10. Scroll-linked → references/techniques/fast.md
 
-**Native CSS first.** Chrome/Edge 115+, Firefox 132+, Safari 18+, ~84%
-global. It runs on the compositor, off the main thread. Write the finished
-state as the default so unsupported browsers get a working page:
-
-```css
-.reveal { opacity: 1; transform: none; }          /* the finished state */
-
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal {
-      animation: reveal-in linear both;
-      animation-timeline: view();
-      animation-range: entry 10% cover 35%;
-    }
-  }
-}
-@keyframes reveal-in {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: none; }
-}
-```
-
-**Motion (React) when the value must drive something JS owns.** Motion falls
-back to native `ScrollTimeline` where it can and a pooled
-`IntersectionObserver` for triggers.
-
-```tsx
-const ref = useRef<HTMLDivElement>(null);
-const { scrollYProgress } = useScroll({
-  target: ref,
-  offset: ["start end", "end start"],   // enters bottom → leaves top
-});
-const y = useTransform(scrollYProgress, [0, 1], [0, -120]);
-```
-
-Know which one you need: **scroll-triggered** (fires on entry — use
-`whileInView` / `useInView`) versus **scroll-linked** (bound to position —
-use `useScroll`). Reaching for the second when you meant the first is how
-pages end up with content that never appears.
+Moved to [its card](techniques/fast.md#scroll-linked).
 
 ---
 
-## 11. Sticky narrative
+## 11. Sticky narrative → references/techniques/fast.md
 
-The pattern behind Antigravity's and Observable's mid-page sections: the
-copy holds still while the evidence moves past it. Observable ships 27
-sticky elements.
-
-```tsx
-<div ref={containerRef} style={{ height: "300vh" }}>
-  <div style={{ position: "sticky", top: 0, height: "100vh", overflow: "hidden" }}>
-    <motion.div style={{ x }}>{/* the moving stage */}</motion.div>
-  </div>
-</div>
-```
-
-`x` comes from `useTransform(scrollYProgress, [0, 1], ["0%", "-75%"])`.
-A taller outer container makes the horizontal travel feel slower.
+Moved to [its card](techniques/fast.md#sticky-narrative).
 
 ---
 
-## 12. Counters that mean something
+## 12. Counters that mean something → references/techniques/fast.md
 
-A number that counts up from zero is decoration. A number that counts to a
-value *and shows its direction* is information.
-
-```tsx
-function useCountUp(target: number, ms: number, run: boolean) {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    if (!run) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setN(target); return; }
-    let raf = 0; const t0 = performance.now();
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - t0) / ms);
-      setN(Math.round(target * (1 - Math.pow(1 - p, 4))));   // easeOutQuart
-      if (p < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, ms, run]);
-  return n;
-}
-```
-
-Always `font-variant-numeric: tabular-nums` on a counting figure, or the
-whole row reflows on every frame.
+Moved to [its card](techniques/fast.md#counters-that-mean-something).
 
 ---
 
-## 13. Text that performs its sentence
+## 13. Text that performs its sentence → references/techniques/fast.md
 
-Split-text is worth it only when the motion restates the meaning — letters
-scattering and converging under a headline about consolidating scattered
-things. Otherwise it is noise.
-
-```tsx
-const letters = [...text];
-<h1 aria-label={text}>
-  {letters.map((c, i) => (
-    <motion.span
-      key={i} aria-hidden
-      initial={{ opacity: 0, x: (i * 53) % 90 - 45, y: (i * 31) % 60 - 30, rotate: (i % 7) - 3 }}
-      animate={{ opacity: 1, x: 0, y: 0, rotate: 0 }}
-      transition={{ duration: 0.8, delay: i * 0.012, ease: [0.16, 1, 0.3, 1] }}
-      style={{ display: "inline-block", whiteSpace: "pre" }}
-    >{c}</motion.span>
-  ))}
-</h1>
-```
-
-`aria-label` on the heading and `aria-hidden` on the spans, or a screen
-reader announces the text one letter at a time.
-
-Total stagger must stay under ~500ms. At `i * 0.012` that is 40 characters.
+Moved to [its card](techniques/fast.md#text-that-performs-its-sentence).
 
 ---
 
@@ -358,6 +141,13 @@ an entrance must also be given its resting state:
 In React, branch on it rather than relying on CSS alone — `useReducedMotion()`
 in Motion, or `matchMedia("(prefers-reduced-motion: reduce)")`. Linear ships
 `use-reduced-motion` in its bundle; so should you.
+
+A canvas follows the same contract. `templates/canvas-loop.js` draws the
+poster (one still frame) once under `reduce` and never calls the draw
+function, and does the same when `window.__DF_EXPORT__ === true`; it also
+stops drawing off screen and in a hidden tab, and shows the fallback when
+the context is missing or lost. `check-motion.mjs` fails a canvas that keeps
+changing under `reduce`.
 
 ---
 
@@ -411,75 +201,12 @@ decorative glyphs, an icon per feature that wiggles on scroll.
 
 ### Images: reveal through the identity's own device
 
-An image enters the way its medium would. A mask or clip does the work
-(the measured finding: masks, not more keyframes):
-
-```css
-/* Print / newsletter: the image is inked in, top to bottom, like a press pass. */
-.img-ink { clip-path: inset(0 0 100% 0); transition: clip-path 900ms var(--ease-weighted); }
-.img-ink.in-view { clip-path: inset(0 0 0 0); }
-
-/* Darkroom / photography: develops from paper white, contrast arriving last. */
-.img-develop { filter: grayscale(1) contrast(.4) brightness(1.6); transition: filter 1400ms ease-out; }
-.img-develop.in-view { filter: none; }
-
-/* Halftone / technical: dots grow until they overlap and the photo is whole.
-   At an 8px cell, a 6px radius covers the cell corners (5.66px). */
-@property --dot { syntax: "<length>"; inherits: false; initial-value: 0px; }
-.img-halftone {
-  mask-image: radial-gradient(circle, #000 var(--dot), transparent calc(var(--dot) + .5px));
-  mask-size: 8px 8px;
-  transition: --dot 900ms var(--ease-weighted);
-}
-.img-halftone.in-view { --dot: 6px; }
-
-/* One treatment, every image: a duotone in the identity's ink and paper, applied in CSS
-   so a new photo joins the set without an editing pass.
-   Multiply onto the paper turns highlights into paper; lighten with the ink turns
-   shadows into ink. The ink must be darker than the paper in every channel. */
-.img-duotone { position: relative; isolation: isolate; background: rgb(var(--canvas)); }
-.img-duotone img { display: block; filter: grayscale(1) contrast(1.1); mix-blend-mode: multiply; }
-.img-duotone::after { content: ""; position: absolute; inset: 0; background: rgb(var(--brand)); mix-blend-mode: lighten; pointer-events: none; }
-```
-
-Trigger reveals on entering the viewport (`IntersectionObserver` adding
-`.in-view`, or `animation-timeline: view()` as in §10). They play
-**once**, never again on every scroll back.
-
-Rules:
-
-- **Transform, opacity, filter, clip-path and mask only.** Never animate
-  `width`, `height` or `top` on an image; it reflows the page. Set `width`
-  and `height` attributes so nothing jumps when the image loads.
-- **No continuous zoom or pan on content images.** A slow ambient move is
-  allowed on at most one hero image, and only when the identity calls for it.
-- **Never put `loading="lazy"` on an image that starts fully hidden by its
-  own clip or mask.** Chromium can treat a fully clipped image as never
-  visible, so it never loads, and the reveal waits forever. This shipped
-  broken in the Faísca example build until it was looked at. Either load
-  reveal images eagerly (`decoding="async"`), or put the clip on a wrapper,
-  observe the wrapper, and only then set the image's `src`. Add `.in-view`
-  after `img.decode()` resolves, or the mask opens onto an empty box:
-
-```js
-const io = new IntersectionObserver((entries) => entries.forEach(async (e) => {
-  if (!e.isIntersecting) return;
-  io.unobserve(e.target);
-  const img = e.target.querySelector('img');
-  if (img.dataset.src) img.src = img.dataset.src;   // wrapper pattern: load on approach
-  try { await img.decode(); } catch {}                // reveal only a painted image
-  e.target.classList.add('in-view');
-}), { rootMargin: '200px 0px' });
-document.querySelectorAll('.img-ink, .img-develop, .img-halftone').forEach((el) => io.observe(el));
-```
-- **Reduced motion:** images and icons show in their final state at once.
-  Add them to the resting-state rule in §14:
+Moved to the card [Image reveal through the identity's device](techniques/fast.md#image-reveal-through-the-identitys-device).
+Its reduced-motion rule is added to the resting-state rule in §14 together
+with the icon rule below.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .img-ink { clip-path: none !important; }
-  .img-develop { filter: none !important; }
-  .img-halftone { mask-image: none !important; }
   .icon-draw path { stroke-dashoffset: 0 !important; }
 }
 ```

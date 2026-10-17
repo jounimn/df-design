@@ -1,0 +1,173 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { lintTechniques, MEASURED_LINE } from '../scripts/lib/techniques-lint.mjs';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const GOOD = path.join(HERE, 'fixtures', 'techniques', 'good');
+const REPO = path.join(HERE, '..');
+
+// The good card set is the template. Each bad case is that set with one thing broken, in a temporary copy.
+function broken(edits = {}, { remove = [] } = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cartões teste '));
+  fs.cpSync(GOOD, root, { recursive: true });
+  // A Windows checkout (core.autocrlf) turns the fixture's line ends into CRLF; the edits below are written with LF.
+  for (const file of fs.readdirSync(root, { recursive: true })) {
+    const full = path.join(root, file);
+    if (full.endsWith('.md')) fs.writeFileSync(full, fs.readFileSync(full, 'utf8').replace(/\r\n/g, '\n'));
+  }
+  for (const [file, pairs] of Object.entries(edits)) {
+    const target = path.join(root, 'references', file);
+    let text = fs.readFileSync(target, 'utf8');
+    for (const [from, to] of pairs) {
+      assert.ok(text.includes(from), `fixture edit: "${from}" is not in ${file}`);
+      text = text.replace(from, () => to);
+    }
+    fs.writeFileSync(target, text);
+  }
+  for (const file of remove) fs.rmSync(path.join(root, 'references', file));
+  return { root, cleanup: () => fs.rmSync(root, { recursive: true, force: true }) };
+}
+const lint = (edits, options) => {
+  const fx = broken(edits, options);
+  try { return lintTechniques(fx.root).errors; } finally { fx.cleanup(); }
+};
+const rules = (errors) => [...new Set(errors.map((e) => e.rule))];
+
+// A second Medium card, so a link can point at a card that exists but is another technique.
+const HALFTONE = [
+  '## Halftone', '', '### What it is', '', 'A screen of dots that makes a picture.', '',
+  '### Suits', '', 'Print-minded brands.', '',
+  '### What it costs the visitor', '', 'not measured', '',
+  '### Lighter version', '', '[Halftone](fast.md#particles)', '',
+  '### For the builder', '', 'A loop with a poster.', '',
+  '#### Where the cost was measured', '', MEASURED_LINE, '', '- Not measured.', '',
+].join('\n');
+
+test('the good card set passes every rule', () => {
+  assert.deepEqual(lintTechniques(GOOD).errors, []);
+});
+
+const CASES = [
+  ['layers: a missing layer', { 'techniques/fast.md': [['### Suits', '### Fits']] }, 'layers'],
+  ['layers: the lighter version is required above Fast', { 'techniques/medium.md': [['### Lighter version', '### A simpler one']] }, 'layers'],
+  ['layers: Fast has no lighter version', { 'techniques/fast.md': [['### For the builder', '### Lighter version\n\n[x](fast.md#particles)\n\n### For the builder']] }, 'layers'],
+  ['no-api-in-top-layers: WebGL in layer 1', { 'techniques/fast.md': [['small dots', 'small WebGL dots']] }, 'no-api-in-top-layers'],
+  ['no-api-in-top-layers: a library name in layer 4', { 'techniques/high.md': [['About 340 KB', 'About 340 KB with Three']] }, 'no-api-in-top-layers'],
+  ['history-has-source: layer 2 without a link', { 'techniques/fast.md': [['([Wikipedia, Screensaver](https://en.wikipedia.org/wiki/Screensaver))', '(Wikipedia)']] }, 'history-has-source'],
+  ['cost-number-or-not-measured: neither', { 'techniques/fast.md': [['About 4 KB, appears with the first paint (median of 2 sites).', 'Light and quick.']] }, 'cost-number-or-not-measured'],
+  ['cost-number-or-not-measured: both', { 'techniques/medium.md': [['not measured\n', 'not measured, about 20 KB\n']] }, 'cost-number-or-not-measured'],
+  ['lighter-resolves: a link into the same tier', { 'techniques/medium.md': [['(fast.md#particles)', '(medium.md#particles)']] }, 'lighter-resolves'],
+  ['lighter-resolves: another technique, not the same one a tier down', {
+    'techniques/high.md': [['(medium.md#particles)', '(medium.md#halftone)']],
+    'techniques/medium.md': [['- Not measured.\n', `- Not measured.\n\n${HALFTONE}`]],
+  }, 'lighter-resolves'],
+  ['links-resolve: an anchor that is not there', { 'techniques/fast.md': [['identity-library.md#blueprint', 'identity-library.md#nothing']] }, 'links-resolve'],
+  ['links-resolve: a file that is not there', { 'techniques/fast.md': [['../identity-library.md#blueprint', '../identities.md#blueprint']] }, 'links-resolve'],
+  ['recipes-section-refs-resolve: a section that does not exist', { 'techniques/fast.md': [['`recipes-motion.md` §14', '`recipes-motion.md` §99']] }, 'recipes-section-refs-resolve'],
+  ['measured-heading: layer 6 without the title', { 'techniques/fast.md': [['#### Where the cost was measured\n', '#### Sites\n']] }, 'measured-heading'],
+  ['measured-heading: the title without the fixed line', { 'techniques/high.md': [[MEASURED_LINE, 'References for this technique.']] }, 'measured-heading'],
+];
+for (const [name, edits, rule] of CASES) {
+  test(`${name} fails only ${rule}`, () => {
+    const errors = lint(edits);
+    assert.deepEqual(rules(errors), [rule], JSON.stringify(errors));
+    for (const e of errors) {
+      assert.equal(typeof e.file, 'string');
+      assert.equal(typeof e.message, 'string');
+      assert.ok(e.message.length > 10);
+    }
+  });
+}
+
+// The API check is a deny list: each word of it is caught, in any case, wherever it sits in layers 1-5.
+const API_SNIPPETS = [
+  'three.js', 'THREE.JS', 'GSAP', 'gsap', 'Lottie', 'WebGPU', 'ScrollTrigger', 'Spline', 'mix-blend-mode', 'mask-image',
+  '@property', 'animation-timeline', 'vertex shader', 'fragment shader', 'uniform shader', 'WebGL', 'GLSL', 'getContext',
+];
+for (const snippet of API_SNIPPETS) {
+  test(`no-api-in-top-layers: "${snippet}" in layer 1 is caught`, () => {
+    assert.deepEqual(rules(lint({ 'techniques/fast.md': [['small dots', `small ${snippet} dots`]] })), ['no-api-in-top-layers']);
+  });
+}
+
+test('no-api-in-top-layers: "Three.js" opening a sentence is still a library; "Three" and "Spline" mid-title words are not checked in the card title', () => {
+  assert.deepEqual(rules(lint({ 'techniques/fast.md': [['A handful of small dots', 'Three.js draws a handful of small dots']] })), ['no-api-in-top-layers']);
+  assert.deepEqual(rules(lint({ 'techniques/fast.md': [['A handful of small dots', 'Spline curves carry a handful of small dots']] })), []);
+});
+
+// A new card whose title is an API word: the title is a name, so it is not read as prose.
+const card = (name, below) => [
+  `## ${name}`, '', '### What it is', '', 'A soft colour field.', '', '### Suits', '', 'Calm brands.', '',
+  '### What it costs the visitor', '', 'not measured', '',
+  ...(below ? ['### Lighter version', '', `No lighter version: the field is already one gradient.`, ''] : []),
+  '### For the builder', '', 'A gradient.', '', '#### Where the cost was measured', '', MEASURED_LINE, '', '- Not measured.', '',
+].join('\n');
+
+test('a card titled "Shader gradient" does not fail the API check', () => {
+  assert.deepEqual(lint({ 'techniques/fast.md': [['- example.com, 2026-10-14.\n', `- example.com, 2026-10-14.\n\n${card('Shader gradient', false)}`]] }), []);
+});
+
+test('lighter-resolves: "No lighter version" needs a colon and a reason', () => {
+  for (const bare of ['No lighter version', 'No lighter version.', 'No lighter version: n/a']) {
+    assert.deepEqual(rules(lint({ 'techniques/high.md': [['[Particles](medium.md#particles): the same idea with hundreds of dots.', bare]] })), ['lighter-resolves'], bare);
+  }
+});
+
+test('lighter-resolves: the link goes to the nearest lower tier that has the card; its own tier fails', () => {
+  const high = (to) => ({ 'techniques/high.md': [['(medium.md#particles)', `(${to}#particles)`]] });
+  assert.deepEqual(lint(high('medium.md')), []);
+  // Particles has a Medium card, so a link that skips it to Fast is not "one tier down".
+  assert.deepEqual(rules(lint(high('fast.md'))), ['lighter-resolves']);
+  assert.deepEqual(rules(lint(high('high.md'))), ['lighter-resolves']);
+});
+
+test('lighter-resolves: a High card with no Medium card links to its Fast card', () => {
+  const edits = (to) => ({
+    'techniques/fast.md': [['- example.com, 2026-10-14.\n', `- example.com, 2026-10-14.\n\n${card('Mesh', false)}`]],
+    'techniques/high.md': [['- activetheory.net, 2026-10-14.', `- activetheory.net, 2026-10-14.\n\n${card('Mesh', true).replace('No lighter version: the field is already one gradient.', `[Mesh](${to}#mesh)`)}`]],
+  });
+  assert.deepEqual(lint(edits('fast.md')), []);
+  assert.ok(rules(lint(edits('medium.md'))).includes('lighter-resolves')); // medium.md has no Mesh card
+});
+
+test('cost-number-or-not-measured: a percentage counts, with or without a space', () => {
+  for (const cost of ['About 50 % of visitors.', 'About 50% of visitors.', '75 %']) {
+    assert.deepEqual(lint({ 'techniques/fast.md': [['About 4 KB, appears with the first paint (median of 2 sites).', cost]] }), [], cost);
+  }
+});
+
+test('measured-heading: the fixed line comes right after the heading, and the list is never "references" or "inspiration"', () => {
+  assert.deepEqual(rules(lint({ 'techniques/fast.md': [['#### Where the cost was measured\n\n', '#### Where the cost was measured\n\nSome sites.\n\n']] })), ['measured-heading']);
+  for (const title of ['References', 'Inspiration sites']) {
+    assert.deepEqual(rules(lint({ 'techniques/fast.md': [['- example.com, 2026-10-14.', `#### ${title}\n\n- example.com, 2026-10-14.`]] })), ['measured-heading'], title);
+  }
+});
+
+test('files: a missing tier file fails only files', () => {
+  assert.deepEqual(rules(lint({}, { remove: ['techniques/high.md'] })), ['files']);
+});
+
+test('an error names the card it is about', () => {
+  const [e] = lint({ 'techniques/fast.md': [['small dots', 'small WebGL dots']] });
+  assert.equal(e.card, 'Particles');
+  assert.equal(e.file, 'references/techniques/fast.md');
+});
+
+test('Three at the start of a sentence is a number, not a library; "no lighter version" is allowed with a reason', () => {
+  assert.deepEqual(lint({ 'techniques/fast.md': [['A handful of small dots that drift slowly behind the headline.', 'Three small dots drift slowly behind the headline.']] }), []);
+  assert.deepEqual(lint({ 'techniques/high.md': [['[Particles](medium.md#particles): the same idea with hundreds of dots.', 'No lighter version: the effect is the technique itself.']] }), []);
+});
+
+// This rule has nothing to wait for: it runs on the real repository already (README, SKILL.md, references/).
+test('the real repository: every recipes-motion.md §N reference resolves', () => {
+  const unresolved = lintTechniques(REPO).errors.filter((e) => e.rule === 'recipes-section-refs-resolve');
+  assert.deepEqual(unresolved, []);
+});
+
+test('the real references/techniques/*.md pass', () => {
+  assert.deepEqual(lintTechniques(REPO).errors, []);
+});

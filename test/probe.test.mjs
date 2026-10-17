@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { probe } from '../scripts/probe.mjs';
 import { startFixtureServer } from './helpers/fixture-server.mjs';
+import { motionFixture } from './helpers/motion-fixture.mjs';
 
 const FIXTURES = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
@@ -56,5 +57,40 @@ test('records whether the site honours the reduced-motion contract', async () =>
   } finally {
     await fs.rm(root, { recursive: true, force: true });
     await server.close();
+  }
+});
+
+test('records the canvases of a WebGL page, with weight and libraries', async () => {
+  const fx = motionFixture('healthy');
+  const server = await startFixtureServer(fx.dir);
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dfd-probe-'));
+  try {
+    const { record, quarantine } = await probe(`${server.url}/page.html`, { root });
+    assert.equal(record.canvases.length, 1);
+    assert.equal(record.canvases[0].selector, 'canvas#c');
+    assert.equal(record.canvases[0].context, 'webgl');
+    assert.equal(record.canvases[0].animating, true);
+    assert.ok(record.canvasJsBytes.motionJsBytes > 0);
+    assert.deepEqual(record.libraries, []);
+    assert.deepEqual(quarantine.filter((q) => q.field === 'canvases'), []);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+    await server.close();
+    fx.cleanup();
+  }
+});
+
+test('a page without a canvas records an empty list', async () => {
+  const fx = motionFixture('noCanvas');
+  const server = await startFixtureServer(fx.dir);
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dfd-probe-'));
+  try {
+    const { record } = await probe(`${server.url}/page.html`, { root });
+    assert.deepEqual(record.canvases, []);
+    assert.deepEqual(record.libraries, []);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+    await server.close();
+    fx.cleanup();
   }
 });

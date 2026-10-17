@@ -214,6 +214,25 @@ async function waitForAssets(page, timeoutMs) {
   if (!done) throw new Error(`export: ${pending.length ? `${pending.length} image(s)` : 'fonts'} did not load within ${timeoutMs}ms${pending.length ? `: ${pending.join(', ')}` : ''}`);
 }
 
+// A canvas run by canvas-loop.js (data-df-loop) is captured only after it has drawn its poster: dfPoster is 'done'.
+// A canvas whose loop fell back (no context) or that has no poster ('none') has nothing to wait for; one whose poster
+// threw or rejected ('error') fails the export at once instead of running into the timeout.
+async function waitForPosters(page, timeoutMs) {
+  const { done, pending, failed } = await page.evaluate(async (ms) => {
+    const name = (c) => c.id || 'canvas';
+    const canvases = () => [...document.querySelectorAll('canvas[data-df-loop]')].filter((c) => c.dataset.dfLoop !== 'fallback');
+    const waiting = () => canvases().filter((c) => !['done', 'none', 'error'].includes(c.dataset.dfPoster));
+    const errored = () => canvases().filter((c) => c.dataset.dfPoster === 'error');
+    // Two frames let a ResizeObserver that a layout change just triggered run, and a poster restart, before looking.
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const start = Date.now();
+    while (waiting().length && !errored().length && Date.now() - start < ms) await new Promise((r) => setTimeout(r, 50));
+    return { done: waiting().length === 0, pending: waiting().map(name), failed: errored().map(name) };
+  }, timeoutMs);
+  if (failed.length) throw new Error(`export: the poster of ${failed.length} canvas(es) threw or failed (${failed.join(', ')}); see the page's console error from dfCanvasLoop`);
+  if (!done) throw new Error(`export: ${pending.length} canvas(es) did not draw their poster within ${timeoutMs}ms (${pending.join(', ')}): give dfCanvasLoop a poster that finishes`);
+}
+
 async function openPage(browser, url, { width = SLIDE.width, height = SLIDE.height, scale = 1, layer, slidesOnly = false, artboard = false, imageTimeoutMs = 15000 } = {}) {
   // slidesOnly is the PDF render: print repeats a fixed layer on every page, so it keeps the saved fixed layer.
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, reducedMotion: 'reduce' });
@@ -264,13 +283,18 @@ async function prepare(context, url, { layer, slidesOnly, artboard, imageTimeout
       el.style.height = `${h}px`;
     }, [layer, !slidesOnly]);
   }
+  // Last, because a layout change above resizes a canvas, and canvas-loop then redraws its poster (an async one leaves
+  // the canvas blank until it has finished): the picture is taken only once every poster is drawn on the final layout.
+  await waitForPosters(page, imageTimeoutMs);
   return { page, context };
 }
 
 // An element screenshot grows the box to whole pixels, so an element at x=10.4 comes out a pixel or two too large, and a clip
 // with a fractional size is cut down to whole CSS pixels before the scale is applied. So the clip is a whole number of CSS
 // pixels (the nearest to the element's own size) starting at the element's exact corner; whole sizes times the scale are exact.
-async function shootBox(page, locator) {
+// Every capture first waits for the posters again: a change after prepare (the artboard and mockup styles, a resize) restarts them.
+async function shootBox(page, locator, timeoutMs) {
+  await waitForPosters(page, timeoutMs);
   const box = await locator.evaluate((el) => {
     const r = el.getBoundingClientRect();
     return { x: r.x + window.scrollX, y: r.y + window.scrollY, width: Math.round(r.width), height: Math.round(r.height) };
@@ -310,7 +334,7 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
       files.set(m.file, m.label);
     }
     for (const [i, name] of sections.entries()) {
-      put(out('slides', `${pad(i + 1)}-${safeName(name)}.png`), await shootBox(main.page, main.page.locator('section[data-section]').nth(i)));
+      put(out('slides', `${pad(i + 1)}-${safeName(name)}.png`), await shootBox(main.page, main.page.locator('section[data-section]').nth(i), imageTimeoutMs));
     }
   } finally {
     await main.context.close();
@@ -325,7 +349,7 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
         for (let n = el.parentElement; n && n !== document.documentElement; n = n.parentElement) n.setAttribute('data-df-anc', '');
       });
       await shot.page.addStyleTag({ content: ARTBOARD_SHOT_CSS });
-      put(out('social', `${kind}.png`), await shootBox(shot.page, art));
+      put(out('social', `${kind}.png`), await shootBox(shot.page, art, imageTimeoutMs));
     } finally {
       await shot.context.close();
     }
@@ -342,13 +366,14 @@ async function renderAll({ browser, url, outDir, layer, imageTimeoutMs }) {
         for (let n = e.parentElement; n; n = n.parentElement) n.setAttribute('data-df-anc', ''); // up to and including <html>
       });
       await shot.page.addStyleTag({ content: MOCKUP_SHOT_CSS });
-      put(out('mockups', m.file), await shootBox(shot.page, el));
+      put(out('mockups', m.file), await shootBox(shot.page, el, imageTimeoutMs));
     } finally {
       await shot.context.close();
     }
   }
 
   const doc = await openPage(browser, url, { layer, slidesOnly: true, imageTimeoutMs });
+  await waitForPosters(doc.page, imageTimeoutMs);
   put(out('presentation.pdf'), await doc.page.pdf({ width: `${SLIDE.width}px`, height: `${SLIDE.height}px`, printBackground: true, preferCSSPageSize: true }));
   await doc.context.close();
   return written;
