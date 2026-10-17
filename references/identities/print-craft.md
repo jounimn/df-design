@@ -103,7 +103,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Fits:** explainers, games, entertainment, onboarding stories, kids' education. **Misfits:** serious finance, legal, grief.
 - **Trap:** text baked into images (no translation, no a11y); panels that don't reflow on mobile; heavy WebGL camera rigs for what could be stacked images.
 - **Load:** medium (illustration), high if WebGL.
-- **Techniques that suit it:** [Halftone](../techniques/fast.md#halftone), [Halftone](../techniques/medium.md#halftone), [Sticky narrative](../techniques/fast.md#sticky-narrative). Ben-Day dots for the print look, and a scene that holds still while the panels change.
+- **Techniques that suit it:** [Halftone (Fast)](../techniques/fast.md#halftone), [Halftone (Medium)](../techniques/medium.md#halftone), [Sticky narrative](../techniques/fast.md#sticky-narrative). Ben-Day dots for the print look, and a scene that holds still while the panels change.
 - **Seen at:** https://ncase.me (Nicky Case — comic-style explorable explainers); https://xkcd.com (stick-figure strip as the whole identity); https://theoatmeal.com (long vertical comics). Reference: "Ten Years Away" horizontal WebGL comic (designrush.com/best-designs/websites/ten-years-away-website-design).
 - **Search:** "comic website design"; Robin Rendle "Every website is a comic book"; Awwwards "comic"; Blambot fonts; "webtoon paneling".
 

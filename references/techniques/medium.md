@@ -25,7 +25,7 @@ Brands that want a living field of data or computation behind the content: [Gene
 
 ### What it costs the visitor
 
-On one site (shopify.com/editions/spring2026, measured 2026-10-14) the page's motion code weighed 139 KB. The animated drawing sat far down the page and was not listed as visible, so only the weight counts, and whether it honours reduced motion was not checked ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
+On one site (shopify.com/editions/spring2026, measured 2026-10-14) the page's motion code weighed 139 KB, which is the ceiling itself. The animated drawing sat far down the page and was not listed as visible, so only the weight counts, and whether it honours reduced motion was not checked ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### Lighter version
 
@@ -33,7 +33,7 @@ The Fast version, [Particles](fast.md#particles), is the fallback: a few hand-pl
 
 ### For the builder
 
-One drawing area, one loop. The points are a pure function of time (a seeded start and a constant speed), so the poster is simply frame 0 and the first paint is the same picture the loop starts from. Copy `templates/canvas-loop.js` next to the page; the loop draws only while the area is on screen and the tab is visible, draws the poster once under reduced motion, and shows the fallback if the context is missing.
+One drawing area, one loop. The points are a pure function of time (a seeded start and a constant speed), so the poster is the picture at time 0. The loop's clock counts from the page load, so the first moving frame is a few moments further on and is not the same picture as the poster. Copy `templates/canvas-loop.js` next to the page; the loop draws only while the area is on screen and the tab is visible, draws the poster once under reduced motion, and shows the fallback if the context is missing.
 
 ```html
 <canvas id="particles" style="width:100%;height:100%;color:rgb(var(--ink))"></canvas>
@@ -77,7 +77,7 @@ The link test compares every pair of points, which is cheap for a few dozen and 
 
 - **Poster frame:** `frame(ctx, 0)`, drawn by the loop under reduced motion, in export and while the area is off screen.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`.
-- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`: the drawing is alive, honours reduced motion, pauses off screen, and the page's motion code stays within the Medium ceiling. Then look at the rendered page (`verification.md`, "Probe, do not squint").
+- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`: the drawing is alive, honours reduced motion, pauses off screen, and the page's motion code stays within the 139 KB Medium ceiling. Then look at the rendered page (`verification.md`, "Probe, do not squint").
 
 #### Where the cost was measured
 
@@ -150,7 +150,7 @@ To turn a picture into characters, sample it once into a tiny offscreen drawing 
 
 - **Poster frame:** `frame(ctx, 0)`; the same text, written out at build time, is the `<pre>` fallback.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`.
-- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`: the drawing is alive, honours reduced motion, pauses off screen, and the page's motion code stays within the Medium ceiling. Then read the rendered text at the real size (`verification.md`, "Probe, do not squint").
+- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`: the drawing is alive, honours reduced motion, pauses off screen, and the page's motion code stays within the 139 KB Medium ceiling. Then read the rendered text at the real size (`verification.md`, "Probe, do not squint").
 
 #### Where the cost was measured
 
@@ -234,7 +234,7 @@ A photograph that must be decoded first makes the poster asynchronous: return th
 
 - **Poster frame:** `frame(ctx, 0)`, the plate with no breath.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`.
-- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`: the drawing is alive, honours reduced motion, pauses off screen, and the page's motion code stays within the Medium ceiling. Then confirm the dots stay separate and round at the real size (`verification.md`, "Probe, do not squint").
+- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`: the drawing is alive, honours reduced motion, pauses off screen, and the page's motion code stays within the 139 KB Medium ceiling. Then confirm the dots stay separate and round at the real size (`verification.md`, "Probe, do not squint").
 
 #### Where the cost was measured
 
@@ -278,6 +278,7 @@ What makes this Medium is the combination: several blurred panels over a backgro
 ```
 
 ```css
+.stage { position: relative; }
 .glass {
   background: rgb(255 255 255 / .12);
   border: 1px solid rgb(255 255 255 / .28);
@@ -318,7 +319,7 @@ Keep the budget small: the blur runs over every panel on every frame, so a handf
 
 - **Poster frame:** `frame(ctx, 0)`, the background at its starting positions, behind the panels.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`, which is the check the measured sites fail.
-- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`: the background is alive, honours reduced motion, pauses off screen, and the page's motion code stays within the Medium ceiling. Then read the text on each panel at the lowest contrast the background can reach (`verification.md`, "Probe, do not squint").
+- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`: the background is alive, honours reduced motion, pauses off screen, and the page's motion code stays within the 139 KB Medium ceiling. Then read the text on each panel at the lowest contrast the background can reach (`verification.md`, "Probe, do not squint").
 
 #### Where the cost was measured
 

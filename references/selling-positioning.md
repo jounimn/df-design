@@ -49,7 +49,7 @@ warrant heavy motion, a bakery usually does not.
 |---|---|
 | `fast` | CSS only: slide and fade transitions, `clip-path` reveals for images (`[data-reveal]`). Built into the runtime (§7) |
 | `medium` | A small library (GSAP core or Motion One) for choreographed image and mockup reveals, hooked on the runtime's `df:slidechange` event |
-| `high` | Techniques from [`techniques/high.md`](techniques/high.md), run by `canvas-loop.js` inside the slide in focus. Every export shows the poster frame, and the lighter version appears without WebGL or under reduced motion |
+| `high` | Techniques from [`techniques/high.md`](techniques/high.md), run by `canvas-loop.js` inside the slide in focus. Every export shows the poster frame, and the lighter version appears without WebGL; under reduced motion the poster frame stays |
 
 `prefers-reduced-motion` turns all of it off, at every tier. If the author
 answers **skip**, no tier is asked or recorded.

@@ -1,6 +1,6 @@
 # High techniques
 
-High expensive loading: heavy script, large media, and main-thread and GPU cost, so it needs a fallback. The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. Every card here links its lighter version in [medium.md](medium.md), or says why there is none.
+High expensive loading: heavy script, large media, and main-thread and GPU cost, so it needs a fallback. The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. Each card here links its lighter version, in [medium.md](medium.md) or [fast.md](fast.md), except Clay 3D, which says why there is none.
 
 | Technique | What the visitor sees | Suits |
 |---|---|---|
@@ -133,6 +133,8 @@ The count is the main lever on cost: try halving it before anything else. `resto
 
 - **Poster frame:** `frame(gl, 0)`: the points at their start positions with the twinkle at zero time, identical on every visit because the seed is fixed.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`, which is the check the measured site fails.
+- **Colour:** the colour is read from the page with `getComputedStyle(...)` and split by a pattern that expects `rgb()` or `rgba()`, which is what a browser returns for ordinary CSS colours. A colour written as `oklch()`, `color-mix()` or `color()` may come back in another form and give wrong numbers. In that case paint the colour onto a one-pixel 2D drawing area with `fillStyle`, read the pixel, and use its three values.
+- **Serving:** the recipe loads its script with `<script type="module" src="...">`. Serve the page over http, or inline the module as in `docs/examples/motion-techniques/clay-3d/page.html`: browsers block a module file next to a file:// page.
 - **Checks:** `node scripts/check-motion.mjs <page> --tier high`: the drawing is alive, honours reduced motion, pauses off screen, shows the fallback without 3D graphics, and the page's motion code stays within the 340 KB ceiling. Also lose and restore the context (`WEBGL_lose_context`) and confirm the fallback appears and the points come back.
 
 #### Where the cost was measured
@@ -253,6 +255,8 @@ The cost grows with the number of pixels, not of balls: on a large screen render
 
 - **Poster frame:** `frame(gl, 0)`: the balls at their start positions.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`.
+- **Colour:** the colour is read from the page with `getComputedStyle(...)` and split by a pattern that expects `rgb()` or `rgba()`, which is what a browser returns for ordinary CSS colours. A colour written as `oklch()`, `color-mix()` or `color()` may come back in another form and give wrong numbers. In that case paint the colour onto a one-pixel 2D drawing area with `fillStyle`, read the pixel, and use its three values.
+- **Serving:** the recipe loads its script with `<script type="module" src="...">`. Serve the page over http, or inline the module as in `docs/examples/motion-techniques/clay-3d/page.html`: browsers block a module file next to a file:// page.
 - **Checks:** `node scripts/check-motion.mjs <page> --tier high`: the drawing is alive, honours reduced motion, pauses off screen, shows the fallback without 3D graphics, and the page's motion code stays within the 340 KB ceiling. Also lose and restore the context and confirm the shapes come back.
 
 #### Where the cost was measured
@@ -360,6 +364,7 @@ The renderer is created before the loop so that the library, not the loop, decid
 
 - **Poster frame:** `render(0)`: the knot at its start pose and colour.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`.
+- **Serving:** the recipe loads its script with `<script type="module" src="...">`. Serve the page over http, or inline the module as in `docs/examples/motion-techniques/clay-3d/page.html`: browsers block a module file next to a file:// page.
 - **Checks:** `node scripts/check-motion.mjs <page> --tier high`: the drawing is alive, honours reduced motion, pauses off screen, shows the fallback without 3D graphics, and the page's motion code stays within the 340 KB ceiling. Also lose and restore the context and confirm the knot comes back at full size.
 
 #### Where the cost was measured
@@ -449,6 +454,7 @@ Lines are one pixel wide whatever the screen, so they stay fine on a sharp displ
 
 - **Poster frame:** `render(0)`: both lattices at their start rotation.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`.
+- **Serving:** the recipe loads its script with `<script type="module" src="...">`. Serve the page over http, or inline the module as in `docs/examples/motion-techniques/clay-3d/page.html`: browsers block a module file next to a file:// page.
 - **Checks:** `node scripts/check-motion.mjs <page> --tier high`: the drawing is alive, honours reduced motion, pauses off screen, shows the fallback without 3D graphics, and the page's motion code stays within the 340 KB ceiling. Also lose and restore the context and confirm the lattices come back.
 
 #### Where the cost was measured
@@ -473,7 +479,7 @@ Fintech, AI and launch pages that want warmth and energy: [Aurora / mesh gradien
 
 ### What it costs the visitor
 
-On two sites (stripe.com and raycast.com, measured 2026-10-14) the page's motion code weighed 315 KB and 282 KB, median 299 KB, both under the 340 KB High ceiling. Across seven animated drawings 50 % honoured reduced motion, 86 % paused when off screen and a fallback showed without 3D graphics in 100 %. The median frame was 16.7 ms, but on the raycast.com hero it was 49.9 ms with 216.6 ms for the slowest 5 % of frames, on an Intel UHD GPU: a full-screen drawing is the costliest kind ([benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
+On two sites (stripe.com and raycast.com, measured 2026-10-14) the page's motion code weighed 315 KB and 282 KB, median 299 KB, both under the 340 KB High ceiling. Across seven animated drawings 50 % honoured reduced motion, 86 % paused when off screen and a fallback showed without 3D graphics in 100 %. The median frame was 16.7 ms, but on the raycast.com hero it was 49.9 ms with 216.6 ms for the slowest 5 % of frames, on an Intel UHD GPU. That is one drawing on one site, so read it as a warning that a full-screen drawing can be slow, not as a rule; the same raycast.com measurement is used in the [Glassmorphism Medium card](medium.md#glassmorphism) (see the [benchmarks](../benchmarks.md#canvas-and-webgl-measured-2026-10-15)).
 
 ### Lighter version
 
@@ -571,6 +577,7 @@ The cost grows with the number of pixels, so on a full-screen hero lower the loo
 
 - **Poster frame:** `frame(gl, 0)`: the pools at their start positions.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`, and the loop pauses off screen, which is what keeps a full-screen drawing from running below the fold.
+- **Serving:** the recipe loads its script with `<script type="module" src="...">`. Serve the page over http, or inline the module as in `docs/examples/motion-techniques/clay-3d/page.html`: browsers block a module file next to a file:// page.
 - **Checks:** `node scripts/check-motion.mjs <page> --tier high`: the drawing is alive, honours reduced motion, pauses off screen, shows the fallback without 3D graphics, and the page's motion code stays within the 340 KB ceiling. Then read the frame time on the slowest hardware you can reach; the measured hero is the warning.
 
 #### Where the cost was measured
@@ -610,7 +617,7 @@ This recipe runs. It uses three.js with a matcap material: the colour of each po
 ```html
 <div class="stage" style="position:relative;height:420px">
   <canvas id="clay" style="width:100%;height:100%"></canvas>
-  <img id="clay-fallback" src="clay-poster.jpg" alt="" hidden style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+  <img id="clay-fallback" src="clay-poster.jpg" alt="Three soft clay lumps" hidden style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
 </div>
 <script src="canvas-loop.js"></script>
 <script type="module" src="clay.js"></script>
@@ -708,11 +715,12 @@ dfCanvasLoop(canvas, {
 
 Save `clay-poster.jpg` once from the loop's own poster: open the page with reduced motion on, wait for `canvas.dataset.dfPoster === 'done'`, and take a screenshot of the stage. The fallback then shows exactly the picture the poster draws, so a visitor without 3D graphics sees the same still.
 
-**How the library counts against the tier.** The weight check counts bytes as served. At r170 the library file is 675 KB as a plain file and about 167 KB compressed; the whole page of this recipe (library, loop and recipe) measured 173 KB served compressed, about half of the 340 KB High ceiling, and the check passed. On a server that does not compress, the library alone is 675 KB, nearly twice the ceiling, and the check fails. So: serve it compressed, load it once for every scene on the page (the Holographic and Wireframe 3D cards add only a few lines to it), and keep the scene's own weight (models, textures) inside the remaining 167 KB. This recipe has no model and no texture file, which is why it fits.
+**How the library counts against the tier.** The weight check counts bytes as served. At r170 the library file is 675 KB as a plain file and about 167 KB compressed; the example page `docs/examples/motion-techniques/clay-3d/page.html` (library, loop and recipe) measured 182 KB served compressed, a little over half of the 340 KB High ceiling, and the check passed (the bare recipe page, without the example's poster picture and text, measured 173 KB). On a server that does not compress, the library alone is 675 KB, nearly twice the ceiling, and the check fails. So: serve it compressed, load it once for every scene on the page (the Holographic and Wireframe 3D cards add only a few lines to it), and keep the scene's own weight (models, textures) inside the remaining 158 KB. This recipe has no model and no texture file, which is why it fits.
 
 - **Poster frame:** `render(0)`: the three lumps at their start pose, drawn once.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`.
-- **Checks:** `node scripts/check-motion.mjs <page> --tier high` on this recipe's page: all four drawing checks passed (alive, honours reduced motion, pauses off screen, fallback without 3D graphics) and the weight was 173 KB against 340 KB. The loss of the context was tested too: the fallback appeared, and after the context was restored the lumps drew again, which needs the `restore` line (the restored context's viewport is one pixel, and the library does not reset it).
+- **Serving:** the recipe loads its script with `<script type="module" src="...">`. Serve the page over http, or inline the module as in `docs/examples/motion-techniques/clay-3d/page.html`: browsers block a module file next to a file:// page.
+- **Checks:** `node scripts/check-motion.mjs <page> --tier high` on this recipe's page: all four drawing checks passed (alive, honours reduced motion, pauses off screen, fallback without 3D graphics) and the weight was 182 KB against 340 KB, on the example page `docs/examples/motion-techniques/clay-3d/page.html`. The loss of the context was tested too: the fallback appeared, and after the context was restored the lumps drew again, which needs the `restore` line (the restored context's viewport is one pixel, and the library does not reset it).
 
 #### Where the cost was measured
 
@@ -853,6 +861,7 @@ For a `<video>`, delete `paintSource`, make `source` the video element, and uplo
 
 - **Poster frame:** `frame(gl, 0)`: the source at its first frame, as dots.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`, so a video under the dots stops being uploaded too.
+- **Serving:** the recipe loads its script with `<script type="module" src="...">`. Serve the page over http, or inline the module as in `docs/examples/motion-techniques/clay-3d/page.html`: browsers block a module file next to a file:// page.
 - **Checks:** `node scripts/check-motion.mjs <page> --tier high`: the drawing is alive, honours reduced motion, pauses off screen, shows the fallback without 3D graphics, and the page's motion code stays within the 340 KB ceiling. Then confirm the dots stay round and separate at the real size on a sharp display (`verification.md`, "Probe, do not squint").
 
 #### Where the cost was measured

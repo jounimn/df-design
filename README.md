@@ -397,7 +397,7 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `docs/examples/` | The four README examples as built pages, with their screenshots and asset records. |
 | `references/benchmarks.md` | The measurements. Aggregates, per-site data, easing curves and durations actually shipped. |
 | `references/recipes-design.md` | Ten sections: type roles and measure, colour ladders, page structure, chrome vocabulary, subject-derived identity, layout, anti-slop, the plan-and-review pass, words as design, and the checklist. |
-| `references/recipes-motion.md` | The rules every motion technique obeys: the signature curve, the reduced-motion contract, icons and images in motion, and a checklist. The techniques themselves are 34 cards in `references/techniques/` (23 fast, 4 medium, 7 high), each with a measured cost. |
+| `references/recipes-motion.md` | The rules every motion technique obeys: the signature curve, the reduced-motion contract, icons and images in motion, and a checklist. The techniques themselves are 34 cards in `references/techniques/` (23 fast, 4 medium, 7 high), 18 of them with a measured cost, and the other 16 say "not measured". |
 | `references/verification.md` | How to confirm the work is real. Read this one even if you skip the rest. |
 | `scripts/probe.mjs` | The prober CLI. |
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. |

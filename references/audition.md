@@ -171,7 +171,7 @@ The number beside a technique is the motion code of a production page that shows
 - [Halftone](techniques/medium.md#halftone): 7 KB
 - [Glassmorphism](techniques/medium.md#glassmorphism): 0 to 282 KB
 
-**[High](techniques/high.md), 7 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version and ends with its measured weight against the ceiling.
+**[High](techniques/high.md), 7 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D, which says why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph and Halftone say "not measured".
 
 - [Particles](techniques/high.md#particles): 340 KB, the ceiling itself
 - [Holographic](techniques/high.md#holographic): 340 KB, the ceiling itself
