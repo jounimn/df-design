@@ -73,7 +73,7 @@ function parseCards(text) {
 }
 
 const stripLinkTargets = (text) => text.replace(/\]\([^)]*\)/g, ']');
-const NUMBER = /\d+(?:[.,]\d+)?\s*(?:KB|MB|ms|s|%|fps)\b/i;
+const NUMBER = /\d+(?:[.,]\d+)?\s*(?:(?:KB|MB|ms|s|fps)\b|%)/i; // \b never matches after a % that is followed by a space
 
 export function lintTechniques(root) {
   const errors = [];
@@ -150,6 +150,11 @@ export function lintTechniques(root) {
           if (!lowerTier) at('lighter-resolves', `"${L.lighter}" must link to ${lower.map((x) => `${x}.md`).join(' or ')}, a tier below ${tier} (found ${target})`);
           else if (anchor !== card.slug) at('lighter-resolves', `"${L.lighter}" must be the same technique in a lower tier (card "${card.name}"), not "${anchor ?? ''}"`);
           else if (!files[lowerTier]?.cards.some((c) => c.slug === anchor)) at('lighter-resolves', `${lowerTier}.md has no card "${card.name}"`);
+          else {
+            // One tier down means the nearest lower tier that has this technique.
+            const nearest = [...lower].reverse().find((x) => files[x]?.cards.some((c) => c.slug === card.slug));
+            if (lowerTier !== nearest) at('lighter-resolves', `"${L.lighter}" must link to ${nearest}.md, the nearest lower tier with a "${card.name}" card (found ${lowerTier}.md)`);
+          }
         }
       }
 

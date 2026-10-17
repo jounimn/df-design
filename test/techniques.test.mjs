@@ -117,10 +117,27 @@ test('lighter-resolves: "No lighter version" needs a colon and a reason', () => 
   }
 });
 
-test('lighter-resolves: a High card may link to the Fast card; a link to its own tier still fails', () => {
+test('lighter-resolves: the link goes to the nearest lower tier that has the card; its own tier fails', () => {
   const high = (to) => ({ 'techniques/high.md': [['(medium.md#particles)', `(${to}#particles)`]] });
-  assert.deepEqual(lint(high('fast.md')), []);
+  assert.deepEqual(lint(high('medium.md')), []);
+  // Particles has a Medium card, so a link that skips it to Fast is not "one tier down".
+  assert.deepEqual(rules(lint(high('fast.md'))), ['lighter-resolves']);
   assert.deepEqual(rules(lint(high('high.md'))), ['lighter-resolves']);
+});
+
+test('lighter-resolves: a High card with no Medium card links to its Fast card', () => {
+  const edits = (to) => ({
+    'techniques/fast.md': [['- example.com, 2026-10-14.\n', `- example.com, 2026-10-14.\n\n${card('Mesh', false)}`]],
+    'techniques/high.md': [['- activetheory.net, 2026-10-14.', `- activetheory.net, 2026-10-14.\n\n${card('Mesh', true).replace('No lighter version: the field is already one gradient.', `[Mesh](${to}#mesh)`)}`]],
+  });
+  assert.deepEqual(lint(edits('fast.md')), []);
+  assert.ok(rules(lint(edits('medium.md'))).includes('lighter-resolves')); // medium.md has no Mesh card
+});
+
+test('cost-number-or-not-measured: a percentage counts, with or without a space', () => {
+  for (const cost of ['About 50 % of visitors.', 'About 50% of visitors.', '75 %']) {
+    assert.deepEqual(lint({ 'techniques/fast.md': [['About 4 KB, appears with the first paint (median of 2 sites).', cost]] }), [], cost);
+  }
 });
 
 test('measured-heading: the fixed line comes right after the heading, and the list is never "references" or "inspiration"', () => {
