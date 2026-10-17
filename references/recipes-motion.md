@@ -2,8 +2,10 @@
 
 Working implementations, each traced to a site that ships it. Every value
 here was read off a production page — see `benchmarks.md` for the method.
-The techniques themselves are cards in `techniques/` (fast, medium, high); this file keeps the rules
-that apply to all of them.
+The techniques themselves are cards, one file per tier: [fast](techniques/fast.md) (23 cards),
+[medium](techniques/medium.md) (4) and [high](techniques/high.md) (7). Open the file of the tier the
+author chose, then the card for the effect. Each card says what it is, which identities it suits, what it
+costs the visitor and how to build it. This file keeps the rules that apply to all of them.
 
 **The governing idea:** the sites that read as expensive are not running
 more animations. They are compositing — masks, clip paths, blend modes and

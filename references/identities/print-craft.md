@@ -48,6 +48,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Fits:** architects, makers, photography, education, product process pages. **Misfits:** food, fashion with colourful product, anything needing full colour.
 - **Trap:** single-hue page kills hierarchy and image fidelity; white-on-cyan body text tiring; overlaps with Technical drafting (keep the cyanotype/photogram angle distinct).
 - **Load:** fast.
+- **Techniques that suit it:** [Dot grid and hairlines as masks](../techniques/fast.md#dot-grid-and-hairlines-as-masks), [Ambient dot grid](../techniques/fast.md#ambient-dot-grid), [Wireframe 3D](../techniques/high.md#wireframe-3d). Fine white lines on one blue, up to a turning object drawn only by its edges.
 - **Seen at:** https://kindofcyan.com (Kind of Cyan — cyanotype print studio); https://www.objectspace.org.nz/exhibitions/blueprints/ (exhibition page for cyanotype "Blueprints" photograms). Strongest examples remain print (Anna Atkins, *Photographs of British Algae*, 1843).
 - **Search:** "cyanotype website"; Are.na "cyanotype"; "Anna Atkins photograms"; "blueprint aesthetic web design"; Dribbble "cyanotype".
 
@@ -102,6 +103,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Fits:** explainers, games, entertainment, onboarding stories, kids' education. **Misfits:** serious finance, legal, grief.
 - **Trap:** text baked into images (no translation, no a11y); panels that don't reflow on mobile; heavy WebGL camera rigs for what could be stacked images.
 - **Load:** medium (illustration), high if WebGL.
+- **Techniques that suit it:** [Halftone](../techniques/fast.md#halftone), [Halftone](../techniques/medium.md#halftone), [Sticky narrative](../techniques/fast.md#sticky-narrative). Ben-Day dots for the print look, and a scene that holds still while the panels change.
 - **Seen at:** https://ncase.me (Nicky Case — comic-style explorable explainers); https://xkcd.com (stick-figure strip as the whole identity); https://theoatmeal.com (long vertical comics). Reference: "Ten Years Away" horizontal WebGL comic (designrush.com/best-designs/websites/ten-years-away-website-design).
 - **Search:** "comic website design"; Robin Rendle "Every website is a comic book"; Awwwards "comic"; Blambot fonts; "webtoon paneling".
 
