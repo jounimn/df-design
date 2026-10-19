@@ -87,7 +87,12 @@ A few rules run through all of it:
   that fully delivers the identity, then offers fast, medium and high
   expensive loading, each described and costed for this project, plus a
   fourth "custom / unrestricted" choice if the author declines the
-  recommendation. A heavier tier has to be justified in the identity brief.
+  recommendation. The question comes with the candidates, every run, even
+  when every candidate is fast, and is confirmed after the assets are
+  priced. When the author combines candidates or techniques from different
+  tiers, each technique is listed with its own tier and cost and the author
+  keeps or drops each one. A heavier tier has to be justified in the
+  identity brief.
 
 - **Icons always; stock images only with the author's yes.** Every image must
   be free for commercial use, need no credit line and carry no watermark in
@@ -119,11 +124,11 @@ flowchart TD
     P -->|no| NB["Non-browser tooling;<br/>author does the looking"]
     PR --> D["Three candidate directions"]
     NB --> D
-    D -.audition path.-> AU["HTML auditions<br/>same content, tier labelled"]
+    D -.audition path.-> AU["HTML auditions<br/>same content, tier message<br/>priced per candidate"]
     AU -.-> S["Author selects,<br/>combines or rejects"]
     S -.-> AS
     D -->|design path| AS["Assets<br/>one icon set (mandatory)<br/>+ approved images: free, commercial,<br/>no credit, no watermark"]
-    AS --> T{"Loading tier<br/>author's choice, images priced"}
+    AS --> T{"Loading tier confirmed<br/>images priced,<br/>combinations re-priced"}
     T --> B["Identity brief<br/>binding on every surface"]
     B --> PL["Plan, then review<br/>against the generic<br/>motion includes icons and images"]
     PL --> SS["Surface spec<br/>one surface at a time"]

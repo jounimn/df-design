@@ -36,11 +36,13 @@ shortlist which sources fit it (§2) and the search terms its grammar
 implies (§3). Do not download yet. Candidates may be rejected.
 
 **In the Assets stage**, after the author chooses an identity and before
-the loading tier, pick the actual images, give them one treatment (§4) and
-record them (§5). Their weight goes into the tier message (`audition.md`
-§4).
+the loading tier is confirmed, pick the actual images, give them one
+treatment (§4) and record them (§5). Their weight goes into the tier
+confirmation (`audition.md` §4); the tier itself was already asked with
+the candidates.
 
-Tell the author what was picked, in one message, before the tier message:
+Tell the author what was picked, in one message, before the tier
+confirmation:
 
 ```
 Images: <how many, from where, and the licence in plain words: "free for
