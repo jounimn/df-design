@@ -93,12 +93,15 @@ opacity, scope and the preview/final split: `references/watermark.md`.
 Once path and mode are known (and the watermark answered or defaulted to
 none), record them as one status line:
 
-`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> selling=<now|end|skip> tier=<fast|medium|high> — <conditions from step 0, one line>`
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> load=<fast|medium|high|custom> selling=<now|end|skip> tier=<fast|medium|high> — <conditions from step 0, one line>`
 
-`selling=` and `tier=` are filled when the detour is offered
-(`selling-positioning.md` §1). `tier=` is the presentation's motion tier,
-the author's choice, and is left out when `selling=skip`. Until the detour
-is offered, leave both out.
+`load=` is the site's loading tier, the author's answer to the tier
+message (`audition.md` §4). The message is asked with the candidates (on
+the audition path, in the same message as the auditions); `load=` is
+filled when the author answers it, and never by you. `selling=` and `tier=` are filled when the detour is
+offered (`selling-positioning.md` §1). `tier=` is the presentation's motion
+tier, the author's choice, and is left out when `selling=skip`. Until the
+detour is offered, leave both out.
 
 The status line is for the record and for developers. **Ask the author in
 their own words.** A bakery owner gets "Would you like to see three short
@@ -135,9 +138,10 @@ stages of one workflow run:
 ```
 Step 0 conditions  →  Author intent  →  Identity definition  →  Reference & identity research
       →  [Playwright decision]  →  Design direction  →  HTML audition*
+      →  Tier message (with the auditions; on the design path, with the direction)
       →  Author selection*  →  [selling-positioning: now / end / skip]**
       →  Assets (icon set + approved images)
-      →  Loading tier (author's choice)  →  Identity brief
+      →  Loading tier confirmed (images priced; combinations re-priced)  →  Identity brief
       →  Implementation, one surface at a time:
            [surface spec → author approves → build → verify] → next surface
       →  Consistency validation  →  Verification gate  →  [selling-positioning: end]**
@@ -157,8 +161,19 @@ Assets are split across three points. **Ask** about stock images in the
 first message. **Shortlist** image sources and icon sets that fit each
 candidate during research. **Pick** the actual images and the one icon set
 in the Assets stage, after the identity is chosen and before the loading
-tier, because images are most of a page's weight and the tier message has
-to price them.
+tier is confirmed, because images are most of a page's weight and the
+tier confirmation has to price them.
+
+The loading tier is asked at two fixed points, and the first one is never
+skipped. **With the candidates:** the tier message (`audition.md` §4) goes
+in the same message as the auditions (audition path) or the design
+direction (design path), priced for each candidate, so the author chooses
+the identity with its cost in view. Every candidate being fast is not a
+reason to leave it out; the message then says what medium and high would
+add, or that they add nothing. **After Assets:** the chosen tier is
+confirmed with the images priced, and re-sent in full whenever the price
+changed: the author combined candidates, asked for a technique from a
+heavier tier, or the images weigh more than the first message assumed.
 
 | Stage | Read |
 |---|---|
@@ -191,8 +206,12 @@ The rules that govern every stage:
 - **The author picks the loading tier.** Recommend the cheapest tier that
   fully delivers the identity, then send the tier message
   (`audition.md` §4): fast, medium and high expensive loading, each costed
-  for this project, with custom offered if the author declines. Heavy
-  libraries need a reason in the brief.
+  for this project, with custom offered if the author declines. It is sent
+  with the candidates, every run, even when every candidate is fast, and
+  confirmed after Assets. When the author combines candidates or
+  techniques across tiers, each technique is listed with its own tier and
+  cost, the author keeps or drops each one, and the project tier is the
+  heaviest technique kept. Heavy libraries need a reason in the brief.
 - **Icons always; stock images only with the author's yes.** Every image
   must be free for commercial use, need no credit line, and carry no
   watermark in the file that ships. In `motion` and `both`, icons and
@@ -356,6 +375,9 @@ is an acceptable sentence. "Done" without having looked is not.
 | "The admin and 404 are just utility pages" | Same product, same identity, adapted density. A stock admin panel is a different product. |
 | "Three.js will make it feel premium" | Cheapest viable tier first. Masks and blends are CSS. |
 | "Fast tier obviously fits; I'll just use it" | Recommending is yours, choosing is the author's. Send the tier message. |
+| "Every candidate is fast, so there is nothing to ask" | The question is asked every run, with the candidates. Fast is the recommendation, not the answer. The message says what medium and high would add, or that they add nothing. |
+| "The index page says 'tier fast' next to each audition" | A label is not the tier message. The author answers the tier message, priced for this project, sent in the same message as the auditions. |
+| "They combined A's type with B's canvas; I'll take the heavier tier" | Re-send the tier message with every technique listed, each with its own tier and cost. The author keeps or drops each one; the project tier follows what they keep. |
 | "They said rebrand, so tokens and type" | A rebrand changes structure. Swapping tokens on an unchanged layout is a reskin — name it that, or do the real thing. |
 | "The motion spec says 400ms ease-out, so I'm done" | Parameters are not a design. What *moves*, and why, is the design. |
 | "The plan is obvious, I'll go straight to code" | Write the plan, then ask what you'd have made for a similar brief. Whatever comes out the same is a default. `recipes-design.md` §8. |

@@ -186,18 +186,51 @@ You recommend; **the author decides**. Deciding the tier silently, even
 correctly, skips the author's choice. Never write a tier into the identity
 brief that the author has not picked.
 
-**When:**
+**When.** The tier message is sent at two fixed points. The first is
+never skipped, whatever the tier of the material:
 
-- **Audition path:** label each audition with the tier it needs, one line
-  on the index page ("B: fast tier, CSS and SVG only"). After the author
-  picks an identity, send the tier message below before writing the brief.
-- **Design path:** send the tier message together with the identity
-  direction, before implementation.
-- **Motion mode:** send it before choosing any motion library.
+- **With the candidates.** On the audition path, the tier message goes in
+  the **same message that presents the auditions**, before the author
+  chooses, so the identity is chosen with its cost in view. Label each
+  audition with the tier it needs on the index page ("B: fast tier, CSS
+  and SVG only"); the label is a pointer, not the question. On the design
+  path, send it together with the identity direction. In motion mode, send
+  it before choosing any motion library.
+- **After Assets.** Confirm the chosen tier with the images priced
+  (`images.md` §1), in one line when nothing changed ("Fast, as you chose;
+  with the four photos the first load is ~210 KB"). Re-send the full
+  message when the price changed: the author combined candidates, asked
+  for a technique from a heavier tier, or the images weigh more than the
+  first message assumed.
 
-**Price the images.** Images are usually most of a page's weight, so the
-Assets stage (`images.md`) comes first, and each tier's cost line includes
-the images it implies.
+**Always asked.** "Every candidate is fast" is not a reason to leave the
+message out. Fast is then the recommendation, and the medium and high
+lines say what each would add for this project, or "nothing this identity
+needs". The author still answers; the answer goes in the status line as
+`load=` (`SKILL.md`) and later in the brief. A run that ends before the
+author chooses an identity has still asked the tier.
+
+**Price per candidate.** When the message accompanies several candidates,
+fill the slots for each one where they differ ("A and C: fast does
+everything. B: fast gives the dot field and the sticker drop; medium adds
+a true halftone drawn from the photo, +7 KB of script"). One shared line
+is enough where the candidates cost the same.
+
+**Combining techniques.** The author may combine candidates ("A's type
+with B's stickers") or ask for techniques from different tiers. Then the
+message is re-sent as a list: each technique, the tier of its card, and
+its cost for this project, with the lighter version named where the card
+has one. The author keeps or drops each technique, and the project tier is
+the heaviest technique kept. Never pick the heavier tier on the author's
+behalf because they asked for one effect from it, and never drop the
+effect silently to stay within a tier they chose earlier: show the
+conflict and let them decide.
+
+**Price the images.** Images are usually most of a page's weight. The
+tier message sent with the candidates estimates them from what each
+candidate implies (how many, at what size, with what treatment). The
+Assets stage (`images.md`) then fixes the actual files, and the tier
+confirmation carries their real weight.
 
 **The tier message.** Keep the four tier names exactly as written. Fill in
 every slot for *this* project. A generic
