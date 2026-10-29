@@ -153,15 +153,19 @@ export function auditStore(root, { today = new Date() } = {}) {
   return { findings, counts, stats, ok: counts.error === 0 };
 }
 
+// A field may wrap onto indented continuation lines; they belong to the field above them.
 function parseEntries(text) {
   const out = [];
   let cur = null;
+  let field = null;
   for (const line of text.split('\n')) {
     const h = /^### (.+?)\s*$/.exec(line);
-    if (h) { cur = { name: h[1].trim(), fields: {} }; out.push(cur); continue; }
+    if (h) { cur = { name: h[1].trim(), fields: {} }; out.push(cur); field = null; continue; }
     if (!cur) continue;
     const f = /^- \*\*([A-Za-z ]+?):\*\*\s*(.*)$/.exec(line);
-    if (f) cur.fields[f[1].trim()] = f[2].trim();
+    if (f) { field = f[1].trim(); cur.fields[field] = f[2].trim(); continue; }
+    if (field && /^\s+\S/.test(line)) cur.fields[field] += ' ' + line.trim();
+    else if (!line.trim() || /^(#|-|\|)/.test(line)) field = null;
   }
   return out;
 }

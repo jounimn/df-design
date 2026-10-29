@@ -70,6 +70,12 @@ test('a section reference to a missing section or file, and a named path that do
   assert.ok(msgs(r, 'error').some((m) => /names scripts\/nothing.mjs, which does not exist/.test(m)));
 });
 
+test('a field that wraps onto indented lines keeps its Misfits and its site', () => {
+  const r = run({ 'references/identities/fam.md': (t) => t.replace('- **Fits:** f. **Misfits:** m\n- **Trap:** t\n- **Load:** fast', '- **Fits:** f, and a long list that\n  wraps. **Misfits:** m\n- **Trap:** t\n- **Load:** fast').replace('- **Seen at:** alpha.example — a site', '- **Seen at:**\n  alpha.example — a site on the next line') });
+  assert.deepEqual(msgs(r, 'error'), []);
+  assert.deepEqual(msgs(r, 'warn'), []);
+});
+
 test('a measurement past its shelf life is a warning, not an error', () => {
   const r = run({ 'references/benchmarks.md': (t) => t.replace('Measured 2026-09-15', 'Measured 2026-01-15') });
   assert.ok(msgs(r, 'warn').some((m) => /main table measured 2026-01-15/.test(m)));
