@@ -80,10 +80,10 @@ them as free-text searches, not curated lists.
 | Art Brut / Outsider art | authenticity, raw creativity, the unpolished human | galleries, art therapy, children's charities, independent musicians, craft | medium |
 | Art Deco | glamour, ceremony, old money, Jazz Age confidence | hotels, cocktail bars, spirits, theatre, jewellery, galas, luxury residential | fast |
 | Art Nouveau | craft, nature, romance, fin-de-siècle refinement | perfume, tea, botanicals, wine, florists, museums, fantasy publishing | fast |
-| Arts & Crafts | handmade, honest materials, heritage craft, anti-industrial | furniture makers, bookbinders, heritage, textiles, independent publishers, gardens | fast |
+| Arts & Crafts | handmade, honest materials, heritage craft, anti-industrial | furniture makers, bookbinders, heritage, textiles, independent publishers, gardens, weaving and linen studios | fast |
 | Atomic Age / Googie | postwar optimism, Americana, kitsch futurism | diners, motels, bowling, games, retro events, cocktail bars | fast |
 | Bauhaus | function, rationality, education, modernist confidence | design schools, architecture, museums, furniture, tooling, typography projects | fast |
-| Concrete Brutalism (architectural) | civic ambition, permanence, honesty of material, urban culture | arts centres, architecture, housing, urbanism, photography books, techno | medium |
+| Concrete Brutalism (architectural) | civic ambition, permanence, honesty of material, urban culture | arts centres, architecture, housing, urbanism, photography books, techno, contractors, skateparks, civil works | medium |
 | Constructivism / Soviet avant-garde poster | agitation, urgency, collective force, revolution | activism, theatre, music, festivals, political campaigns, editorial | fast |
 | Dada / photomontage | anti-art, irony, nonsense as critique | art institutions, experimental music, satire, zines, cultural anniversaries | medium |
 | De Stijl / Neoplasticism | order, balance, Dutch modernism, pure structure | architecture, galleries, design studios, furniture, portfolios | fast |
@@ -147,7 +147,7 @@ them as free-text searches, not curated lists.
 | Neo-brutalism | honest, energetic, indie, unpolished on purpose | creative tools, developer tools for indie audiences, Gen-Z products, component libraries | fast |
 | Neumorphism | calm, physical, hardware-like control surfaces | smart-home and device controls, music and audio tools | fast |
 | Notion-style doodle minimal | thoughtful, calm, creative-productive, human but tidy | productivity, writing tools, knowledge bases, edtech, startups wanting warmth | fast |
-| Pixel art | playful, gaming, retro-computing, craft | games, developer tools with humour, indie brands | fast |
+| Pixel art | playful, gaming, retro-computing, craft | games, developer tools with humour, indie brands, indie launches, game jams | fast |
 | Raw brutalist web (unstyled HTML) | honest, fast, indifferent to trends, information over persuasion | investor relations of contrarian firms, link aggregators, classifieds, manifesto sites, documentation, essays | fast |
 | Retro CRT phosphor (amber / green) | 1980s mainframe, hacker fiction, Fallout/Alien-style retro-future | games, ARGs, sci-fi films, CTF/security events, retro hardware | fast |
 | Retro OS desktop (Windows 95 / classic Mac / XP) | playful nostalgia, "the site is a computer", explorable | product sites with personality, music/radio, portfolios, games, internet-culture brands | medium |
@@ -170,21 +170,21 @@ them as free-text searches, not curated lists.
 | Archival newsprint | record, authority, history, "the story of this place" | bakeries and food with history, local institutions, media, archives, changelogs | fast to medium |
 | Blueprint / cyanotype | making, process, plan-before-build, archival science | architects, makers, photography, education, product process pages | fast |
 | Book-like long read | depth, authorship, attention, reading as an act | essays, writers, research, publishers, newsletters | fast |
-| Botanical / natural-history illustration | knowledge, patience, nature catalogued with care | gardens, apothecary/skincare, tea, natural history, conservation, perfume | medium |
+| Botanical / natural-history illustration | knowledge, patience, nature catalogued with care | gardens, apothecary/skincare, tea, natural history, conservation, perfume, orchards, apiaries, cideries, distilleries | medium |
 | Calligraphy | mastery, ritual, cultural depth, the human gesture | cultural institutions, tea, sake/spirits, luxury craft, artists, wedding | fast |
-| Catalogue / mail-order | abundance, trustworthy utility, "everything you need" | hardware/industrial supply, outdoor gear, tool libraries, curated shops, directories | fast |
+| Catalogue / mail-order | abundance, trustworthy utility, "everything you need" | hardware/industrial supply, outdoor gear, tool libraries, curated shops, directories, materials libraries, sample catalogues | fast |
 | Collage / photomontage | remix, critique, energy, cultural commentary | cultural magazines, music, fashion campaigns, activism, art schools | medium |
 | Comic / manga panels | narrative, fun, approachable explanation, fandom | explainers, games, entertainment, onboarding stories, kids' education | medium |
 | Conceptual sketch | process, thinking, design intent, "before it was built" | architecture, industrial design, studios, product origin stories | fast |
 | Editorial design | authority, story, taste | media, fashion, culture, food, long-form products. The "old | fast to medium |
 | Engraving / banknote (guilloche) | value, trust, officialdom, money | fintech, banks, crypto, certificates, premium memberships, wine/spirits | fast |
-| Field guide / almanac | useful, folksy wisdom, practical, seasonal | gardening, outdoors, weather, food/seasonal produce, birding, slow-living | fast |
+| Field guide / almanac | useful, folksy wisdom, practical, seasonal | gardening, outdoors, weather, food/seasonal produce, birding, slow-living, reference handbooks, datasets, directories | fast |
 | Grid-breaking experimental typography | avant-garde, critical, art-school, "we read theory" | art schools, studios, music labels, experimental publications, cultural festivals | fast to medium |
 | Halftone / duotone | punchy, graphic, music-poster energy; dithering signals low-tech honesty | music, campaigns, event series, sustainability/low-tech publications | fast |
 | Hand-lettering & sign-painting | human hand, local trade, warmth, character | cafés, barbers, breweries, markets, illustrators, local shops | fast |
 | Instruction manual (IKEA / Braun / TE) | clarity, honesty, product you can understand and repair | hardware, flat-pack furniture, onboarding, documentation, tools | fast |
 | Japanese graphic poster | restraint, precision, cultural poise | design galleries, craft retailers, Japanese brands, architecture, tea/food | medium |
-| Letterpress | craft, permanence, slowness, care | stationers, wedding/invitation, print studios, heritage drinks, book arts | medium |
+| Letterpress | craft, permanence, slowness, care | stationers, wedding/invitation, print studios, heritage drinks, book arts, roasteries, cellars, apothecaries, small presses | medium |
 | Luxury typography | exclusivity, craft, price | fashion, hospitality, jewellery, premium real estate, high-end food | fast to medium |
 | Map / cartographic | exploration, place, data with territory, discovery | travel, outdoor, real estate, journalism, logistics, civic data | medium |
 | Mega-type / typographic poster | confidence, attitude, "poster on the wall" | agencies, festivals, fashion drops, campaigns, launches | fast |
@@ -195,13 +195,13 @@ them as free-text searches, not curated lists.
 | Punk / DIY zine | anti-corporate, urgent, participatory, scene-made | music scenes, activism, independent publishing, skate/streetwear, community events | medium |
 | Receipt / ticket | transactional honesty, data-as-souvenir, playful "proof" | year-in-review/wrapped features, event tickets, checkouts, pricing, invoicing tools | fast |
 | Risograph | independent, small-run, affordable, cheerful, maker-led | indie publishers, print shops, festivals, bookshops, zines, community orgs, kids' culture | fast |
-| Scrapbook | personal, memory, craft, warmth | journaling apps, travel, family products, makers, small food brands | medium |
+| Scrapbook | personal, memory, craft, warmth | journaling apps, travel, family products, makers, small food brands, habit and learning apps | medium |
 | Stamps, seals & ephemera | journeys, authenticity, collectability, "official but personal" | travel, postal/logistics, membership clubs, archives, wedding, heritage | fast |
 | Technical drafting | precision, engineering, "we measured" | developer tools, data and analytics, infrastructure, B2B technical products | fast |
 | Type specimen / foundry | expertise, precision, cultural seriousness | foundries, design studios, typographers, brand-guidelines sites, publishers | medium |
 | Typewriter / manuscript | authorship, draft-in-progress, honesty, literary or investigative | writers, screenwriting, journalism, archives, film, letters | fast |
 | Variable-font expressive type | inventive, technical, alive, type-literate | foundries, design events, creative tech, music, editorial features | medium |
-| Vintage packaging / label | heritage-with-a-wink, quality ingredients, giftable | DTC food and drink, pantry goods, cosmetics, candles | medium |
+| Vintage packaging / label | heritage-with-a-wink, quality ingredients, giftable | DTC food and drink, pantry goods, cosmetics, candles, cider, perry, harvest produce | medium |
 | Woodcut / linocut | earthy, handmade, rooted, a little folkloric | breweries, coffee roasters, farms, bakeries, folk music, outdoor brands | fast |
 
 ### Cultural and lifestyle — `identities/cultural.md` (38)
@@ -247,50 +247,57 @@ them as free-text searches, not curated lists.
 | Wabi-sabi | calm, impermanence, honesty of material | ceramics, tea, craft, mindfulness, architecture | fast to medium |
 | Western and Americana heritage | durability, frontier self-reliance, craft, heritage | boots, workwear, whiskey, outdoor, BBQ, ranch hospitality, country music | medium |
 
-### Industry archetypes — `identities/industry.md` (40)
+### Industry archetypes — `identities/industry.md` (47)
 
 | Identity | Says | Fits | Load |
 |---|---|---|---|
 | Academic / research lab | rigour, openness, ideas over branding | labs, research institutes, technical essays, think tanks | fast |
-| AI lab | serious stewards of powerful technology; human, not sci-fi | model labs, AI research orgs, safety/policy | fast |
+| AI lab | serious stewards of powerful technology; human, not sci-fi | model labs, AI research orgs, safety/policy, generative-media tools, model APIs | fast |
 | Architecture studio | rigour, spatial thinking, built work | architecture firms, landscape, urbanism, engineering studios | medium |
 | Automotive / EV launch | engineered future, calm confidence, design object | EVs, mobility, premium hardware | high |
 | Bakery / food shop | made today, by people, nearby; worth a detour | bakeries, patisseries, delis, grocers, cafés that bake, food producers with a shop | medium |
 | Beauty / skincare | ritual, efficacy, taste | skincare, fragrance, cosmetics, wellness retail | medium |
+| Ceramics studio / kiln | fired by hand, in this place; heat measured, not advertised | potteries, glaze and clay suppliers, kiln makers, workshop schools, heat instruments | medium |
 | Climate tech | measurable, credible, optimistic climate action | carbon accounting, removal, energy, ag-tech | medium |
 | Coffee roaster | craft, traceability, connoisseurship | roasters, cafés, specialty tea, chocolate | fast |
-| Craft beer / wine | craft, character, collectability | breweries, wineries, distilleries, natural wine bars | medium |
+| Craft beer / wine | craft, character, collectability | breweries, wineries, distilleries, natural wine bars, gin, mushroom growers, fermentation | medium |
 | Creative agency showcase | we can build anything you imagine; craft as spectacle | digital agencies, studios, creative technologists | high |
 | Crypto / web3 | frontier tech; or crypto made friendly and consumer | wallets, protocols, exchanges, on-chain apps | medium |
-| Dark product precision | fast, serious, built by craftspeople | software tools and platforms | fast to medium |
-| Designer portfolio | taste and craft demonstrated, not claimed | product/interaction designers, design engineers | fast |
+| Dark product precision | fast, serious, built by craftspeople | software tools and platforms, observability, render and VFX tools | fast to medium |
+| Designer portfolio | taste and craft demonstrated, not claimed | product/interaction designers, design engineers, branding studios showing case studies | fast |
 | Developer docs | precise, complete, respects your time | APIs, SDKs, platforms, dev tools | fast |
-| DTC challenger brand playful | we know this category is ridiculous; we are in on it | food & drink, household goods, CPG disruptors | medium |
+| DTC challenger brand playful | we know this category is ridiculous; we are in on it | food & drink, household goods, CPG disruptors, food boxes and grocers, sticker and merch makers | medium |
+| Earth observation / space ops | exact, scheduled, built; hardware and arithmetic, not wonder | satellite makers, EO and SAR constellations, ground stations, launch and in-space logistics, mission software | medium |
 | Education / course creator | transformation through learning; credible teachers | online courses, bootcamps, ed-tech, cohort programmes | medium |
+| Farm software / land records | made for the people who do the work; records for the bank, the vet, the inspector | farm management and livestock records, agricultural finance, land and field mapping, compliance logs | medium |
 | Fashion e-commerce experimental | culture-literate, avant-garde, retail as content | streetwear, avant-garde labels, concept stores, drops | medium |
-| Fintech trust | competent, regulated, engineered — your money is handled by adults who also ship good software | payments, banking-as-a-service, spend management, treasury, B2B infra | medium |
+| Fintech trust | competent, regulated, engineered — your money is handled by adults who also ship good software | payments, banking-as-a-service, spend management, treasury, B2B infra, billing and invoicing, the month-end close | medium |
 | Furniture / interiors | considered living, design as everyday | furniture, homeware, lighting, design retail | medium |
 | Gaming launch / game studio | enter this world; this is an event | game launches, studios, esports, interactive entertainment | high |
 | Government / civic | this is the official, accessible, unshowy way to get a thing done | public services, civic tech, utilities, internal tools, accessibility-first products | fast |
 | Hardware product | engineered object with character; tools for makers | consumer electronics, synths, cameras, keyboards | medium |
-| Health clinical calm | safe, accessible, medically serious yet humane | primary care, insurers, clinics, mental health providers, health systems | fast |
+| Health clinical calm | safe, accessible, medically serious yet humane | primary care, insurers, clinics, mental health providers, health systems, medication and carer apps, pharmacies | fast |
 | Hotel / boutique travel | a world you want to be in; the stay as identity | hotels, resorts, travel operators, members' clubs | high |
 | Indie hacker / solo dev | one human built this, it works, it's honest about numbers | solo SaaS, micro-tools, directories, build-in-public products | fast |
 | Kids / family | safe, joyful, made for children but approved by parents | toys, kids' apps, learning products, family services | medium |
 | Legal / professional services | institutional gravitas, discretion, counsel | law firms, legal tech, consultancies, wealth advisors | fast |
+| Lidar / spatial scanning | we measured it; how big, how accurate, how soon | lidar makers, reality capture, surveying and mapping, digital twins, inspection robots | medium |
 | Luxury fashion house | we do not need to persuade you; the image is the argument | fashion houses, jewellery, perfume, high-end galleries | high |
 | Music festival / events | energy, scene, this year's edition | festivals, conferences with culture, club nights | medium |
 | Neobank playful | banking without the bank — fast, social, on your side, slightly cheeky | consumer finance apps, P2P payments, Gen Z products, budgeting | medium |
 | Nonprofit / documentary / impact | urgency, transparency, human stakes | charities, NGOs, campaigns, investigative/data journalism | high |
 | Open-source project | community-owned, technical, opinionated | libraries, frameworks, databases, CLIs | fast |
 | Pet brand | pets are family; we care like you do | pet food, accessories, vets, insurance | medium |
-| Photographer portfolio | the work speaks; book-like sequencing | photographers, artists, illustrators | high |
+| Photographer portfolio | the work speaks; book-like sequencing | photographers, artists, illustrators, film and analogue studios, exhibitions | high |
+| Pool, lido and spa | cool water, strong sun, the hour you will be there | pools, lidos, bathhouses, lagoons and thermal spas, hotels with a pool, swimwear | medium |
 | Publishing / newsletter | thinking you pay for; the writer as brand | newsletters, essay sites, independent media | fast |
 | Real estate / property | taste-led property; homes as design objects, not inventory | design-led estate agents, developers, co-ownership, residential launches | medium |
-| Record label / musician | curation, catalogue, scene | labels, artists, radio, music shops | medium |
+| Record label / musician | curation, catalogue, scene | labels, artists, radio, music shops, DJ tools, podcasts, comedy | medium |
 | Restaurant / hospitality | atmosphere, taste, the night out | restaurants, bars, cafés, food halls | medium |
-| Sports & performance | effort, speed, identity through performance | athletic apparel, fitness apps, wearables, clubs, events | high |
+| Sleep and sound | the hour before sleep, handled quietly; sound you can set | sleep and soundscape apps, white-noise and sunrise devices, meditation, sleep headphones | fast to medium |
+| Sports & performance | effort, speed, identity through performance | athletic apparel, fitness apps, wearables, clubs, events, leagues and race results, ski resorts | high |
 | Telehealth / DTC wellness | discreet, modern self-care; prescription made consumer-grade | telehealth, supplements, diagnostics subscriptions, sexual health, hair loss | medium |
+| Transit / wayfinding | you are on the network; the line, the platform, the minute | transit agencies, rail and metro operators, airports and stations, wayfinding studios, live-departure products | fast |
 
 ---
 

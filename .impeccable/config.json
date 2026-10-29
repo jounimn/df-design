@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "test/fixtures/slop/slopped.html"
+        ],
+        "createdAt": "2026-10-29T01:48:34.063Z",
+        "reason": "deliberately generated-looking fixture for the check-slop self-test; the glow is one of the tells the linter must catch"
+      },
+      {
+        "rule": "marketing-buzzword",
+        "value": "*",
+        "files": [
+          "test/fixtures/slop/slopped.html"
+        ],
+        "createdAt": "2026-10-29T02:57:04.762Z",
+        "reason": "deliberately generated-looking fixture for the check-slop self-test; the buzzwords are a tell the linter must catch"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "test/fixtures/slop/render-good.html"
+        ],
+        "createdAt": "2026-10-29T02:57:05.578Z",
+        "reason": "minimal render-tier test fixture, not a design; it exists to pass the measured gates (fold, scroll, focus, measure), not to be looked at"
+      }
+    ]
+  }
+}
