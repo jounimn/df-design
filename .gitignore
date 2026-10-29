@@ -8,3 +8,6 @@ candidates/
 # documents for the person driving the build, not part of the shipped skill.
 docs/superpowers/plans/
 docs/superpowers/specs/
+
+# Local tool state of the impeccable design hook
+.impeccable/

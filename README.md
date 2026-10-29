@@ -406,6 +406,7 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `references/verification.md` | How to confirm the work is real. Read this one even if you skip the rest. |
 | `scripts/probe.mjs` | The prober CLI. |
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. |
+| `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle. |
 | `test/` | 36 tests and the HTML fixtures they run against. |
 
@@ -498,6 +499,35 @@ mood words are what generic pages are built from.
 **Adding to `verification.md`.** Each entry should have cost something to
 learn. Every row in that file is a real failure that shipped past a green
 suite; that is what makes it persuasive rather than preachy.
+
+**Auditing the store.** The rules above are write-time gates: each judges
+one record on its own. The failures that actually degrade an accumulating
+store are properties of the collection and arrive slowly: an index row
+whose entry was renamed, two identities with one name, a "Seen at" that
+names no site, a median the per-site table no longer supports, a `§`
+reference to a section that moved, a measurement past its shelf life. Every
+one of them passes every write gate. So the store gets a second, separate
+defence:
+
+```bash
+node scripts/audit-store.mjs            # reads every store, reports, never mutates
+node scripts/audit-store.mjs --strict   # exit 1 on an error, for CI
+```
+
+Run it before a release and after any batch of additions. It reports with
+the evidence attached and changes nothing; the correction is a deliberate
+commit that says why. The job that detects must not be the job that
+destroys.
+
+**Rebuilding a probe.** When a measurement tool is rewritten, its green
+fixture suite proves it does what its author imagined, not that it measures
+the world. Before calling the rewrite done, run the new tool over a site
+that already has a published row in `references/benchmarks.md` and diff the
+fields side by side. Near-total agreement is what makes any disagreement
+diagnostic: when seven of nine fields reproduce to the pixel, the other two
+are defects, not noise, and they are exactly the ones no fixture encoded.
+Where a field legitimately differs, record why beside the row, so the
+comparison stays a live check instead of decaying into noise.
 
 Design specs and implementation plans are gitignored on purpose — they are
 working documents for whoever is driving a build, not part of the shipped
