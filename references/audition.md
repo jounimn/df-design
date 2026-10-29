@@ -116,6 +116,20 @@ a licence that needs no credit, and that each source page answers. It
 cannot see a watermark or a missing strike-through. Looking at the
 captures is still yours.
 
+Then the gates, on every candidate:
+
+```bash
+node scripts/check-slop.mjs auditions/ --render --out auditions/captures/slop
+```
+
+A candidate with a Floor finding (a purple-to-blue gradient, `transition:
+all`, no focus ring, motion with no reduced-motion fallback, an emoji icon)
+is fixed before the author sees it; a Reflex finding (an eyebrow, tracked
+caps, Inter as the display) is fixed or waived on the record with the
+reason the identity gives it (`gates.md` §2). A choice made between pages
+that read as generated is a choice between defaults, and the author will
+pick the least generic one instead of the right identity.
+
 ### After the author chooses
 
 The author selects, combines, rejects or redirects (`identity.md` §5).

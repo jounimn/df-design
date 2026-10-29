@@ -755,7 +755,9 @@ function runChecks(ctx) {
     for (const n of all) {
       if (n.name === 'svg') {
         const labelled = n.attrs['aria-hidden'] === 'true' || n.attrs['aria-label'] || n.attrs['aria-labelledby'] || n.attrs.role === 'img' || elementChildren(n).some((c) => c.name === 'title');
-        if (!labelled) report('decorative-svg', 'FAIL', file, n.line, `<svg${n.attrs.class ? ` class="${trunc(n.attrs.class, 24)}"` : ''}> with neither aria-hidden="true" nor a label`);
+        const hiddenAbove = closest(n.parent, (p) => p.attrs && (p.attrs['aria-hidden'] === 'true' || 'hidden' in p.attrs));
+        const sprite = /display\s*:\s*none/i.test(n.attrs.style || '') || (elementChildren(n).length > 0 && elementChildren(n).every((c) => c.name === 'symbol' || c.name === 'defs'));
+        if (!labelled && !hiddenAbove && !sprite) report('decorative-svg', 'FAIL', file, n.line, `<svg${n.attrs.class ? ` class="${trunc(n.attrs.class, 24)}"` : ''}> with neither aria-hidden="true" nor a label`);
       }
       if (n.name === 'img') {
         if (!('alt' in n.attrs)) report('img-alt', 'FAIL', file, n.line, `<img src="${trunc(n.attrs.src || '', 40)}"> without alt`);

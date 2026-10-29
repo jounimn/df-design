@@ -1,4 +1,7 @@
 <!doctype html>
+<!-- df-design · waive eyebrow · "Folha do dia" is the duplicated sheet's masthead line, the device the identity is built on -->
+<!-- df-design · waive tracked-caps · the routed-gothic lettering and the violet stamp are the stencil's own letterforms, tracked as the tool cuts them -->
+<!-- df-design · waive one-face · a single typed family is the duplicator identity; the roles are filled by size, weight and the stamp -->
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
@@ -29,6 +32,7 @@
   --ink: #22211C;       /* typed ink */
   --muted: #4A4B40;     /* second impression */
   --line: rgb(34 33 28 / .28);
+  --shadow: rgb(34 33 28 / .08);   /* the slip's offset shadow */
   --stamp: #4B2E83;     /* violet stamp: ONLY where a fact changes state */
 
   --lettering: "Routed Gothic", "Courier Prime", monospace;
@@ -176,7 +180,7 @@ img { max-width: 100%; height: auto; display: block; }
   background: var(--slip);
   border: 1px solid var(--line);
   padding: clamp(20px, 3vw, 36px);
-  box-shadow: 3px 3px 0 rgb(34 33 28 / .08);
+  box-shadow: 3px 3px 0 var(--shadow);
 }
 .slip h2 { font-size: 1.25rem; line-height: 1.2; }
 .slip .sub { color: var(--muted); font-size: .9375rem; margin-top: 6px; }

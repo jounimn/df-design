@@ -169,3 +169,18 @@ test('--render on the CLI merges both tiers and reports the pages rendered', { t
     fs.rmSync(out, { recursive: true, force: true });
   }
 });
+
+// --- the gate list and references/gates.md agree --------------------------------------------------------------------
+test('every mechanical gate is documented in references/gates.md with its tier, and vice versa', () => {
+  const doc = fs.readFileSync(path.join(HERE, '..', 'references', 'gates.md'), 'utf8');
+  const rows = [...doc.matchAll(/^\| `([a-z0-9-]+)` \| (Floor|Reflex|Finish) \| ([MRJ/]+) \|/gm)].map((m) => ({ id: m[1], tier: m[2].toLowerCase(), cls: m[3] }));
+  const documented = new Map(rows.map((r) => [r.id, r]));
+  for (const [id, g] of Object.entries(GATES)) {
+    const row = documented.get(id);
+    assert.ok(row, `${id} is in GATES but not in references/gates.md §3`);
+    assert.equal(row.tier, g.tier, `${id}: gates.md says ${row.tier}, GATES says ${g.tier}`);
+    if (g.render) assert.ok(/R/.test(row.cls), `${id} is a render gate; gates.md must class it R`);
+    else assert.ok(/M/.test(row.cls), `${id} is a static gate; gates.md must class it M`);
+  }
+  for (const r of rows) assert.ok(GATES[r.id], `${r.id} is in gates.md as a script-checked gate (backticked) but GATES does not implement it`);
+});
