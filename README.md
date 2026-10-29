@@ -202,7 +202,7 @@ flowchart LR
     subgraph Rig["Measurement rig"]
         PRB["scripts/probe.mjs"]
         LIBS["scripts/lib/<br/>static pass · motion inventory<br/>property and scroll trace<br/>archetype · validate · bundle"]
-        TST["test/<br/>58 tests, local fixtures"]
+        TST["test/<br/>381 tests in 23 files, local fixtures"]
     end
     subgraph Gates["Gate checks"]
         CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
@@ -458,7 +458,7 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
 | `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle; the slop gates (static and render) and the page record. |
-| `test/` | 58 tests and the HTML fixtures they run against. |
+| `test/` | 381 tests in 23 files, and the HTML fixtures they run against. |
 | `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT). |
 
 Claude reads the mode's recipe file and works from it; `benchmarks.md` and

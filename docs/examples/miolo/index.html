@@ -142,6 +142,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 .kicker { color: var(--muted); font-size: .9375rem; margin-bottom: 20px; }
 .nw { white-space: nowrap; }
+@media (max-width: 360px) { .nw { white-space: normal; } } /* the headline's kept word wraps on the narrowest phones */
 .headline {
   font-size: clamp(2.375rem, 5.6vw, 5rem);
   line-height: 1.04;
