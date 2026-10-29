@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faísca: apresentação de marca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;800&family=Atkinson+Hyperlegible+Next:wght@400;700&family=Atkinson+Hyperlegible+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../slideshow.css">
+<style>
+:root { --paper: #ECEFEA; --sheet: #F6F7F3; --muted-paper: #E0E5DF; --line: #C4CBC2; --ink: #161F1D; --ink-2: #424E4A; --ink-3: #68746F; --y: #FFC21A;
+  --display: "Lexend", system-ui, sans-serif; --text: "Atkinson Hyperlegible Next", system-ui, sans-serif; --data: "Atkinson Hyperlegible Mono", ui-monospace, monospace; color-scheme: light; }
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #D5DBD3; color: var(--ink); font-family: var(--text); line-height: 1.45; overflow-x: clip; }
+h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; } ul, ol { padding: 0; list-style: none; }
+svg { display: block; }
+.d { font-family: var(--data); font-variant-numeric: tabular-nums; }
+.sec { --px: calc(100cqw / 1920); container-type: inline-size; background: var(--paper); aspect-ratio: 16 / 9; overflow: hidden; position: relative; margin-bottom: 6px; }
+.in { height: 100%; padding: calc(56 * var(--px)) calc(96 * var(--px)) calc(56 * var(--px)); display: flex; flex-direction: column; }
+.folio { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--data); font-size: calc(22 * var(--px)); border-bottom: calc(2 * var(--px)) solid var(--ink); padding-bottom: calc(10 * var(--px)); }
+.folio span:last-child { color: var(--ink-3); }
+.head { display: flex; align-items: center; gap: calc(24 * var(--px)); margin-top: calc(40 * var(--px)); }
+.co { flex: none; width: calc(64 * var(--px)); height: calc(64 * var(--px)); border-radius: 50%; border: calc(3 * var(--px)) solid var(--ink); display: grid; place-items: center; font: 800 calc(30 * var(--px))/1 var(--display); }
+.head h2 { font: 800 calc(72 * var(--px))/1 var(--display); letter-spacing: -0.035em; }
+.body { flex: 1; min-height: 0; margin-top: calc(40 * var(--px)); display: grid; gap: calc(56 * var(--px)); }
+p, li, dd { font-size: calc(28 * var(--px)); }
+.sm { font-size: calc(22 * var(--px)); color: var(--ink-2); }
+.lab { font-family: var(--data); font-size: calc(20 * var(--px)); color: var(--ink-3); }
+.big { font: 800 calc(64 * var(--px))/1.05 var(--display); letter-spacing: -0.03em; }
+.rule { border-top: calc(2 * var(--px)) solid var(--ink); padding-top: calc(14 * var(--px)); }
+.card { background: var(--sheet); border: calc(2 * var(--px)) solid var(--ink-3); border-radius: calc(4 * var(--px)); padding: calc(28 * var(--px)); }
+
+/* 1 opening */
+.opening .in { justify-content: space-between; }
+.opening .logo { width: calc(1080 * var(--px)); }
+.opening .meta { display: flex; justify-content: space-between; align-items: flex-end; gap: calc(40 * var(--px)); }
+.opening .say { font: 800 calc(92 * var(--px))/0.95 var(--display); letter-spacing: -0.045em; }
+/* 2 concept */
+.concept .body { grid-template-columns: 1.3fr .7fr; align-items: center; }
+.concept .stmt { font: 800 calc(66 * var(--px))/1.08 var(--display); letter-spacing: -0.03em; }
+.pillars { display: grid; gap: calc(28 * var(--px)); }
+.pillars b { display: block; font: 600 calc(32 * var(--px))/1.15 var(--display); margin-bottom: calc(6 * var(--px)); }
+/* 3 audience */
+.audience .body { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+.audience h3 { font: 600 calc(34 * var(--px))/1.1 var(--display); margin-bottom: calc(14 * var(--px)); }
+.tone li { margin-bottom: calc(20 * var(--px)); font: 600 calc(32 * var(--px))/1.25 var(--display); letter-spacing: -0.01em; }
+/* 4 construction */
+.construct .body { grid-template-columns: 1.2fr 1fr; align-items: center; }
+.construct .spec { display: grid; gap: calc(22 * var(--px)); }
+.construct .spec dt { font: 600 calc(28 * var(--px))/1.2 var(--display); }
+.construct .spec dd { color: var(--ink-2); font-size: calc(24 * var(--px)); margin-top: calc(4 * var(--px)); }
+/* 5 system */
+.system .body { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: calc(22 * var(--px)); margin-top: calc(30 * var(--px)); }
+.cell { background: var(--sheet); border: calc(2 * var(--px)) solid var(--line); padding: calc(20 * var(--px)); display: flex; flex-direction: column; justify-content: space-between; min-height: 0; }
+.cell .art { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.cell .art svg { max-width: 100%; max-height: 100%; width: auto; height: 100%; }
+.cell .cap { font-size: calc(21 * var(--px)); color: var(--ink-2); margin-top: calc(10 * var(--px)); }
+.cell.span2 { grid-column: span 2; }
+.cell.rev { background: var(--ink); color: var(--paper); border-color: var(--ink); } .cell.rev .cap { color: var(--line); }
+.bad { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(14 * var(--px)); flex: 1; align-items: center; }
+.bad figure { text-align: center; font-size: calc(19 * var(--px)); color: var(--ink-2); }
+.bad .t { height: calc(96 * var(--px)); display: flex; align-items: center; justify-content: center; position: relative; }
+.bad .t svg { height: calc(80 * var(--px)); width: auto; max-width: 100%; }
+.bad .t::after { content: ""; position: absolute; inset: calc(6 * var(--px)) 20%; background: linear-gradient(to top right, transparent calc(50% - 1.5px), var(--ink) calc(50% - 1.5px) calc(50% + 1.5px), transparent calc(50% + 1.5px)); }
+/* 6 colour and type */
+.colour .body { grid-template-columns: 1fr 1fr; align-items: start; }
+.sw { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(14 * var(--px)); }
+.sw li { border: calc(2 * var(--px)) solid var(--line); background: var(--sheet); }
+.sw .c { height: calc(220 * var(--px)); border-bottom: calc(2 * var(--px)) solid var(--line); }
+.sw .tx { padding: calc(12 * var(--px)); font-size: calc(20 * var(--px)); line-height: 1.3; }
+.sw .tx b { display: block; font: 600 calc(24 * var(--px))/1.2 var(--display); }
+.type .l { font: 800 calc(110 * var(--px))/1 var(--display); letter-spacing: -0.045em; }
+.type .t { font-size: calc(30 * var(--px)); margin-top: calc(8 * var(--px)); }
+.type .m { font-family: var(--data); font-size: calc(34 * var(--px)); margin-top: calc(8 * var(--px)); }
+.type .lab { margin: calc(28 * var(--px)) 0 calc(6 * var(--px)); }
+/* 7 mockups */
+.mkbody { display: flex !important; flex-direction: column; align-items: center; gap: calc(20 * var(--px)) !important; margin-top: calc(28 * var(--px)) !important; }
+.mkrow { display: flex; gap: calc(24 * var(--px)); height: calc(392 * var(--px)); }
+.mkw { flex: none; height: 100%; display: flex; flex-direction: column; }
+.mk { position: relative; overflow: hidden; margin: 0; flex: 1; container-type: inline-size; background: var(--muted-paper); }
+.mk img.ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.mk .st { position: absolute; left: 0; top: 0; width: 1000px; transform-origin: 0 0; scale: calc(100cqw / 1000px); }
+.mk .pl { position: absolute; left: 0; top: 0; transform-origin: 0 0; mix-blend-mode: multiply; color: var(--ink); }
+.mc { font-size: calc(20 * var(--px)); line-height: calc(30 * var(--px)); height: calc(30 * var(--px)); margin-top: calc(6 * var(--px)); color: var(--ink-2); }
+/* 8 site */
+.site .body { grid-template-columns: 1.55fr .5fr 1fr; align-items: end; gap: calc(40 * var(--px)); }
+.laptop .scr { border: calc(12 * var(--px)) solid var(--ink); border-bottom-width: calc(22 * var(--px)); border-radius: calc(16 * var(--px)) calc(16 * var(--px)) calc(4 * var(--px)) calc(4 * var(--px)); overflow: hidden; background: var(--sheet); }
+.laptop .scr img { width: 100%; display: block; }
+.laptop .base { height: calc(16 * var(--px)); background: var(--ink); border-radius: 0 0 calc(40 * var(--px)) calc(40 * var(--px)); margin: 0 calc(-24 * var(--px)); }
+.phone .scr { border: calc(12 * var(--px)) solid var(--ink); border-radius: calc(40 * var(--px)); overflow: hidden; background: var(--sheet); aspect-ratio: 390 / 844; }
+.phone .scr img { width: 100%; display: block; }
+.xcerpt { position: relative; height: 100%; overflow: hidden; border: calc(2 * var(--px)) solid var(--ink-3); background: var(--sheet); container-type: inline-size; }
+.xcerpt .staticx { position: absolute; left: 0; top: calc(-900 * var(--px)); width: 100%; display: block; }
+.df-slideshow .staticx { display: none; }
+html:not(.df-slideshow) .liveframe { display: none; }
+.xcerpt iframe { position: absolute; left: 0; top: 0; width: 1440px; height: 3000px; border: 0; transform-origin: 0 0; scale: calc(100cqw / 1440px); translate: 0 calc(-1640px * (100cqw / 1440px)); pointer-events: none; }
+.site .links { font-size: calc(22 * var(--px)); margin-top: calc(14 * var(--px)); color: var(--ink-2); }
+/* 9 closing */
+.closing .in { justify-content: space-between; }
+.closing .mid { display: grid; grid-template-columns: calc(600 * var(--px)) 1fr; gap: calc(90 * var(--px)); align-items: center; }
+.closing .say { font: 800 calc(100 * var(--px))/0.95 var(--display); letter-spacing: -0.045em; }
+.colo { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(40 * var(--px)); }
+.colo h3 { font: 600 calc(26 * var(--px))/1.2 var(--display); margin-bottom: calc(6 * var(--px)); }
+.colo p { font-size: calc(22 * var(--px)); color: var(--ink-2); }
+/* social artboards: export-only images; in the plain page they sit clipped so the page never scrolls sideways */
+.artboards { max-width: 100%; overflow: hidden; }
+[data-social] { background: var(--paper); color: var(--ink); display: flex; flex-direction: column; justify-content: space-between; padding: 80px; width: 1080px; }
+[data-social="square"] { height: 1080px; }
+[data-social="story"] { height: 1920px; }
+[data-social] .k { font-family: var(--data); font-size: 30px; border-bottom: 3px solid var(--ink); padding-bottom: 14px; display: flex; justify-content: space-between; }
+[data-social] .sx { font: 800 150px/0.95 var(--display); letter-spacing: -0.045em; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section data-section="opening" class="sec opening"><div class="in">
+  <p class="folio"><span>Folha 00</span><span>Faísca, museu de ciência para mexer</span></p>
+  <svg class="logo" viewBox="0 0 600 160" role="img" aria-label="faísca"><g transform="translate(10 10)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="178" y="120" font-family="Lexend, system-ui, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg>
+  <div class="meta">
+    <p class="say">Toca.<br>Testa.<br>Descobre.</p>
+    <p class="sm" style="max-width:calc(620 * var(--px))">Identidade e apresentação de marca para um museu de ciência para crianças dos 6 aos 12 anos, em Coimbra. Proposta, para aprovação.</p>
+  </div>
+</div></section>
+
+<!-- 2 -->
+<section data-section="concept" class="sec concept"><div class="in">
+  <p class="folio"><span>Folha 01</span><span>Conceito</span></p>
+  <div class="head"><span class="co">1</span><h2>Um manual de experiências</h2></div>
+  <div class="body">
+    <p class="stmt">Para famílias e escolas de Coimbra, a Faísca é o museu onde cada peça se faz com as mãos e se explica numa frase, como uma folha de experiência que se leva para casa.</p>
+    <ol class="pillars">
+      <li class="rule"><b>Tudo se pode fazer</b><span class="sm">Nada atrás de vidro. A marca mostra mãos, peças e passos, nunca vitrines.</span></li>
+      <li class="rule"><b>Tudo se pode explicar</b><span class="sm">Cada figura tem número, legenda e a ideia por trás, como num manual.</span></li>
+      <li class="rule"><b>Física que se nomeia</b><span class="sm">O que se mexe na marca obedece a uma lei: a mola, a alavanca, o pêndulo.</span></li>
+    </ol>
+  </div>
+</div></section>
+
+<!-- 3 -->
+<section data-section="audience" class="sec audience"><div class="in">
+  <p class="folio"><span>Folha 02</span><span>Público, arquétipo, voz</span></p>
+  <div class="head"><span class="co">2</span><h2>Para quem fala</h2></div>
+  <div class="body">
+    <div class="card"><h3>Público</h3><ul>
+      <li class="sm" style="margin-bottom:calc(16 * var(--px))"><b>Crianças dos 6 aos 12</b>: querem mexer e perceber porque funciona.</li>
+      <li class="sm" style="margin-bottom:calc(16 * var(--px))"><b>Pais</b>: querem ver horário, preço e duração antes de decidir.</li>
+      <li class="sm"><b>Professores</b>: querem saber que a visita segue o programa.</li></ul>
+      <p class="lab" style="margin-top:calc(20 * var(--px))">Leitura da identidade; a validar com o museu.</p></div>
+    <div class="card"><h3>Arquétipo</h3><p class="big" style="font-size:calc(52 * var(--px))">O Explorador, com o método do Sábio</p>
+      <p class="sm" style="margin-top:calc(18 * var(--px))">Curioso e metódico. Convida a experimentar e mostra o passo seguinte; nunca grita, nunca infantiliza.</p></div>
+    <div><h3>Voz</h3><ul class="tone"><li>«Espalha a limalha e o campo desenha-se sozinho.»</li><li>«Quatro salas, por qualquer ordem.»</li><li>«Experiência falhada: falta uma peça no passo 4.»</li></ul>
+      <p class="sm">Verbos no imperativo, frases curtas, uma ideia por frase. O número é sempre um número real.</p></div>
+  </div>
+</div></section>
+
+<!-- 4 -->
+<section data-section="logo-construction" class="sec construct"><div class="in">
+  <p class="folio"><span>Folha 03</span><span>Construção do símbolo</span></p>
+  <div class="head"><span class="co">3</span><h2>A centelha, em traço único</h2></div>
+  <div class="body">
+    <svg viewBox="-40 -40 300 230" role="img" aria-label="Construção do símbolo sobre uma grelha de 140 unidades, com chamadas numeradas">
+      <g stroke="#C4CBC2" stroke-width="0.6">
+        <path d="M0 0v140M20 0v140M40 0v140M60 0v140M80 0v140M100 0v140M120 0v140M140 0v140M0 0h140M0 20h140M0 40h140M0 60h140M0 80h140M0 100h140M0 120h140M0 140h140"/>
+      </g>
+      <circle cx="70" cy="70" r="64" fill="none" stroke="#68746F" stroke-width="0.8" stroke-dasharray="3 4"/>
+      <g fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g>
+      <g fill="none" stroke="#161F1D" stroke-width="0.8"><path d="M70 6l100 -30"/><path d="M83 70l87 10"/><path d="M106 70l64 60"/></g>
+      <g font-family="Atkinson Hyperlegible Mono, monospace" font-size="9" fill="#161F1D">
+        <circle cx="180" cy="-28" r="9" fill="#ECEFEA" stroke="#161F1D" stroke-width="0.8"/><text x="177" y="-25">1</text>
+        <circle cx="180" cy="81" r="9" fill="#ECEFEA" stroke="#161F1D" stroke-width="0.8"/><text x="177" y="84">2</text>
+        <circle cx="180" cy="138" r="9" fill="#ECEFEA" stroke="#161F1D" stroke-width="0.8"/><text x="177" y="141">3</text>
+        <text x="0" y="170">grelha 140 × 140, módulo 20</text>
+      </g>
+    </svg>
+    <dl class="spec">
+      <div><dt>1 Oito raios</dt><dd>Quatro eixos e quatro diagonais, cada um com 34 unidades, a partir de um círculo de 64.</dd></div>
+      <div><dt>2 Um núcleo</dt><dd>Círculo de raio 13 em amarelo Faísca: o único ponto de cor da marca.</dd></div>
+      <div><dt>3 Um traço</dt><dd>Espessura 12, pontas redondas: a mesma linha das figuras do site e dos ícones Tabler.</dd></div>
+      <div><dt>Palavra</dt><dd>Lexend 800 em minúsculas, espaçamento −0,045 em: «faísca» lê-se como se diz.</dd></div>
+    </dl>
+  </div>
+</div></section>
+
+<!-- 5 -->
+<section data-section="logo-system" class="sec system"><div class="in">
+  <p class="folio"><span>Folha 04</span><span>Sistema de assinatura</span></p>
+  <div class="head"><span class="co">4</span><h2>Assinaturas e regras</h2></div>
+  <div class="body">
+    <div class="cell"><div class="art"><svg viewBox="0 0 600 160" role="img" aria-label="Assinatura horizontal"><g transform="translate(10 10)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="178" y="120" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg></div><p class="cap">Horizontal, a principal</p></div>
+    <div class="cell"><div class="art"><svg viewBox="0 0 420 330" role="img" aria-label="Assinatura vertical"><g transform="translate(140 10)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="210" y="290" text-anchor="middle" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg></div><p class="cap">Vertical</p></div>
+    <div class="cell"><div class="art"><svg viewBox="0 0 140 140" role="img" aria-label="Símbolo"><g fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g></svg></div><p class="cap">Símbolo sozinho, a partir de 16 px</p></div>
+    <div class="cell"><div class="art"><svg viewBox="0 0 600 160" role="img" aria-label="Assinatura a uma cor"><g transform="translate(10 10)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#161F1D" stroke-width="8"/></g><text x="178" y="120" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg></div><p class="cap">Uma cor, para carimbo e fax</p></div>
+    <div class="cell rev"><div class="art"><svg viewBox="0 0 600 160" role="img" aria-label="Assinatura invertida"><g transform="translate(10 10)" fill="none" stroke="#ECEFEA" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="178" y="120" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#ECEFEA">faísca</text></svg></div><p class="cap">Invertida, sobre tinta</p></div>
+    <div class="cell"><div class="art"><svg viewBox="-30 -30 200 200" role="img" aria-label="Área de proteção: o diâmetro do núcleo em toda a volta"><rect x="-26" y="-26" width="192" height="192" fill="none" stroke="#68746F" stroke-width="1.5" stroke-dasharray="4 4"/><g fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g></svg></div><p class="cap">Área livre: um núcleo (26) em volta</p></div>
+    <div class="cell"><div class="art" style="flex-direction:column;gap:calc(10 * var(--px))"><svg viewBox="0 0 600 160" style="height:calc(36 * var(--px))" role="img" aria-label="Tamanho mínimo"><g transform="translate(10 10)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="178" y="120" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg><span class="lab">24 px · 8 mm de altura</span></div><p class="cap">Tamanho mínimo</p></div>
+    <div class="cell"><div class="bad">
+      <figure><div class="t"><svg viewBox="0 0 140 140" style="transform:scaleX(1.6)" aria-hidden="true"><g fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g></svg></div>Esticar</figure>
+      <figure><div class="t"><svg viewBox="0 0 140 140" aria-hidden="true"><g fill="none" stroke="#FFC21A" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/></g><circle cx="70" cy="70" r="13" fill="#161F1D"/></svg></div>Trocar as cores</figure>
+      <figure><div class="t"><svg viewBox="0 0 140 140" aria-hidden="true"><g fill="none" stroke="#161F1D" stroke-width="4" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A"/></g></svg></div>Afinar o traço</figure>
+    </div><p class="cap">Usos incorretos</p></div>
+  </div>
+</div></section>
+
+<!-- 6 -->
+<section data-section="colour-type" class="sec colour"><div class="in">
+  <p class="folio"><span>Folha 05</span><span>Cor e letra</span></p>
+  <div class="head"><span class="co">5</span><h2>Papel, tinta e um amarelo</h2></div>
+  <div class="body">
+    <div>
+      <ul class="sw">
+        <li><div class="c" style="background:#ECEFEA"></div><div class="tx"><b>Papel</b><span class="d">#ECEFEA</span><br>o chão de tudo</div></li>
+        <li><div class="c" style="background:#E0E5DF"></div><div class="tx"><b>Papel 2</b><span class="d">#E0E5DF</span><br>segundo capítulo</div></li>
+        <li><div class="c" style="background:#161F1D"></div><div class="tx"><b>Tinta</b><span class="d">#161F1D</span><br>texto, traço, escolas</div></li>
+        <li><div class="c" style="background:#FFC21A"></div><div class="tx"><b>Faísca</b><span class="d">#FFC21A</span><br>uma vez por ecrã</div></li>
+      </ul>
+      <p class="sm" style="margin-top:calc(26 * var(--px))">O amarelo gasta-se uma vez: no botão do bilhete, na massa do pêndulo, no núcleo do símbolo. Tinta sobre papel dá 15,6 : 1; tinta sobre amarelo, 11,4 : 1.</p>
+    </div>
+    <div class="type">
+      <p class="lab" style="margin-top:0">Lexend 800, títulos</p><p class="l">Toca. Testa.</p>
+      <p class="lab">Atkinson Hyperlegible Next, texto</p><p class="t">Espalha a limalha sobre o íman e o campo invisível desenha-se sozinho.</p>
+      <p class="lab">Atkinson Hyperlegible Mono, dados</p><p class="m">10:00 às 18:00 · N.º 07 · 2,84 s</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 7 -->
+<section data-section="mockups" class="sec mockups"><div class="in">
+  <p class="folio"><span>Folha 06</span><span>Aplicações</span></p>
+  <div class="head"><span class="co">6</span><h2>A marca fora do ecrã</h2></div>
+  <div class="body mkbody">
+    <div class="mkrow">
+      <div class="mkw" style="width:calc(560 * var(--px))"><figure class="mk" data-mockup="folha" data-reveal>
+        <img class="ph" src="../assets/mockup-folha.jpg" alt="Caderno aberto sobre uma mesa branca, com a folha de experiência da Faísca impressa na página direita">
+        <div class="st" style="height:700px"><div class="pl" style="width:1000px;height:1450px;transform:matrix3d(0.35783,-0.036004,0,0.000038,0.016908,0.303802,0,-0.000087,0,0,1,0,395,90,0,1)">
+          <svg viewBox="0 0 1000 1450" width="1000" height="1450" aria-hidden="true">
+            <g transform="translate(90 90) scale(1.1)"><g fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="168" y="110" font-family="Lexend, sans-serif" font-weight="800" font-size="104" letter-spacing="-5" fill="#161F1D">faísca</text></g>
+            <path d="M90 300h820" stroke="#161F1D" stroke-width="5"/>
+            <text x="90" y="370" font-family="Atkinson Hyperlegible Mono, monospace" font-size="44" fill="#161F1D">Folha 07 · Magnetismo</text>
+            <text x="90" y="500" font-family="Lexend, sans-serif" font-weight="800" font-size="84" fill="#161F1D">O campo que</text>
+            <text x="90" y="590" font-family="Lexend, sans-serif" font-weight="800" font-size="84" fill="#161F1D">não se vê</text>
+            <g fill="none" stroke="#161F1D" stroke-width="6" stroke-linecap="round"><path d="M340 820h320v70H340z"/><path d="M500 820v70"/><path d="M340 845C190 680 810 680 660 845"/><path d="M340 865C190 1030 810 1030 660 865"/><path d="M340 855H170M660 855h170"/></g>
+            <g font-family="Atkinson Hyperlegible Next, sans-serif" font-size="40" fill="#161F1D"><circle cx="120" cy="1190" r="30" fill="none" stroke="#161F1D" stroke-width="5"/><text x="108" y="1204">1</text><text x="180" y="1204">Espalha a limalha.</text><circle cx="120" cy="1290" r="30" fill="none" stroke="#161F1D" stroke-width="5"/><text x="106" y="1304">2</text><text x="180" y="1304">Vira um dos ímanes.</text></g>
+          </svg>
+        </div></div>
+      </figure><p class="mc">Folha de experiência, para levar</p></div>
+      <div class="mkw" style="width:calc(588 * var(--px))"><figure class="mk" data-mockup="caneca" data-reveal>
+        <img class="ph" src="../assets/mockup-caneca.jpg" alt="Canecas de esmalte sobre uma mesa de madeira, com o símbolo da Faísca na caneca branca da frente">
+        <div class="st" style="height:667px"><div class="pl" style="width:1000px;height:1000px;transform:matrix3d(0.085133,0.007585,0,0.000012,0.011077,0.097128,0,0.000026,0,0,1,0,352,468,0,1)">
+          <svg viewBox="-10 -10 160 160" width="1000" height="1000" aria-hidden="true"><g fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g></svg>
+        </div></div>
+      </figure><p class="mc">Caneca de esmalte da oficina</p></div>
+    </div>
+    <div class="mkrow">
+      <div class="mkw" style="width:calc(575 * var(--px))"><figure class="mk" data-mockup="cartao" data-reveal>
+        <img class="ph" src="../assets/mockup-lapis.jpg" alt="Dois lápis sobre cartolina amarela, com a assinatura da Faísca impressa a tinta">
+        <div class="st" style="height:682px"><div class="pl" style="width:1000px;height:375px;transform:matrix3d(0.4,0,0,0,0,0.4,0,0,0,0,1,0,500,260,0,1)">
+          <svg viewBox="0 0 600 225" width="1000" height="375" aria-hidden="true"><g transform="translate(10 40)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#161F1D" stroke-width="8"/></g><text x="178" y="150" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg>
+        </div></div>
+      </figure><p class="mc">Capa de cartolina do guião do professor</p></div>
+      <div class="mkw" style="width:calc(460 * var(--px))"><figure class="mk" data-mockup="fachada" data-reveal>
+        <img class="ph" src="../assets/mockup-parede.jpg" alt="Parede de chapa amarela com a assinatura da Faísca pintada a tinta">
+        <div class="st" style="height:854px"><div class="pl" style="width:1000px;height:357px;transform:matrix3d(0.7,0,0,0,0,0.70028,0,0,0,0,1,0,150,250,0,1)">
+          <svg viewBox="0 0 600 214" width="1000" height="357" aria-hidden="true"><g transform="translate(10 37)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#161F1D" stroke-width="8"/></g><text x="178" y="147" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg>
+        </div></div>
+      </figure><p class="mc">Fachada pintada, Rua da Sofia</p></div>
+    </div>
+  </div>
+</div></section>
+
+<!-- 8 -->
+<section data-section="site" class="sec site"><div class="in">
+  <p class="folio"><span>Folha 07</span><span>O site</span></p>
+  <div class="head"><span class="co">7</span><h2>Folha 01, no ecrã</h2></div>
+  <div class="body">
+    <div class="laptop"><div class="scr"><img data-reveal src="../site-shots/site-desktop.jpg" alt="Página inicial da Faísca a 1440 px"></div><div class="base"></div><p class="lab" style="margin-top:calc(14 * var(--px))">1440 px, em repouso</p></div>
+    <div class="phone"><div class="scr"><img data-reveal src="../site-shots/site-mobile.jpg" alt="Página inicial da Faísca a 390 px"></div><p class="lab" style="margin-top:calc(14 * var(--px))">390 px</p></div>
+    <div style="display:flex;flex-direction:column;height:100%"><div class="xcerpt"><img class="staticx" data-reveal src="../site-shots/site-full.jpg" alt="Excerto da página inteira: experiências e a visita"><iframe class="liveframe" src="../site/index.html" title="O site da Faísca, ao vivo" loading="eager" tabindex="-1"></iframe></div>
+      <p class="links">A página inteira, ao vivo. <a href="../site/index.html">Abrir o site</a>.</p></div>
+  </div>
+</div></section>
+
+<!-- 9 -->
+<section data-section="closing" class="sec closing"><div class="in">
+  <p class="folio"><span>Folha final</span><span>Faísca, Coimbra</span></p>
+  <div class="mid">
+    <svg viewBox="0 0 420 330" role="img" aria-label="faísca"><g transform="translate(140 10)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="210" y="290" text-anchor="middle" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg>
+    <p class="say">Nada atrás de vidro.</p>
+  </div>
+  <div class="colo rule">
+    <div><h3>Faísca</h3><p>Museu de ciência para mexer, dos 6 aos 12 anos.</p></div>
+    <div><h3>Onde</h3><p>Rua da Sofia, Coimbra. De terça a domingo.</p></div>
+    <div><h3>Colofão</h3><p>Lexend e Atkinson Hyperlegible. Ícones Tabler. Fotografias de domínio público.</p></div>
+  </div>
+</div></section>
+
+<div class="artboards">
+  <div data-social="square">
+    <p class="k"><span>Folha 01</span><span>Coimbra</span></p>
+    <p class="sx">Toca.<br>Testa.<br>Descobre.</p>
+    <svg viewBox="0 0 600 160" style="width:560px" role="img" aria-label="faísca"><g transform="translate(10 10)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="178" y="120" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg>
+  </div>
+  <div data-social="story">
+    <p class="k"><span>Folha 07</span><span>Magnetismo</span></p>
+    <svg viewBox="0 0 400 440" style="width:860px" role="img" aria-label="Pêndulo simples, fio de 2 metros"><g fill="none" stroke="#161F1D" stroke-width="3" stroke-linecap="round"><path d="M96 30h208"/><path d="M104 30l-12 -14M136 30l-12 -14M168 30l-12 -14M200 30l-12 -14M232 30l-12 -14M264 30l-12 -14M296 30l-12 -14" stroke-width="1.5"/><path d="M200 30l80 310"/><path d="M90.6 330.7A320 320 0 0 0 309.4 330.7" stroke-width="1.5" stroke-dasharray="4 6"/></g><circle cx="200" cy="30" r="6" fill="#161F1D"/><circle cx="280" cy="340" r="32" fill="#FFC21A" stroke="#161F1D" stroke-width="3"/><text x="40" y="430" font-family="Atkinson Hyperlegible Mono, monospace" font-size="18" fill="#161F1D">T = 2π √(L/g) ≈ 2,84 s</text></svg>
+    <p class="sx" style="font-size:132px">Puxa a massa<br>e larga.</p>
+    <svg viewBox="0 0 600 160" style="width:520px" role="img" aria-label="faísca"><g transform="translate(10 10)" fill="none" stroke="#161F1D" stroke-width="12" stroke-linecap="round"><path d="M70 6v34M70 100v34M6 70h34M100 70h34"/><path d="M24.7 24.7l24 24M91.3 91.3l24 24M24.7 115.3l24-24M91.3 48.7l24-24"/><circle cx="70" cy="70" r="13" fill="#FFC21A" stroke-width="8"/></g><text x="178" y="120" font-family="Lexend, sans-serif" font-weight="800" font-size="112" letter-spacing="-5" fill="#161F1D">faísca</text></svg>
+  </div>
+</div>
+<!-- Motion tier: fast (the site tier). The runtime is slideshow.js + slideshow.css, copied from templates/. -->
+<script src="../slideshow.js"></script>
+</body>
+</html>

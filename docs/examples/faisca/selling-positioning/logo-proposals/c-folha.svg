@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 200" role="img" aria-label="Proposta C, Folha: a palavra faísca com o acento do i substituído por um círculo de chamada numerado 1, como numa folha de experiência">
+  <style>@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@800&amp;display=swap"); text { font-family: Lexend, system-ui, sans-serif; font-weight: 800; } .n { font-family: "Atkinson Hyperlegible Mono", ui-monospace, monospace; font-weight: 600; }</style>
+  <!-- Wordmark-led: the acute accent of the í becomes callout 1 of a manual, leader and all; a rule underlines the sheet. -->
+  <text x="40" y="150" font-size="124" letter-spacing="-6" fill="#161F1D">fa<tspan fill="#161F1D">i</tspan>sca</text>
+  <g fill="none" stroke="#161F1D" stroke-width="7" stroke-linecap="round">
+    <path d="M224 70l34-26"/>
+    <circle cx="282" cy="34" r="24" fill="#FFC21A"/>
+  </g>
+  <text class="n" x="282" y="45" font-size="30" text-anchor="middle" fill="#161F1D">1</text>
+  <path d="M40 176h560" stroke="#161F1D" stroke-width="3" stroke-linecap="round"/>
+</svg>

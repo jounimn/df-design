@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tracewell: brand presentation</title>
+<meta name="description" content="Tracewell brand presentation: the mark and its system, positioning, colour and type, applications and the landing page.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#0B0D10; --panel:#101318; --line:#1D2229; --line-2:#2A3039; --deep:#07080A;
+  --ink:#E9EBEE; --ink-2:#A3AAB4; --ink-3:#6B737E;
+  --brand:#FF6A1A; --brand-rgb:255 106 26; --ink-rgb:233 235 238; --brand-tip:#FFD2B8;
+  --bar:#5B6573; --bar-root:#3A424D; --code-key:#9CC4E4; --code-str:#C9B28A; --paper:#E9EBEE; --paper-ink:#0B0D10; --wrong:#4C7DFF;
+  --radius:4px;
+  --sans:"Schibsted Grotesk","Söhne",ui-sans-serif,system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;overflow-x:clip}
+body{margin:0;background:var(--deep);color:var(--ink);font:400 16px/1.5 var(--sans);overflow-x:clip;-webkit-font-smoothing:antialiased}
+h1,h2,h3,p,ul,ol,figure,dl,dd{margin:0} ul,ol{padding:0;list-style:none}
+svg{display:block}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* One 16:9 slide per section. The stage is drawn at 1920 x 1080 and scaled to the section's width with a container
+   unit, so the same coordinates hold in the slideshow (scale 1), the export (scale 1) and a plain browser. */
+.sec{position:relative;container-type:inline-size;aspect-ratio:16/9;overflow:hidden;background:var(--ground);margin:0 0 8px}
+.stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;scale:calc(100cqw / 1920px);padding:88px 120px 80px;display:flex;flex-direction:column}
+.folio{display:flex;align-items:baseline;gap:28px;font:400 20px/1 var(--mono);color:var(--ink-3);padding-bottom:22px;border-bottom:1px solid var(--line)}
+.folio b{font-weight:500;color:var(--ink-2)}
+.folio span:last-child{margin-left:auto}
+.body{flex:1;min-height:0;display:flex;flex-direction:column;padding-top:56px}
+h2{font:600 84px/1.02 var(--sans);letter-spacing:-.04em;text-wrap:balance}
+h3{font:600 30px/1.2 var(--sans);letter-spacing:-.015em}
+.lede{font-size:28px;line-height:1.45;color:var(--ink-2);max-width:44ch;text-wrap:pretty}
+.cap{font:400 19px/1.4 var(--mono);color:var(--ink-3)}
+
+/* the dot field and the request hairline, as on the site */
+.field{position:absolute;inset:0;pointer-events:none;background:rgb(var(--ink-rgb) / .16);
+  -webkit-mask-image:radial-gradient(circle at center,#000 1.4px,transparent 2px),radial-gradient(ellipse 70% 70% at 70% 40%,#000 20%,transparent 75%);
+          mask-image:radial-gradient(circle at center,#000 1.4px,transparent 2px),radial-gradient(ellipse 70% 70% at 70% 40%,#000 20%,transparent 75%);
+  -webkit-mask-size:40px 40px,100% 100%;mask-size:40px 40px,100% 100%;-webkit-mask-composite:source-in;mask-composite:intersect}
+.wire{position:relative;height:84px}
+.wire::before{content:"";position:absolute;left:0;right:0;top:12px;height:2px;mix-blend-mode:screen;
+  background:linear-gradient(to right,transparent,rgb(var(--brand-rgb) / .55) 10%,rgb(var(--brand-rgb) / .55) 90%,transparent)}
+.wire::after{content:"";position:absolute;top:12px;height:2px;left:38%;width:22%;background:linear-gradient(to right,transparent,var(--brand) 70%,var(--brand-tip) 96%,transparent)}
+.wire i{position:absolute;top:5px;width:16px;height:16px;margin-left:-8px;border:2px solid var(--line-2);background:var(--ground);border-radius:2px}
+.wire i.on{border-color:var(--brand)}
+.wire i span{position:absolute;top:28px;left:50%;transform:translateX(-50%);font:400 20px/1 var(--mono);color:var(--ink-3);white-space:nowrap}
+
+/* the mark, drawn once and reused */
+.mk{--m1:var(--ink);--m2:var(--brand);--m3:var(--ink-3)}
+.word{font:600 1em/1 var(--sans);letter-spacing:-.02em}
+.lockup{display:flex;align-items:center;gap:.55em}
+.lockup svg{width:1.2em;height:1.2em}
+
+/* 1 opening */
+.opening .stage{justify-content:space-between}
+.opening .lockup{font-size:200px;margin-top:150px;gap:.4em}
+.opening .lockup svg{width:1.18em;height:1.18em}
+.opening .sub{display:flex;justify-content:space-between;align-items:flex-end;font:400 22px/1.4 var(--mono);color:var(--ink-3)}
+
+/* 2 concept */
+.concept .body{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:96px;align-items:end}
+.concept h2{font-size:132px;line-height:.98;letter-spacing:-.045em}
+.statement{display:grid;gap:36px}
+.statement p{font-size:27px;line-height:1.5;color:var(--ink-2);text-wrap:pretty}
+.statement .line{font:500 34px/1.3 var(--sans);color:var(--ink);padding-top:28px;border-top:1px solid var(--line-2)}
+.statement .line b{font-weight:500;color:var(--brand)}
+
+/* 3 audience */
+.audience .body{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:auto 1fr;gap:0}
+.audience .say{grid-column:1/-1;align-self:end;padding-top:40px;border-top:1px solid var(--line-2);font:600 96px/1 var(--sans);letter-spacing:-.04em}
+.audience .say b{font-weight:600;color:var(--brand)}
+.col{padding:0 56px;border-left:1px solid var(--line)}
+.col:first-child{padding-left:0;border-left:0}
+.col h3{margin-bottom:22px}
+.col p,.col li{font-size:27px;line-height:1.5;color:var(--ink-2);text-wrap:pretty}
+.col li{padding:14px 0;border-top:1px solid var(--line)}
+.col li code{font:400 21px/1.4 var(--mono);color:var(--ink)}
+.col .no{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--brand)}
+.col .arch{font:600 72px/1 var(--sans);letter-spacing:-.035em;color:var(--ink);margin:6px 0 24px}
+
+/* 4 construction */
+.construct .body{display:grid;grid-template-columns:720px minmax(0,1fr);gap:110px;align-items:center}
+.grid20{position:relative;width:720px;height:720px;background:
+  linear-gradient(var(--line) 1px,transparent 1px) 0 0/36px 36px,
+  linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/36px 36px;border:1px solid var(--line-2)}
+.grid20 svg{position:absolute;inset:0;width:720px;height:720px}
+.dim{position:absolute;font:400 18px/1 var(--mono);color:var(--ink-2);white-space:nowrap}
+.dim::before{content:"";position:absolute;background:var(--ink-3)}
+.dim.h::before{left:0;right:0;top:-12px;height:1px}
+.rules{display:grid;gap:0}
+.rules li{display:grid;grid-template-columns:200px minmax(0,1fr);gap:28px;padding:22px 0;border-top:1px solid var(--line);font-size:24px;color:var(--ink-2)}
+.rules li b{font:500 21px/1.5 var(--mono);color:var(--ink)}
+.construct .lede{margin-bottom:44px}
+
+/* 5 system */
+.system .body{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:330px 1fr;gap:28px;padding-top:40px}
+.tile{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);display:grid;place-items:center;overflow:hidden}
+.tile .cap{position:absolute;left:22px;bottom:18px;font-size:17px}
+.tile.light{background:var(--paper)} .tile.light .cap{color:#5A616B}
+.light .mk{--m1:var(--paper-ink)} .tile.light .word{color:var(--paper-ink)}
+.tile .lockup{font-size:64px}
+.stacked{display:grid;justify-items:center;gap:22px;font-size:52px}
+.stacked svg{width:84px;height:84px}
+.mk.mono-mk{--m1:var(--ink);--m2:var(--ink);--m3:var(--ink)}
+.row2{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);gap:28px}
+.clear{position:relative;padding:44px;border:2px dashed var(--ink-3);font-size:48px}
+.clear::after{content:"";position:absolute;inset:44px;border:1px solid var(--line-2)}
+.mins{display:flex;align-items:flex-end;gap:56px}
+.mins figure{display:grid;gap:14px;justify-items:start}
+.wrongs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;width:100%;height:100%;padding:22px 22px 100px}
+.wrongs figure{position:relative;display:grid;place-items:center;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--ground)}
+.wrongs figure::after{content:"";position:absolute;inset:-1px;border-radius:var(--radius);background:linear-gradient(to top right,transparent calc(50% - 1px),var(--brand) calc(50% - 1px),var(--brand) calc(50% + 1px),transparent calc(50% + 1px));opacity:.85}
+.wrongs svg{width:110px;height:110px}
+.wrongs figcaption{position:absolute;bottom:-32px;left:0;font:400 16px/1 var(--mono);color:var(--ink-3);white-space:nowrap}
+
+/* 6 colour and type */
+.colour .body{display:grid;grid-template-columns:minmax(0,9fr) minmax(0,8fr);gap:80px}
+.sw{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:300px 150px 150px;gap:16px}
+.sw div{border-radius:var(--radius);padding:20px 22px;display:flex;flex-direction:column;justify-content:flex-end;font:400 18px/1.4 var(--mono);border:1px solid var(--line)}
+.sw b{font:600 26px/1.2 var(--sans);letter-spacing:-.01em;margin-bottom:4px}
+.sw .sig{grid-column:1/-1;background:var(--brand);color:var(--paper-ink);border-color:var(--brand)}
+.sw .g0{background:var(--ground);color:var(--ink-2)} .sw .g1{background:var(--panel);color:var(--ink-2)} .sw .g2{background:var(--line-2);color:var(--ink)}
+.sw .i0{background:var(--ink);color:var(--paper-ink)} .sw .i1{background:var(--ink-2);color:var(--paper-ink)} .sw .i2{background:var(--ink-3);color:var(--paper-ink)}
+.type{display:grid;gap:28px;align-content:start}
+.type .spec{padding-bottom:28px;border-bottom:1px solid var(--line)}
+.type .big{font:600 120px/1 var(--sans);letter-spacing:-.045em}
+.type .monob{font:500 60px/1.1 var(--mono);letter-spacing:-.02em;color:var(--ink)}
+.type .monob em{font-style:normal;color:var(--brand)}
+.type p{font-size:22px;color:var(--ink-2);margin-top:14px;text-wrap:pretty}
+
+/* 7 applications */
+.mockups .body{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:28px;padding-top:40px}
+.mock{position:relative;border-radius:var(--radius);overflow:hidden;background:var(--panel);border:1px solid var(--line);margin:0}
+.mock figcaption{position:absolute;left:18px;bottom:14px;font:400 16px/1 var(--mono);color:var(--ink-3)}
+/* GitHub social card */
+.m-card{background:var(--ground);padding:44px 48px;display:flex;flex-direction:column;justify-content:space-between}
+.m-card .lockup{font-size:34px}
+.m-card h4{margin:0;font:600 50px/1.02 var(--sans);letter-spacing:-.04em;max-width:13ch}
+.m-card .wire{height:30px;margin-bottom:22px}
+.m-card .wire i{width:12px;height:12px;margin-left:-6px;top:7px}
+/* README */
+.m-readme{background:#0D1117;padding:34px 40px;display:grid;align-content:start;gap:18px}
+.m-readme .lockup{font-size:40px}
+.m-readme .badges{display:flex;gap:10px}
+.m-readme .badges span{display:inline-flex;white-space:nowrap;font:500 15px/1 var(--mono);border-radius:3px;overflow:hidden}
+.m-readme .badges i{font-style:normal;background:#2A3039;color:var(--ink-2);padding:7px 9px}
+.m-readme .badges b{font-weight:500;background:var(--brand);color:var(--paper-ink);padding:7px 9px}
+.m-readme .badges b.q{background:var(--bar);color:var(--ink)}
+.m-readme p{font-size:19px;color:var(--ink-2);max-width:40ch}
+.m-readme pre{margin:0;font:400 17px/1.6 var(--mono);background:#161B22;border:1px solid #2A3039;border-radius:6px;padding:14px 18px;color:var(--ink)}
+.m-readme pre span{color:var(--ink-3)}
+/* terminal */
+.m-term{background:#07080A;padding:30px 34px;font:400 17px/1.75 var(--mono);color:var(--ink-2)}
+.m-term .p{color:var(--ink-3)} .m-term .c{color:var(--ink)} .m-term .ok{color:var(--ink)} .m-term .slow{color:var(--brand)}
+.m-term .bar{display:inline-block;height:10px;vertical-align:1px;background:var(--bar);border-radius:1px}
+.m-term .bar.s{background:var(--brand)}
+/* stickers */
+.m-stick{background:#1A1F26;display:grid;place-items:center}
+.sheet{position:relative;width:440px;height:290px}
+.st{position:absolute;display:grid;place-items:center;box-shadow:0 3px 0 rgb(0 0 0 / .35),0 0 0 6px var(--paper)}
+.st.a{left:6px;top:20px;width:150px;height:150px;border-radius:30px;background:var(--ground);transform:rotate(-7deg)}
+.st.a svg{width:96px;height:96px}
+.st.b{left:186px;top:14px;width:240px;height:84px;border-radius:42px;background:var(--ground);transform:rotate(4deg);font-size:38px}
+.st.c{left:210px;top:132px;width:130px;height:130px;border-radius:50%;background:var(--brand);color:var(--paper-ink);font:600 34px/1 var(--mono);transform:rotate(-10deg)}
+.st.d{left:20px;top:200px;width:190px;height:70px;border-radius:8px;background:var(--paper);color:var(--paper-ink);box-shadow:0 3px 0 rgb(0 0 0 / .35),0 0 0 6px var(--ground);font:500 22px/1 var(--mono);transform:rotate(3deg)}
+.st.e{left:354px;top:150px;width:80px;height:80px;border-radius:16px;background:var(--panel);transform:rotate(12deg)}
+.st.e svg{width:50px;height:50px}
+/* docs */
+.m-docs{display:grid;grid-template-columns:136px minmax(0,1fr);background:var(--ground)}
+.m-docs nav{border-right:1px solid var(--line);padding:26px 18px;display:grid;align-content:start;gap:12px;font-size:16px;color:var(--ink-3)}
+.m-docs nav .lockup{font-size:20px;color:var(--ink);margin-bottom:14px}
+.m-docs nav .on{color:var(--ink);border-left:2px solid var(--brand);padding-left:8px;margin-left:-10px}
+.m-docs .doc{padding:28px 26px;min-width:0;display:grid;align-content:start;gap:16px}
+.m-docs .doc h4{margin:0;font:600 28px/1.1 var(--sans);letter-spacing:-.03em;text-wrap:balance}
+.m-docs .doc p{font-size:17px;color:var(--ink-2)}
+.m-docs pre{margin:0;font:400 14px/1.65 var(--mono);white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;color:var(--ink-2)}
+.m-docs pre .k{color:var(--code-key)} .m-docs pre .s{color:var(--code-str)}
+/* 404 */
+.m-404{background:var(--ground);padding:34px 38px;display:grid;align-content:start;gap:16px}
+.m-404 .head{display:flex;justify-content:space-between;font:400 17px/1 var(--mono);color:var(--ink-2);padding-bottom:14px;border-bottom:1px solid var(--line)}
+.m-404 .head b{font-weight:500;color:var(--brand)}
+.m-404 h4{margin:0;font:600 44px/1 var(--sans);letter-spacing:-.035em}
+.m-404 .rows{display:grid;gap:12px;font:400 16px/1 var(--mono);color:var(--ink-3)}
+.m-404 .rows div{display:grid;grid-template-columns:110px minmax(0,1fr) 46px;gap:12px;align-items:center}
+.m-404 .rows i{display:block;height:10px;border-radius:2px;background:var(--bar)}
+.m-404 .rows i.gone{background:transparent;border:1px dashed var(--brand)}
+
+/* 8 site */
+.site .body{display:grid;grid-template-columns:1040px 270px minmax(0,1fr);gap:56px;align-items:center;padding-top:40px}
+.laptop{display:grid;justify-items:center}
+.laptop .screen{width:960px;height:600px;border:14px solid #22272F;border-bottom-width:18px;border-radius:18px 18px 4px 4px;background:var(--ground);overflow:hidden;position:relative}
+.laptop .screen img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.laptop .base{width:1040px;height:20px;background:linear-gradient(#2E343D,#1A1E24);border-radius:0 0 18px 18px}
+.liveframe{position:absolute;left:0;top:0;width:1440px;height:900px;border:0;transform-origin:0 0;scale:calc(932 / 1440)}
+.df-slideshow .staticx{display:none}
+html:not(.df-slideshow) .liveframe{display:none}
+.phone{width:270px;height:560px;border:10px solid #22272F;border-radius:38px;overflow:hidden;background:var(--ground)}
+.phone img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.excerpt{height:780px;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);position:relative;-webkit-mask-image:linear-gradient(#000 85%,transparent);mask-image:linear-gradient(#000 85%,transparent)}
+.excerpt img{display:block;width:100%}
+.site .cap a{color:var(--ink-2)}
+
+/* 9 closing */
+.closing .stage{justify-content:space-between}
+.closing h2{font-size:150px;line-height:.98;letter-spacing:-.045em;margin-top:120px;max-width:12ch}
+.cmd{display:inline-flex;align-items:center;gap:26px;height:84px;padding:0 34px;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--panel);font:400 34px/1 var(--mono);color:var(--ink)}
+.cmd span{color:var(--ink-3)}
+.closing .foot{display:flex;justify-content:space-between;align-items:flex-end}
+.closing .lockup{font-size:56px}
+
+/* social artboards: exported as posts, never slides */
+.artboards{display:flex;flex-wrap:wrap;gap:8px}
+[data-social]{position:relative;overflow:hidden;flex:none;max-width:100%;background:var(--ground);padding:88px;display:flex;flex-direction:column;justify-content:space-between}
+[data-social="square"]{width:1080px;height:1080px}
+[data-social="story"]{width:1080px;height:1920px}
+[data-social] .lockup{font-size:56px}
+[data-social] h4{margin:0;font:600 128px/.98 var(--sans);letter-spacing:-.045em}
+[data-social] .wire{height:60px}
+</style>
+<link rel="stylesheet" href="../slideshow.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 20 20"><rect style="fill:var(--m1,#E9EBEE)" x="1" y="3" width="18" height="2.5" rx="1"/><rect style="fill:var(--m2,#FF6A1A)" x="5" y="8.75" width="10" height="2.5" rx="1"/><rect style="fill:var(--m3,#6B737E)" x="9" y="14.5" width="6" height="2.5" rx="1"/></symbol>
+</svg>
+
+<section data-section="opening" class="sec opening">
+  <div class="field" aria-hidden="true"></div>
+  <div class="stage">
+    <div class="folio"><b>01</b><span>Tracewell</span><span>Brand presentation</span></div>
+    <div class="lockup"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><h1 class="word" style="font-size:1em">tracewell</h1></div>
+    <div>
+      <div class="wire" aria-hidden="true">
+        <i class="on" style="left:6%"><span>edge</span></i><i class="on" style="left:28%"><span>auth</span></i><i class="on" style="left:50%"><span>orders</span></i><i style="left:72%"><span>payments</span></i><i style="left:94%"><span>postgres</span></i>
+      </div>
+      <div class="sub"><span>Open-source distributed tracing</span><span>Apache-2.0, built in the open</span></div>
+    </div>
+  </div>
+</section>
+
+<section data-section="concept" class="sec concept">
+  <div class="stage">
+    <div class="folio"><b>02</b><span>Concept and positioning</span><span>A proposal</span></div>
+    <div class="body">
+      <h2>See every request, end to end.</h2>
+      <div class="statement">
+        <p>For the backend engineers and SREs who are asked where the time went, Tracewell is the open-source tracer that follows one request through every service it touches and draws the answer as a waterfall. It runs on their own infrastructure, speaks OpenTelemetry, and keeps no feature behind a key.</p>
+        <p class="line">Concept: <b>where the milliseconds went</b>. Every surface shows a request crossing services, and one span that took too long.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-section="audience" class="sec audience">
+  <div class="stage">
+    <div class="folio"><b>03</b><span>Audience, archetype, voice</span><span>A proposal</span></div>
+    <div class="body">
+      <div class="col">
+        <h3>Audience</h3>
+        <ul>
+          <li>Backend engineers and SREs choosing a tracing tool, at work on a laptop with a second screen.</li>
+          <li>Platform teams who must keep span data inside their own network.</li>
+          <li>Readers arriving from a GitHub README, often on a phone, who decide in one screen.</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>Archetype</h3>
+        <p class="arch">The Sage</p>
+        <p>Knowledge through evidence. Tracewell shows the trace instead of claiming speed; the waterfall is the argument, and the slow span is found, not guessed.</p>
+      </div>
+      <div class="col">
+        <h3>Voice</h3>
+        <ul>
+          <li><code>payments.charge took 96 ms, 2.1&times; its p99.</code></li>
+          <li>One line to instrument.</li>
+          <li>There is nothing on this page to buy.</li>
+          <li class="no">Supercharge your observability.</li>
+        </ul>
+      </div>
+      <p class="say">The waterfall is the argument.</p>
+    </div>
+  </div>
+</section>
+
+<section data-section="logo-construction" class="sec construct">
+  <div class="stage">
+    <div class="folio"><b>04</b><span>The mark</span><span>20-unit grid</span></div>
+    <div class="body">
+      <div class="grid20" aria-label="The Tracewell mark on its 20-unit grid">
+        <svg class="mk" viewBox="0 0 20 20" aria-hidden="true"><use href="#mark"/></svg>
+        <span class="dim h" style="left:36px;top:216px;width:648px">root span, 18 units</span>
+        <span class="dim h" style="left:180px;top:422px;width:360px">child, 10 units, starts at 4</span>
+        <span class="dim h" style="left:324px;top:629px;width:216px">grandchild, 6</span>
+      </div>
+      <div>
+        <p class="lede">The mark is a trace waterfall. Three spans, each starting inside its parent and ending before it does. The orange child is the slow one: the span the product exists to find.</p>
+        <ul class="rules">
+          <li><b>bar</b><span>2.5 units high, 1 unit corner, the site's 2px span bar at scale</span></li>
+          <li><b>pitch</b><span>5.75 units from bar to bar, so the three read as rows</span></li>
+          <li><b>offsets</b><span>1, 5 and 9 units: each child is nested, never centred</span></li>
+          <li><b>colour</b><span>ink, signal orange, the third ink; never two orange bars</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-section="logo-system" class="sec system">
+  <div class="stage">
+    <div class="folio"><b>05</b><span>The logo system</span><span>Lockups, versions, rules</span></div>
+    <div class="body">
+      <div class="tile"><div class="lockup"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div><span class="cap">Primary, horizontal</span></div>
+      <div class="tile"><div class="stacked"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div><span class="cap">Stacked</span></div>
+      <div class="tile" style="grid-template-columns:1fr 1fr 1fr;padding:0 30px">
+        <svg class="mk" style="width:120px;height:120px;justify-self:center" aria-label="Symbol"><use href="#mark"/></svg>
+        <svg class="mk mono-mk" style="width:120px;height:120px;justify-self:center" aria-label="Symbol, one colour"><use href="#mark"/></svg>
+        <div style="justify-self:stretch;align-self:stretch;margin:70px 0;border-radius:var(--radius);background:var(--paper);display:grid;place-items:center" class="light"><svg class="mk" style="width:110px;height:110px" aria-label="Symbol, reversed on light"><use href="#mark"/></svg></div>
+        <span class="cap">Symbol: colour, one colour, reversed</span>
+      </div>
+      <div class="row2">
+        <div class="tile"><div class="clear"><div class="lockup" style="font-size:48px"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div></div><span class="cap">Clear space: one root span's length</span></div>
+        <div class="tile">
+          <div class="mins">
+            <figure><div class="lockup" style="font-size:16px"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div><span class="cap" style="position:static;font-size:15px">lockup 96 px</span></figure>
+            <figure><svg class="mk" style="width:16px;height:16px" aria-hidden="true"><use href="#mark"/></svg><span class="cap" style="position:static;font-size:15px">symbol 16 px</span></figure>
+          </div>
+          <span class="cap">Minimum size</span>
+        </div>
+        <div class="tile">
+          <div class="wrongs">
+            <figure><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="3" width="18" height="2.5" rx="1" fill="#E9EBEE"/><rect x="5" y="8.75" width="10" height="2.5" rx="1" fill="#4C7DFF"/><rect x="9" y="14.5" width="6" height="2.5" rx="1" fill="#6B737E"/></svg><figcaption>recoloured</figcaption></figure>
+            <figure><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="3" width="18" height="2.5" rx="1" fill="#E9EBEE"/><rect x="5" y="8.75" width="10" height="2.5" rx="1" fill="#FF6A1A"/><rect x="9" y="14.5" width="6" height="2.5" rx="1" fill="#FF6A1A"/></svg><figcaption>two signals</figcaption></figure>
+            <figure><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="3" width="18" height="2.5" rx="1" fill="#E9EBEE"/><rect x="5" y="8.75" width="10" height="2.5" rx="1" fill="#FF6A1A"/><rect x="2" y="14.5" width="6" height="2.5" rx="1" fill="#6B737E"/></svg><figcaption>span outside parent</figcaption></figure>
+            <figure><svg viewBox="0 0 20 20" aria-hidden="true"><g transform="rotate(-90 10 10)"><rect x="1" y="3" width="18" height="2.5" rx="1" fill="#E9EBEE"/><rect x="5" y="8.75" width="10" height="2.5" rx="1" fill="#FF6A1A"/><rect x="9" y="14.5" width="6" height="2.5" rx="1" fill="#6B737E"/></g></svg><figcaption>rotated</figcaption></figure>
+          </div>
+          <span class="cap">Incorrect uses</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-section="colour-type" class="sec colour">
+  <div class="stage">
+    <div class="folio"><b>06</b><span>Colour and type</span><span>One accent, spent once</span></div>
+    <div class="body">
+      <div class="sw">
+        <div class="sig"><b>Signal</b>#FF6A1A, the slow span, the primary action, the focus ring</div>
+        <div class="g0"><b>Ground</b>#0B0D10</div>
+        <div class="g1"><b>Panel</b>#101318</div>
+        <div class="g2"><b>Line</b>#2A3039</div>
+        <div class="i0"><b>Ink</b>#E9EBEE</div>
+        <div class="i1"><b>Ink 2</b>#A3AAB4</div>
+        <div class="i2"><b>Ink 3</b>#6B737E</div>
+      </div>
+      <div class="type">
+        <div class="spec"><div class="big">See every request</div><p>Söhne, the brand face, for display and interface; set here in Schibsted Grotesk, its open stand-in, at -0.045em on display sizes.</p></div>
+        <div class="spec"><div class="monob">payments.charge <em>96 ms</em></div><p>JetBrains Mono for data only: service names, durations, trace ids, commands. Never on a label that carries no figure.</p></div>
+        <p>Corners 4px on controls and panels, 2px on span bars. No shadows: elevation by lightness, from ground to panel to line.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-section="mockups" class="sec mockups">
+  <div class="stage">
+    <div class="folio"><b>07</b><span>Applications</span><span>Where engineers meet the brand</span></div>
+    <div class="body">
+      <figure class="mock m-card" data-mockup="social-card" data-reveal>
+        <div class="lockup"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div>
+        <h4>See every request, end to end.</h4>
+        <div class="wire" aria-hidden="true"><i class="on" style="left:4%"></i><i class="on" style="left:28%"></i><i class="on" style="left:52%"></i><i style="left:76%"></i><i style="left:96%"></i></div>
+        <figcaption>Repository social card</figcaption>
+      </figure>
+      <figure class="mock m-readme" data-mockup="readme" data-reveal>
+        <div class="lockup"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div>
+        <div class="badges"><span><i>licence</i><b class="q">Apache-2.0</b></span><span><i>otlp</i><b class="q">native</b></span><span><i>release</i><b>v0.9</b></span></div>
+        <p>Follow a request through every service it touches and see where the milliseconds went.</p>
+        <pre><span>$</span> npm i @tracewell/sdk</pre>
+        <figcaption>README header</figcaption>
+      </figure>
+      <figure class="mock m-term" data-mockup="terminal" data-reveal>
+        <div><span class="p">$</span> <span class="c">tracewell up</span></div>
+        <div>collector  listening on :4318 (OTLP/HTTP)</div>
+        <div>ui         ready on http://localhost:7070</div>
+        <div>storage    postgres, retention 7 days</div>
+        <div class="c">GET /checkout&nbsp; 212 ms&nbsp; 7 spans</div>
+        <div class="ok">&nbsp;orders.load-cart&nbsp;&nbsp; <span class="bar" style="width:46px"></span> 38 ms</div>
+        <div class="slow">&nbsp;payments.charge&nbsp;&nbsp;&nbsp; <span class="bar s" style="width:116px"></span> 96 ms  p99&times;2.1</div>
+        <figcaption>CLI</figcaption>
+      </figure>
+      <figure class="mock m-stick" data-mockup="stickers" data-reveal>
+        <div class="sheet" aria-hidden="true">
+          <div class="st a"><svg class="mk"><use href="#mark"/></svg></div>
+          <div class="st b"><span class="word">tracewell</span></div>
+          <div class="st c">p99</div>
+          <div class="st d">end to end</div>
+          <div class="st e"><svg class="mk mono-mk"><use href="#mark"/></svg></div>
+        </div>
+        <figcaption>Sticker sheet</figcaption>
+      </figure>
+      <figure class="mock m-docs" data-mockup="docs" data-reveal>
+        <nav aria-hidden="true"><div class="lockup"><svg class="mk"><use href="#mark"/></svg><span class="word">tracewell</span></div><span>Quick start</span><span class="on">Node</span><span>Python</span><span>Go</span><span>Sampling</span><span>Storage</span></nav>
+        <div class="doc"><h4>Instrument a Node service</h4><p>One call at start-up wraps HTTP, gRPC, queues and SQL.</p>
+<pre><span class="k">import</span> { trace } <span class="k">from</span> <span class="s">"@tracewell/sdk"</span>;
+trace.init({ service: <span class="s">"orders"</span> });</pre></div>
+        <figcaption>Docs</figcaption>
+      </figure>
+      <figure class="mock m-404" data-mockup="error-page" data-reveal>
+        <div class="head"><span>GET /nowhere</span><b>404</b></div>
+        <h4>Trace not found.</h4>
+        <div class="rows" aria-hidden="true">
+          <div><span>edge</span><i style="width:100%"></i><span>4 ms</span></div>
+          <div><span>router</span><i style="width:40%"></i><span>1 ms</span></div>
+          <div><span>this page</span><i class="gone" style="width:70%"></i><span>&mdash;</span></div>
+        </div>
+        <figcaption>Error page</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section data-section="site" class="sec site">
+  <div class="stage">
+    <div class="folio"><b>08</b><span>The landing page</span><span><a href="../site/index.html" style="color:inherit">site/index.html</a></span></div>
+    <div class="body">
+      <div class="laptop">
+        <div class="screen">
+          <img class="staticx" src="../site-shots/site-desktop.png" alt="The Tracewell landing page at 1440 wide" width="1440" height="900">
+          <iframe class="liveframe" src="../site/index.html" title="The Tracewell landing page, live" loading="eager" tabindex="-1"></iframe>
+        </div>
+        <div class="base" aria-hidden="true"></div>
+      </div>
+      <div class="phone"><img src="../site-shots/site-mobile.png" alt="The landing page at 390 wide" width="390" height="844"></div>
+      <div>
+        <div class="excerpt"><img src="../site-shots/site-desktop-full.png" alt="The landing page, full length" width="1440"></div>
+        <p class="cap" style="margin-top:18px">Desktop 1440, phone 390, the full page</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-section="closing" class="sec closing">
+  <div class="field" aria-hidden="true"></div>
+  <div class="stage">
+    <div class="folio"><b>09</b><span>Tracewell</span><span>Close</span></div>
+    <div>
+      <h2>Start tracing in one line.</h2>
+      <div class="cmd" style="margin-top:56px"><span>$</span>npm i @tracewell/sdk</div>
+    </div>
+    <div class="foot"><div class="lockup"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div><span class="cap">Apache-2.0, built in the open</span></div>
+  </div>
+</section>
+
+<div class="artboards">
+  <div data-social="square">
+    <div class="lockup"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div>
+    <h4>See every request, end to end.</h4>
+    <div>
+      <div class="wire" aria-hidden="true"><i class="on" style="left:5%"><span>edge</span></i><i class="on" style="left:35%"><span>auth</span></i><i class="on" style="left:65%"><span>orders</span></i><i style="left:95%"><span>payments</span></i></div>
+      <div class="cmd" style="margin-top:40px;font-size:30px;height:72px"><span>$</span>npm i @tracewell/sdk</div>
+    </div>
+  </div>
+  <div data-social="story">
+    <div class="lockup"><svg class="mk" aria-hidden="true"><use href="#mark"/></svg><span class="word">tracewell</span></div>
+    <h4>Where the milliseconds went.</h4>
+    <div class="m-term" style="border:1px solid var(--line);border-radius:var(--radius);font-size:30px;padding:44px">
+      <div class="c">GET /checkout&nbsp; 212 ms</div>
+      <div>&nbsp;orders.load-cart&nbsp; 38 ms</div>
+      <div class="slow">&nbsp;payments.charge&nbsp; 96 ms</div>
+    </div>
+    <div class="cmd" style="font-size:30px;height:72px;align-self:flex-start"><span>$</span>npm i @tracewell/sdk</div>
+  </div>
+</div>
+
+<!-- Motion tier: fast (the site's tier). The runtime is slideshow.js + slideshow.css, copied from templates/. -->
+<script src="../slideshow.js"></script>
+</body>
+</html>

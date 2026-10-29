@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moreira &amp; Vaz: apresentação de marca</title>
+<meta name="description" content="Identidade, posicionamento, sistema do logótipo, aplicações e o site da Moreira &amp; Vaz, advogados do trabalho em Lisboa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root { --paper: #F4F5F0; --white: #FFFFFF; --ink: #1D2420; --muted: #55605A; --rule: #C8CEC7; --accent: #0B6E4F; --accent-ink: #08533B; --error: #B3261E;
+  --serif: "Source Serif 4", Georgia, serif; --sans: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace; color-scheme: light; }
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #DADDD4; color: var(--ink); font-family: var(--sans); line-height: 1.5; overflow-wrap: break-word; }
+h1, h2, h3, h4, p, ul, ol, dl, dd, figure { margin: 0; } ul, ol { padding: 0; list-style: none; }
+svg { display: block; }
+a { color: var(--accent); }
+.sec { --px: calc(100cqw / 1920); container-type: inline-size; background: var(--paper); aspect-ratio: 16 / 9; overflow: hidden; position: relative; margin-bottom: 6px; }
+.sec.white { background: var(--white); }
+.in { height: 100%; padding: calc(64 * var(--px)) calc(104 * var(--px)) calc(56 * var(--px)); display: flex; flex-direction: column; }
+/* running head: a handbook page */
+.head { display: grid; grid-template-columns: calc(220 * var(--px)) 1fr; gap: calc(32 * var(--px)); align-items: end; padding-bottom: calc(16 * var(--px)); border-bottom: calc(2 * var(--px)) solid var(--ink); }
+.head .n { font-family: var(--mono); color: var(--muted); font-size: calc(22 * var(--px)); line-height: 1.3; }
+.head .n b { display: block; font-weight: 500; color: var(--ink); }
+.head h2 { font-family: var(--serif); font-weight: 600; letter-spacing: -.02em; font-size: calc(60 * var(--px)); line-height: 1.02; }
+.body { flex: 1; min-height: 0; margin-top: calc(40 * var(--px)); display: grid; gap: calc(56 * var(--px)); }
+p, li, dd { font-size: calc(28 * var(--px)); line-height: 1.45; }
+.sm { font-size: calc(22 * var(--px)); color: var(--muted); }
+.k { font-size: calc(22 * var(--px)); color: var(--muted); }
+.mono { font-family: var(--mono); }
+.serif { font-family: var(--serif); font-weight: 600; letter-spacing: -.02em; }
+.ruled { border-top: calc(2 * var(--px)) solid var(--ink); }
+.ruled > li, .ruled > div { border-bottom: 1px solid var(--rule); padding: calc(18 * var(--px)) 0; }
+.marg { display: grid; grid-template-columns: 1fr calc(260 * var(--px)); gap: calc(28 * var(--px)); }
+.marg .ref { font-family: var(--mono); font-size: calc(20 * var(--px)); color: var(--muted); border-left: 1px solid var(--rule); padding-left: calc(20 * var(--px)); align-self: start; }
+.marg .ref b { display: block; color: var(--ink); font-weight: 500; }
+/* 1 opening */
+.opening .in { justify-content: space-between; }
+.opening .logo { width: calc(1180 * var(--px)); margin-top: calc(120 * var(--px)); }
+.opening .meta { display: grid; grid-template-columns: 1fr 1fr; gap: calc(60 * var(--px)); align-items: end; border-top: calc(2 * var(--px)) solid var(--ink); padding-top: calc(18 * var(--px)); }
+.opening .meta p { font-size: calc(26 * var(--px)); }
+/* 2 concept */
+.concept .body { grid-template-columns: 1.3fr .9fr; align-items: start; }
+.stmt { font-family: var(--serif); font-weight: 600; letter-spacing: -.02em; font-size: calc(64 * var(--px)); line-height: 1.06; text-wrap: balance; }
+.concept .pos { margin-top: calc(32 * var(--px)); max-width: calc(900 * var(--px)); }
+.pillars li { display: grid; grid-template-columns: calc(70 * var(--px)) 1fr; gap: calc(16 * var(--px)); }
+.pillars .num { font-family: var(--serif); font-size: calc(44 * var(--px)); color: var(--accent); line-height: 1; font-weight: 400; }
+.pillars b { display: block; font-family: var(--serif); font-weight: 600; font-size: calc(32 * var(--px)); letter-spacing: -.01em; line-height: 1.15; }
+.pillars span { display: block; font-size: calc(23 * var(--px)); color: var(--muted); margin-top: calc(6 * var(--px)); }
+/* 3 audience */
+.audience .body { grid-template-columns: 1fr 1fr 1.15fr; align-items: start; gap: calc(48 * var(--px)); }
+.audience h3, .colour h3, .system h3, .construct h3, .closing h3 { font-family: var(--sans); font-weight: 700; font-size: calc(22 * var(--px)); color: var(--ink); margin-bottom: calc(14 * var(--px)); }
+.audience .lead { font-family: var(--serif); font-weight: 600; font-size: calc(36 * var(--px)); line-height: 1.15; letter-spacing: -.015em; margin-bottom: calc(14 * var(--px)); }
+.audience p { font-size: calc(24 * var(--px)); }
+.tone li { font-family: var(--serif); font-size: calc(30 * var(--px)); line-height: 1.25; letter-spacing: -.01em; padding: calc(14 * var(--px)) 0; border-bottom: 1px solid var(--rule); }
+.tone li span { display: block; font-family: var(--sans); font-size: calc(20 * var(--px)); color: var(--muted); margin-top: calc(4 * var(--px)); letter-spacing: 0; }
+.prop { font-size: calc(20 * var(--px)); color: var(--muted); margin-top: calc(20 * var(--px)); }
+/* 4 construction */
+.construct .body { grid-template-columns: 1.1fr 1fr; align-items: center; }
+.construct .grid { background: var(--white); border: 1px solid var(--rule); padding: calc(40 * var(--px)); }
+.spec dt { font-weight: 700; font-size: calc(24 * var(--px)); } .spec dd { color: var(--muted); font-size: calc(23 * var(--px)); margin-bottom: calc(18 * var(--px)); }
+/* 5 system */
+.system .body { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: calc(22 * var(--px)); margin-top: calc(30 * var(--px)); }
+.cell { background: var(--white); border: 1px solid var(--rule); padding: calc(22 * var(--px)); display: flex; flex-direction: column; justify-content: space-between; min-height: 0; }
+.cell .art { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; gap: calc(24 * var(--px)); }
+.cell .art svg { max-width: 100%; max-height: 100%; }
+.cell .cap { font-size: calc(20 * var(--px)); color: var(--muted); margin-top: calc(10 * var(--px)); }
+.cell.span2 { grid-column: span 2; }
+.cell.rev { background: var(--ink); color: var(--paper); } .cell.rev .cap { color: var(--rule); }
+.cell.paper { background: var(--paper); }
+.bad { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(14 * var(--px)); width: 100%; }
+.bad figure { text-align: center; font-size: calc(18 * var(--px)); color: var(--muted); } .bad .t { height: calc(100 * var(--px)); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; } .bad .t svg { height: calc(72 * var(--px)); width: auto; }
+.bad .t::after { content: "\00D7"; position: absolute; top: calc(-6 * var(--px)); right: calc(4 * var(--px)); font-family: var(--serif); font-size: calc(44 * var(--px)); color: var(--error); line-height: 1; }
+/* 6 colour and type */
+.colour .body { grid-template-columns: 1fr 1fr; align-items: start; }
+.sw { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(14 * var(--px)); }
+.sw li { border: 1px solid var(--rule); background: var(--white); font-size: calc(19 * var(--px)); } .sw .c { height: calc(130 * var(--px)); border-bottom: 1px solid var(--rule); } .sw .tx { padding: calc(10 * var(--px)) calc(12 * var(--px)) calc(12 * var(--px)); line-height: 1.3; color: var(--muted); } .sw b { display: block; color: var(--ink); font-size: calc(21 * var(--px)); } .sw .mono { font-size: calc(18 * var(--px)); }
+.type .l { font-family: var(--serif); font-weight: 600; letter-spacing: -.02em; font-size: calc(84 * var(--px)); line-height: 1.02; }
+.type .t { font-size: calc(26 * var(--px)); margin-top: calc(14 * var(--px)); max-width: calc(760 * var(--px)); }
+.type .m { font-family: var(--mono); font-size: calc(24 * var(--px)); margin-top: calc(14 * var(--px)); }
+.type .lab { font-size: calc(20 * var(--px)); color: var(--muted); margin: calc(22 * var(--px)) 0 calc(6 * var(--px)); }
+/* 7 mockups */
+.mkbody { display: flex !important; flex-direction: column; gap: calc(22 * var(--px)) !important; }
+.mkrow { display: flex; justify-content: flex-start; align-items: flex-start; gap: calc(24 * var(--px)); height: calc(412 * var(--px)); flex: none; }
+.mkw { flex: none; }
+.mk { position: relative; overflow: hidden; background: #d9dbd2; margin: 0; }
+.mk .st { position: absolute; container-type: inline-size; }
+.mk img.ph { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.mk .pl { position: absolute; left: 0; top: 0; transform-origin: 0 0; scale: calc(100cqw / 1000px); }
+.mk .ov { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.mc { font-size: calc(20 * var(--px)); line-height: calc(30 * var(--px)); height: calc(30 * var(--px)); margin-top: calc(8 * var(--px)); color: var(--muted); }
+/* 8 site */
+.site .body { grid-template-columns: 1.5fr .55fr 1fr; align-items: end; gap: calc(40 * var(--px)); }
+.laptop .scr { border: calc(12 * var(--px)) solid var(--ink); border-bottom-width: calc(22 * var(--px)); border-radius: calc(18 * var(--px)) calc(18 * var(--px)) calc(4 * var(--px)) calc(4 * var(--px)); overflow: hidden; background: var(--white); }
+.laptop .scr img { width: 100%; display: block; }
+.laptop .base { height: calc(16 * var(--px)); background: var(--ink); border-radius: 0 0 calc(40 * var(--px)) calc(40 * var(--px)); margin: 0 calc(-24 * var(--px)); }
+.phone .scr { border: calc(12 * var(--px)) solid var(--ink); border-radius: calc(40 * var(--px)); overflow: hidden; background: var(--white); aspect-ratio: 390 / 844; }
+.phone .scr img { width: 100%; display: block; }
+.xcerpt { height: calc(620 * var(--px)); overflow: hidden; border: 1px solid var(--rule); background: var(--white); position: relative; container-type: inline-size; }
+.staticx { position: absolute; left: 0; top: calc(-860 * var(--px)); width: 100%; display: block; }
+.xcerpt iframe { position: absolute; left: 0; top: calc(-1150px * (100cqw / 1440px)); width: 1440px; height: 3200px; border: 0; transform-origin: 0 0; scale: calc(100cqw / 1440px); pointer-events: none; display: block; }
+.df-slideshow .staticx { display: none; }
+html:not(.df-slideshow) .liveframe { display: none; }
+.site .links { font-size: calc(22 * var(--px)); margin-top: calc(14 * var(--px)); color: var(--muted); }
+/* 9 closing */
+.closing .in { justify-content: space-between; }
+.closing .say { font-family: var(--serif); font-weight: 600; letter-spacing: -.025em; font-size: calc(104 * var(--px)); line-height: 1; max-width: calc(1300 * var(--px)); }
+.colo { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(40 * var(--px)); border-top: calc(2 * var(--px)) solid var(--ink); padding-top: calc(22 * var(--px)); }
+.colo li, .colo p { font-size: calc(23 * var(--px)); color: var(--muted); }
+.colo li { padding: calc(6 * var(--px)) 0; border-bottom: 1px solid var(--rule); }
+/* artboards (exported as social posts) */
+.artboards { display: flex; flex-wrap: wrap; gap: 40px; padding: 40px; background: #DADDD4; }
+[data-social] { background: var(--paper); color: var(--ink); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: 80px; flex: none; max-width: 100%; }
+[data-social="square"] { width: 1080px; height: 1080px; }
+[data-social="story"] { width: 1080px; height: 1920px; }
+[data-social] .sx { font-family: var(--serif); font-weight: 600; letter-spacing: -.025em; line-height: 1.02; }
+[data-social] .row { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 300px; gap: 24px; padding: 28px 0; }
+[data-social] .row .ref { font-family: var(--mono); font-size: 26px; color: var(--muted); border-left: 1px solid var(--rule); padding-left: 24px; } [data-social] .row .ref b { display: block; color: var(--ink); font-weight: 500; }
+@media (max-width: 900px) {
+  html:not(.df-slideshow) .sec { --px: .5px; aspect-ratio: auto; overflow: visible; }
+  html:not(.df-slideshow) .in { padding: 24px 18px 28px; height: auto; }
+  html:not(.df-slideshow) .head { grid-template-columns: 1fr; gap: 6px; }
+  html:not(.df-slideshow) .head h2 { font-size: 30px; }
+  html:not(.df-slideshow) .body { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: none !important; gap: 20px !important; margin-top: 20px; }
+  html:not(.df-slideshow) p, html:not(.df-slideshow) li, html:not(.df-slideshow) dd { font-size: 16px; }
+  html:not(.df-slideshow) .opening .logo { width: 100%; margin-top: 20px; }
+  html:not(.df-slideshow) .opening .meta { grid-template-columns: 1fr; }
+  html:not(.df-slideshow) .stmt { font-size: 30px; }
+  html:not(.df-slideshow) .closing .say { font-size: 34px; }
+  html:not(.df-slideshow) .colo { grid-template-columns: minmax(0, 1fr); }
+  html:not(.df-slideshow) .sw { grid-template-columns: repeat(2, 1fr); }
+  html:not(.df-slideshow) .type .l { font-size: 40px; }
+  html:not(.df-slideshow) .cell.span2 { grid-column: auto; }
+  html:not(.df-slideshow) .cell { min-height: 150px; }
+  html:not(.df-slideshow) .mkrow { flex-wrap: wrap; height: auto; }
+  html:not(.df-slideshow) .site .body { align-items: start; }
+  html:not(.df-slideshow) .xcerpt { height: 260px; }
+  html:not(.df-slideshow) .artboards { padding: 12px; }
+  html:not(.df-slideshow) [data-social="square"], html:not(.df-slideshow) [data-social="story"] { zoom: .3; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+<link rel="stylesheet" href="../slideshow.css">
+</head>
+<body>
+
+<section data-section="opening" class="sec opening"><div class="in">
+  <div class="head"><p class="n">Apresentação de marca<b>Outubro de 2026</b></p><h2 class="sm" style="font-family:var(--sans);font-weight:400;color:var(--muted);font-size:calc(26 * var(--px))">Identidade, posicionamento e o site</h2></div>
+  <div class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" role="img" aria-label="Moreira e Vaz, advogados do trabalho, Lisboa">
+    <g transform="translate(8 12)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g>
+    <text x="124" y="68" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text>
+    <text x="126" y="98" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text>
+  </svg></div>
+  <div class="meta"><p>Doze advogados em Lisboa, só do lado de quem trabalha. A identidade é um guia de bolso dos direitos no trabalho, indexado pelo que aconteceu.</p><p class="sm">Logótipo, sistema, cor e tipo, aplicações, o site. Prazos e artigos nas páginas seguintes são exemplos a confirmar no Código do Trabalho.</p></div>
+</div></section>
+
+<section data-section="concept" class="sec white concept"><div class="in">
+  <div class="head"><p class="n">Verbete 02<b>Conceito</b></p><h2>O guia de bolso de quem trabalha</h2></div>
+  <div class="body">
+    <div>
+      <p class="stmt">Comece pelo que lhe aconteceu. O guia diz o que a lei dá, quanto tempo há e como começar.</p>
+      <p class="pos">Para quem acaba de ser despedido, não pago, assediado ou mudado de horário, a Moreira &amp; Vaz é o escritório de Lisboa que só representa trabalhadores e que responde primeiro à pergunta que importa: o que posso fazer, e até quando.</p>
+      <p class="prop">Posicionamento escrito a partir da identidade escolhida e da intenção do escritório, sem estudo de mercado. Proposta para aprovação.</p>
+    </div>
+    <ul class="pillars ruled">
+      <li><span class="num">1</span><div><b>Um só lado</b><span>Nunca uma empresa como cliente. Sem conflito de interesses, sem colega do outro lado da mesa.</span></div></li>
+      <li><span class="num">2</span><div><b>Indexado por situação</b><span>Não pelo nome jurídico. "Fui despedido(a)" é a entrada; o artigo fica na margem.</span></div></li>
+      <li><span class="num">3</span><div><b>O prazo antes de tudo</b><span>A informação que não pode esperar vai primeiro, em números e artigos que se leem como dados.</span></div></li>
+      <li><span class="num">4</span><div><b>Claro como o gov.uk, sem parecer o Estado</b><span>Linguagem simples e o padrão de formulário do serviço público; nunca o seu aspeto.</span></div></li>
+    </ul>
+  </div>
+</div></section>
+
+<section data-section="audience" class="sec audience"><div class="in">
+  <div class="head"><p class="n">Verbete 03<b>Público e voz</b></p><h2>Para quem, e como se fala</h2></div>
+  <div class="body">
+    <div><h3>Público (proposta)</h3><p class="lead">Quem trabalha e acaba de ter um problema com quem lhe paga.</p><p>Trabalhadores por conta de outrem em Lisboa e arredores, e quem procura por eles: um familiar, um amigo, um colega. Chegam horas depois do acontecido, muitas vezes pelo telemóvel, e precisam de uma resposta antes de um nome jurídico.</p><p class="prop">Leitura da identidade e da intenção, não um dado de estudo.</p></div>
+    <div><h3>Arquétipo (proposta)</h3><p class="lead">O guia de bolso: sabe, explica, e fica do seu lado.</p><p>Não o sábio distante nem o herói de tribunal: um manual que se leva no bolso e se abre na página certa. Autoridade que vem de dizer a lei em português claro, não de colunas e martelos.</p></div>
+    <div><h3>Tom de voz</h3><ul class="tone">
+      <li>Defendemos trabalhadores. Nunca empresas.<span>A posição, em quatro palavras, antes de tudo.</span></li>
+      <li>Não precisa de saber o nome jurídico do problema.<span>O visitante nunca tem de traduzir a sua situação.</span></li>
+      <li>Depois deste prazo, a lei já não o deixa reclamar.<span>Direto sobre o que é urgente; nunca alarmista.</span></li>
+      <li>Nada foi enviado: este formulário ainda não está ligado.<span>Honesto até no estado de erro.</span></li>
+    </ul></div>
+  </div>
+</div></section>
+
+<section data-section="logo-construction" class="sec white construct"><div class="in">
+  <div class="head"><p class="n">Verbete 04<b>Construção</b></p><h2>Um livro de bolso com a patilha na página certa</h2></div>
+  <div class="body">
+    <div class="grid"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -8 112 112" role="img" aria-label="Construção do símbolo sobre uma grelha de 8 unidades">
+      <g stroke="#1D2420" stroke-opacity=".12" stroke-width=".4">
+        <path d="M0 0V96M8 0V96M16 0V96M24 0V96M32 0V96M40 0V96M48 0V96M56 0V96M64 0V96M72 0V96M80 0V96M88 0V96M96 0V96"/>
+        <path d="M0 0H96M0 8H96M0 16H96M0 24H96M0 32H96M0 40H96M0 48H96M0 56H96M0 64H96M0 72H96M0 80H96M0 88H96M0 96H96"/>
+      </g>
+      <g stroke="#1D2420" stroke-opacity=".35" stroke-width=".5" stroke-dasharray="1.5 1.5"><path d="M14 -6V102M74 -6V102M-6 8H102M-6 88H102M71.5 -6V102"/></g>
+      <rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/>
+      <path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/>
+      <path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/>
+      <g font-family="'IBM Plex Mono', monospace" font-size="4.2" fill="#55605A"><text x="15" y="-2.5">14</text><text x="70" y="-2.5">74</text><text x="-7" y="7">8</text><text x="-7" y="87.5">88</text><text x="76" y="52">24</text><text x="40" y="94.5">60 × 80</text></g>
+    </svg></div>
+    <dl class="spec">
+      <div><dt>O livro</dt><dd>Um retângulo de 60 por 80 unidades, traço 5, cantos de raio 2: a capa de um guia de bolso, desenhada com a mesma régua que abre o índice do site.</dd></div>
+      <div><dt>As entradas</dt><dd>Três linhas de traço 5 com pontas redondas, a 16 unidades de intervalo. A terceira é mais curta: uma entrada por acabar, porque o guia cresce.</dd></div>
+      <div><dt>A patilha</dt><dd>Uma patilha de índice de 12 por 24 unidades no corte frontal, na única cor do sistema, o verde-garrafa #0B6E4F. Marca a página que diz respeito a quem lê.</dd></div>
+      <div><dt>A marca</dt><dd>Source Serif 4 semibold, espaçamento -0.015em, a mesma face dos títulos do site. Linha secundária em Atkinson Hyperlegible Next. Espaço livre mínimo: a altura da patilha. Tamanho mínimo: símbolo 24 px, assinatura 140 px.</dd></div>
+    </dl>
+  </div>
+</div></section>
+
+<section data-section="logo-system" class="sec system"><div class="in">
+  <div class="head"><p class="n">Verbete 05<b>Sistema</b></p><h2>Assinaturas, símbolo e usos</h2></div>
+  <div class="body">
+    <div class="cell span2"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" role="img" aria-label="Assinatura horizontal"><g transform="translate(8 12)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="124" y="68" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="126" y="98" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div><p class="cap">Assinatura principal, horizontal</p></div>
+    <div class="cell"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" role="img" aria-label="Assinatura vertical"><g transform="translate(132 0)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="180" y="172" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="180" y="208" text-anchor="middle" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div><p class="cap">Assinatura vertical</p></div>
+    <div class="cell"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Símbolo"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></svg></div><p class="cap">Símbolo só, a partir de 24 px</p></div>
+    <div class="cell rev"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" role="img" aria-label="Assinatura invertida sobre tinta"><g transform="translate(8 12)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#F4F5F0" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#F4F5F0" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#F4F5F0"/></g><text x="124" y="68" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#F4F5F0">Moreira &amp; Vaz</text><text x="126" y="98" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#C8CEC7">Advogados do trabalho, Lisboa</text></svg></div><p class="cap">Invertida: papel sobre tinta, patilha em papel</p></div>
+    <div class="cell"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" role="img" aria-label="Assinatura a uma cor"><g transform="translate(8 12)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#1D2420"/></g><text x="124" y="68" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="126" y="98" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#1D2420">Advogados do trabalho, Lisboa</text></svg></div><p class="cap">A uma cor: carimbos, fax, impressão a preto</p></div>
+    <div class="cell paper"><div class="art"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -30 156 156" role="img" aria-label="Espaço livre e tamanho mínimo"><rect x="-24" y="-24" width="144" height="144" fill="none" stroke="#0B6E4F" stroke-width="1" stroke-dasharray="3 3"/><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/><path d="M-24 -14H-30M120 -14H126" stroke="#0B6E4F" stroke-width="1"/><text x="-26" y="-27" font-family="'IBM Plex Mono', monospace" font-size="7" fill="#55605A">24 = a patilha</text></svg></div><p class="cap">Espaço livre: a altura da patilha em volta; mínimo 24 px</p></div>
+    <div class="cell"><div class="art"><div class="bad">
+      <figure><div class="t"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" style="transform:scaleX(1.6)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></svg></div><figcaption>Não esticar</figcaption></figure>
+      <figure><div class="t"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#B3261E"/></svg></div><figcaption>Patilha só em verde</figcaption></figure>
+      <figure><div class="t"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/><path d="M8 20l20 24M30 12l-20 30" stroke="#1D2420" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M40 70l24-8-4 18z" fill="#1D2420"/></svg></div><figcaption>Sem martelos nem balanças</figcaption></figure>
+    </div></div><p class="cap">Usos incorretos</p></div>
+  </div>
+</div></section>
+
+<section data-section="colour-type" class="sec white colour"><div class="in">
+  <div class="head"><p class="n">Verbete 06<b>Cor e tipo</b></p><h2>Tinta sobre papel, um verde, três faces</h2></div>
+  <div class="body">
+    <div>
+      <h3>Cor</h3>
+      <ul class="sw">
+        <li><div class="c" style="background:#F4F5F0;border-bottom:1px solid var(--rule)"></div><div class="tx"><b>Papel</b><span class="mono">#F4F5F0</span><br>o fundo das páginas</div></li>
+        <li><div class="c" style="background:#FFFFFF"></div><div class="tx"><b>Branco</b><span class="mono">#FFFFFF</span><br>bandas alternadas, campos</div></li>
+        <li><div class="c" style="background:#1D2420"></div><div class="tx"><b>Tinta</b><span class="mono">#1D2420</span><br>texto e réguas, puxada ao verde</div></li>
+        <li><div class="c" style="background:#55605A"></div><div class="tx"><b>Tinta clara</b><span class="mono">#55605A</span><br>notas de margem, legendas</div></li>
+        <li><div class="c" style="background:#0B6E4F"></div><div class="tx"><b>Verde-garrafa</b><span class="mono">#0B6E4F</span><br>a única cor: ligações, um botão, a patilha</div></li>
+        <li><div class="c" style="background:#B3261E"></div><div class="tx"><b>Erro</b><span class="mono">#B3261E</span><br>só nos formulários, nunca na marca</div></li>
+      </ul>
+      <p class="sm" style="margin-top:calc(18 * var(--px))">Réguas: 2 px de tinta abrem um índice ou uma tabela; 1 px em #C8CEC7 separa as entradas. Cantos de 4 px só nos controlos.</p>
+    </div>
+    <div class="type">
+      <h3>Tipo</h3>
+      <p class="lab">Títulos e entradas do índice: Source Serif 4, semibold</p>
+      <p class="l">Fui despedido(a)</p>
+      <p class="lab">Texto: Atkinson Hyperlegible Next, 19 px, 60 a 66 caracteres por linha</p>
+      <p class="t">Um despedimento precisa de uma razão escrita e de um processo antes da carta. Sem isso pode ser ilícito.</p>
+      <p class="lab">Dados: IBM Plex Mono, só em prazos e artigos</p>
+      <p class="m">60 dias<br>art. 387.º CT</p>
+    </div>
+  </div>
+</div></section>
+
+<section data-section="mockups" class="sec mockups"><div class="in">
+  <div class="head"><p class="n">Verbete 07<b>Aplicações</b></p><h2>A marca nas coisas que o escritório entrega</h2></div>
+  <div class="body mkbody">
+<!--MOCKUPS:start-->
+<div class="mkrow"><div class="mkw" style="width:calc(552 * var(--px))"><figure class="mk" data-reveal data-mockup="booklet" style="width:100%;height:calc(372 * var(--px))"><div class="st" style="left:calc(-6.0 * var(--px));top:calc(0 * var(--px));width:calc(558.0 * var(--px));height:calc(372.0 * var(--px))"><img class="ph" src="../assets/mockup-booklet.jpg" alt="Guia de bolso de capa branca sobre uma mesa redonda de madeira, com a assinatura vertical Moreira e Vaz"><div class="pl" style="width:1000px;height:666.6666666666666px"><div class="ov" style="width:600px;height:890px;transform:matrix3d(0.4925925925925926,0.0,0,0.0,-0.005513554153961885,0.4858796392984605,0,-1.2530804895367921e-05,0,0,1,0,440.0,140.0,0,1);mix-blend-mode:multiply;opacity:0.92"><div style="position:absolute;left:84.00000000000001px;top:289.0px;width:432.0px;height:312.0px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" style="width:100%;height:100%;display:block"><g transform="translate(132 0)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="180" y="172" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="180" y="208" text-anchor="middle" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div><div style="position:absolute;left:84.00000000000001px;top:636.6px;width:432.0px;font:34px/1.35 'Atkinson Hyperlegible Next',system-ui,sans-serif;color:#1D2420;text-align:center">Os seus direitos no trabalho</div></div></div></div></figure><p class="mc">O guia de bolso</p></div><div class="mkw" style="width:calc(552 * var(--px))"><figure class="mk" data-reveal data-mockup="card" style="width:100%;height:calc(372 * var(--px))"><div class="st" style="left:calc(-51.825 * var(--px));top:calc(-46.5 * var(--px));width:calc(697.5 * var(--px));height:calc(465.0 * var(--px))"><img class="ph" src="../assets/mockup-card.jpg" alt="Cartão de visita branco sobre papel com a assinatura Moreira e Vaz"><div class="pl" style="width:1000px;height:666.6666666666666px"><div class="ov" style="width:1000px;height:625px;transform:matrix3d(0.37444444444444447,0.0,0,0.0,0.0022380952380952448,0.37637301587301586,0,4.761904761904776e-06,0,0,1,0,95.55555555555556,217.7777777777778,0,1);mix-blend-mode:multiply;opacity:0.95"><div style="position:absolute;left:90.0px;top:235.625px;width:820.0000000000001px;height:153.75000000000003px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" style="width:100%;height:100%;display:block"><g transform="translate(8 12)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="124" y="68" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="126" y="98" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div></div></div></div></figure><p class="mc">Cartão de visita</p></div><div class="mkw" style="width:calc(552 * var(--px))"><figure class="mk" data-reveal data-mockup="folder" style="width:100%;height:calc(372 * var(--px))"><div class="st" style="left:calc(0 * var(--px));top:calc(0 * var(--px));width:calc(558.0 * var(--px));height:calc(372.0 * var(--px))"><img class="ph" src="../assets/mockup-folder.jpg" alt="Pasta de cartão kraft encostada a uma janela, com a assinatura vertical Moreira e Vaz"><div class="pl" style="width:1000px;height:666.6666666666666px"><div class="ov" style="width:740px;height:732px;transform:matrix3d(0.2844237680303254,0.005743448366399201,0,1.4768867227883662e-05,0.0,0.2808136004857317,0,0.0,0,0,1,0,244.44444444444446,183.33333333333334,0,1);mix-blend-mode:multiply;opacity:0.9"><div style="position:absolute;left:44.4px;top:130.84444444444443px;width:651.2px;height:470.31111111111113px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" style="width:100%;height:100%;display:block"><g transform="translate(132 0)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="180" y="172" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="180" y="208" text-anchor="middle" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div></div></div></div></figure><p class="mc">Pasta do processo</p></div></div>
+<div class="mkrow"><div class="mkw" style="width:calc(552 * var(--px))"><figure class="mk" data-reveal data-mockup="tote" style="width:100%;height:calc(372 * var(--px))"><div class="st" style="left:calc(0 * var(--px));top:calc(-375.997 * var(--px));width:calc(552.0 * var(--px));height:calc(826.467 * var(--px))"><img class="ph" src="../assets/mockup-tote.jpg" alt="Saco de pano cru seguro por uma mão diante de uma porta verde, com o símbolo e a assinatura Moreira e Vaz"><div class="pl" style="width:1000px;height:1497.2222222222222px"><div class="ov" style="width:820px;height:880px;transform:matrix3d(0.5234981650062769,-0.06503387128029633,0,-4.3175217655045075e-05,0.05086840606719457,0.5745951517033979,0,2.2589617247172452e-05,0,0,1,0,256.6666666666667,810.0,0,1);mix-blend-mode:multiply;opacity:0.92"><div style="position:absolute;left:131.2px;top:238.64444444444447px;width:557.5999999999999px;height:402.71111111111105px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" style="width:100%;height:100%;display:block"><g transform="translate(132 0)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="180" y="172" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="180" y="208" text-anchor="middle" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div></div></div></div></figure><p class="mc">Saco de pano</p></div><div class="mkw" style="width:calc(552 * var(--px))"><figure class="mk" data-reveal data-mockup="poster" style="width:100%;height:calc(372 * var(--px))"><div class="st" style="left:calc(-6.0 * var(--px));top:calc(0 * var(--px));width:calc(558.0 * var(--px));height:calc(372.0 * var(--px))"><img class="ph" src="../assets/mockup-poster.jpg" alt="Cartaz branco numa parede de azulejos, com a assinatura e o índice das situações"><div class="pl" style="width:1000px;height:666.6666666666666px"><div class="ov" style="width:600px;height:840px;transform:matrix3d(0.5574074074074075,-0.002777777777777762,0,0.0,0.0013227513227512928,0.5575396825396826,0,0.0,0,0,1,0,408.8888888888889,100.0,0,1);mix-blend-mode:multiply;opacity:0.92"><div style="position:absolute;left:72.0px;top:100.8px;width:456.0px;height:329.3333333333333px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 260" style="width:100%;height:100%;display:block"><g transform="translate(132 0)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="180" y="172" text-anchor="middle" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="180" y="208" text-anchor="middle" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div><div style="position:absolute;left:72.0px;top:463.73333333333335px;width:456.0px;font:40px/1.35 'Atkinson Hyperlegible Next',system-ui,sans-serif;color:#1D2420;text-align:center">Fui despedido(a)<br>Não me pagaram<br>Sou assediado(a)<br>Mudaram-me o horário</div></div></div></div></figure><p class="mc">Cartaz na sala de espera</p></div><div class="mkw" style="width:calc(552 * var(--px))"><figure class="mk" data-reveal data-mockup="letterhead" style="width:100%;height:calc(372 * var(--px))"><div class="st" style="left:calc(0 * var(--px));top:calc(-78.96 * var(--px));width:calc(552.0 * var(--px));height:calc(828.0 * var(--px))"><img class="ph" src="../assets/mockup-letterhead.jpg" alt="Folha de papel timbrado e cartão sobre fundo cinzento, com a assinatura Moreira e Vaz no topo"><div class="pl" style="width:1000px;height:1500.0px"><div class="ov" style="width:1000px;height:1430px;transform:matrix3d(0.5533333333333333,0.0,0,0.0,0.0014971668278281334,0.5525479864157218,0,-1.4014042070154693e-06,0,0,1,0,315.0,245.0,0,1);mix-blend-mode:multiply;opacity:0.92"><div style="position:absolute;left:80.0px;top:114.4px;width:840.0px;height:157.5px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" style="width:100%;height:100%;display:block"><g transform="translate(8 12)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="124" y="68" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="126" y="98" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div><div style="position:absolute;left:80.0px;top:329.09999999999997px;width:840.0px;font:24px/1.35 'Atkinson Hyperlegible Next',system-ui,sans-serif;color:#1D2420;text-align:left">Rua por confirmar, Baixa, Lisboa</div></div></div></div></figure><p class="mc">Papel timbrado</p></div></div>
+<!--MOCKUPS:end-->
+  </div>
+</div></section>
+
+<section data-section="site" class="sec white site"><div class="in">
+  <div class="head"><p class="n">Verbete 08<b>O site</b></p><h2>A página inicial, construída e verificada</h2></div>
+  <div class="body">
+    <div class="laptop"><div class="scr"><img data-reveal src="../site-shots/site-desktop.jpg" alt="A página inicial da Moreira e Vaz a 1440 px: a frase Defendemos trabalhadores. Nunca empresas. ao lado do índice de situações"></div><div class="base"></div><p class="sm" style="margin-top:calc(14 * var(--px))">1440 px, em repouso</p></div>
+    <div class="phone"><div class="scr"><img data-reveal src="../site-shots/site-mobile.jpg" alt="A página inicial a 390 px" style="object-fit:cover;object-position:top;height:100%"></div><p class="sm" style="margin-top:calc(14 * var(--px))">390 px</p></div>
+    <div style="display:flex;flex-direction:column;height:100%;justify-content:flex-end"><div class="xcerpt"><img class="staticx" data-reveal src="../site-shots/site-desktop-full.jpg" alt="Excerto da página inteira: o verbete de exemplo e a tabela de prazos"><iframe class="liveframe" src="../site/index.html" title="O site da Moreira e Vaz, ao vivo" loading="eager" tabindex="-1"></iframe></div>
+      <p class="links">Excerto: o verbete e os prazos. <a href="../site/index.html">Abrir o site</a></p></div>
+  </div>
+</div></section>
+
+<section data-section="closing" class="sec closing"><div class="in">
+  <div class="head"><p class="n">Verbete 09<b>Fecho</b></p><h2 class="sm" style="font-family:var(--sans);font-weight:400;color:var(--muted);font-size:calc(26 * var(--px))">Moreira &amp; Vaz, advogados do trabalho, Lisboa</h2></div>
+  <p class="say">Defendemos trabalhadores. Nunca empresas.</p>
+  <ul class="colo">
+    <li><h3>Entregue</h3><p>Logótipo em SVG (assinaturas, símbolo, uma cor, invertido), a paleta e as faces, estas páginas em PDF e PNG, e a página inicial do site.</p></li>
+    <li><h3>Para confirmar</h3><p>Cada prazo e artigo com os advogados; a morada e o telefone do escritório; o número de registo na Ordem dos Advogados.</p></li>
+    <li><h3>A seguir</h3><p>O guia "Os seus direitos no trabalho", um verbete por situação; a página do formulário; a página de erro, com o índice como caminho de volta.</p></li>
+  </ul>
+</div></section>
+
+<div class="artboards">
+  <div data-social="square">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start"><span class="k" style="font-size:28px">Moreira &amp; Vaz</span><span class="k" style="font-size:28px">Advogados do trabalho, Lisboa</span></div>
+    <div><p class="sx" style="font-size:96px">Fui despedido(a). E agora?</p>
+      <div class="row" style="margin-top:48px"><p style="font-family:var(--serif);font-weight:600;font-size:44px;line-height:1.1;letter-spacing:-.015em">Tem 60 dias para reagir. Não assine nada sem ler.</p><p class="ref"><b>60 dias</b>art. 387.º CT<br>prazo de exemplo</p></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end"><div style="width:460px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" role="img" aria-label="Moreira e Vaz"><g transform="translate(8 12)"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></g><text x="124" y="68" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="58" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text><text x="126" y="98" font-family="'Atkinson Hyperlegible Next', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text></svg></div><p style="font-size:26px;color:var(--muted)">Defendemos trabalhadores. Nunca empresas.</p></div>
+  </div>
+  <div data-social="story">
+    <div style="width:200px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Símbolo Moreira e Vaz"><rect x="14" y="8" width="60" height="80" rx="2" fill="none" stroke="#1D2420" stroke-width="5"/><path d="M27 30h34M27 46h34M27 62h22" fill="none" stroke="#1D2420" stroke-width="5" stroke-linecap="round"/><path d="M71.5 36h12a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-12z" fill="#0B6E4F"/></svg></div>
+    <div><p class="sx" style="font-size:132px">Defendemos trabalhadores. Nunca empresas.</p>
+      <ul class="ruled" style="margin-top:72px">
+        <li class="row" style="border-top:0"><p style="font-family:var(--serif);font-weight:600;font-size:48px;line-height:1.1">Fui despedido(a)</p><p class="ref"><b>60 dias</b>art. 387.º CT</p></li>
+        <li class="row" style="border-top:0"><p style="font-family:var(--serif);font-weight:600;font-size:48px;line-height:1.1">Não me pagaram</p><p class="ref"><b>1 ano</b>art. 337.º CT</p></li>
+        <li class="row" style="border-top:0"><p style="font-family:var(--serif);font-weight:600;font-size:48px;line-height:1.1">Sou assediado(a)</p><p class="ref"><b>Registe datas</b>art. 29.º CT</p></li>
+      </ul>
+      <p style="font-size:26px;color:var(--muted);margin-top:28px">Prazos e artigos de exemplo, a confirmar no Código do Trabalho.</p></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end"><p style="font-family:var(--serif);font-weight:600;font-size:44px;letter-spacing:-.015em">Moreira &amp; Vaz</p><p style="font-size:26px;color:var(--muted)">Advogados do trabalho, Lisboa</p></div>
+  </div>
+</div>
+
+<script src="../slideshow.js"></script>
+</body>
+</html>

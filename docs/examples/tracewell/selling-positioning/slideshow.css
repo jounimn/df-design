@@ -1,0 +1,155 @@
+/* df-design presentation slideshow. Structure only: the identity styles the slides.
+   Everything is scoped to html.df-slideshow, a class slideshow.js adds. Without the class (window.__DF_EXPORT__ set,
+   or no script) the sections are an ordinary page and [data-reveal] elements are at rest. */
+
+.df-slideshow,
+.df-slideshow body { height: 100%; margin: 0; overflow: hidden; }
+
+/* Nothing but the slides and what holds them. [data-social] artboards never become slides. */
+.df-slideshow .df-off,
+.df-slideshow [data-social] { display: none !important; }
+
+/* One slide per screen: 1920×1080, centred, scaled to fit (--df-scale is set by the script), letterboxed.
+   Slides before the current one wait on the left, slides after it on the right: the move and the fade are the
+   transition, and it reads as forward or back without any extra state. */
+.df-slideshow section[data-section] {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  margin: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  transform: translate(-50%, -50%) translateX(var(--df-shift, 0px)) scale(var(--df-scale, 1));
+  transform-origin: center center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1), visibility 0s linear 0.55s;
+}
+.df-slideshow section[data-section].df-before { --df-shift: -120px; }
+.df-slideshow section[data-section].df-after { --df-shift: 120px; }
+.df-slideshow section[data-section].df-active {
+  --df-shift: 0px;
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.45s ease 0.1s, transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1), visibility 0s;
+}
+.df-slideshow.df-resizing section[data-section] { transition: none; }
+
+/* Image reveals: a clip-path mask that opens when the slide comes into focus. data-reveal="" or "left" opens from the
+   left edge; "right", "up", "down" from the other edges. */
+.df-slideshow [data-reveal] { clip-path: inset(0 100% 0 0); }
+.df-slideshow [data-reveal="right"] { clip-path: inset(0 0 0 100%); }
+.df-slideshow [data-reveal="up"] { clip-path: inset(100% 0 0 0); }
+.df-slideshow [data-reveal="down"] { clip-path: inset(0 0 100% 0); }
+.df-slideshow [data-reveal].df-revealed {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 0.9s cubic-bezier(0.65, 0, 0.35, 1) 0.15s;
+}
+
+/* Controls */
+.df-slideshow .df-ui { position: fixed; inset: 0; z-index: 2147483000; pointer-events: none; }
+.df-nav {
+  position: absolute;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font: 600 26px/1 system-ui, sans-serif;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.df-prev { left: 12px; }
+.df-next { right: 12px; }
+.df-nav[aria-disabled="true"] { opacity: 0.35; cursor: default; }
+.df-nav:focus-visible { outline: 3px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.65); }
+.df-counter {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font: 500 14px/1 ui-monospace, "SFMono-Regular", Consolas, monospace;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+/* Focus follows the slide programmatically; it is not a control, so it shows no ring. */
+.df-slideshow section[data-section]:focus { outline: none; }
+
+/* Announces "Slide N de M" to screen readers; invisible. */
+.df-live { position: fixed; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Hint for a phone held upright; shown only there. */
+.df-hint { display: none; }
+
+/* A phone held upright: the slide stays 16:9 (scaled to the width), and the controls move out of it into a bar along the
+   bottom edge, so nothing sits on top of the slide. The hint asks for the phone to be turned: sideways the slide fills
+   the screen. */
+@media (orientation: portrait) and (max-width: 900px) {
+  .df-slideshow .df-ui {
+    inset: auto 0 0 0;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(0, 0, 0, 0.88);
+    pointer-events: auto;
+  }
+  .df-nav { position: static; transform: none; }
+  .df-counter { position: static; transform: none; background: none; padding: 0; }
+  .df-hint {
+    display: block;
+    position: absolute;
+    left: 50%;
+    bottom: 76px;
+    transform: translateX(-50%);
+    margin: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.6);
+    color: rgba(255, 255, 255, 0.9);
+    font: 400 12px/1.3 system-ui, sans-serif;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+}
+
+/* No motion: slides swap without a transition and every reveal is already open. */
+@media (prefers-reduced-motion: reduce) {
+  .df-slideshow section[data-section],
+  .df-slideshow section[data-section].df-active { transition: none; }
+  .df-slideshow [data-reveal] { clip-path: none !important; transition: none !important; }
+}
+
+/* Print → PDF: every slide on its own page, no controls. */
+@media print {
+  .df-ui { display: none !important; }
+  .df-slideshow, .df-slideshow body { height: auto; overflow: visible; }
+  .df-slideshow section[data-section] {
+    position: static;
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    break-after: page;
+    transition: none;
+  }
+  .df-slideshow [data-reveal] { clip-path: none !important; }
+}

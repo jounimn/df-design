@@ -1,0 +1,205 @@
+// df-design presentation slideshow runtime. Structure only: the identity styles the slides.
+//
+// Slides are the page's section[data-section] elements, one in focus at a time, 16:9 (1920×1080) scaled to fit the viewport.
+//   Keys        ←/→, PageUp/PageDown, Home/End
+//   Pointer     on-screen previous/next buttons; touch swipe
+//   Counter     "03 / 10", and a live region that says "Slide 3 de 10"
+//   Access      slides are role=region, only the one in focus is reachable (the others are inert and aria-hidden), and focus
+//               follows the slide unless it is on a control
+//   URL hash    #slide-N tracks the slide, so a slide can be linked; #some-id opens the slide holding it. Moving with the keys,
+//               the buttons or a swipe replaces the hash instead of adding history entries; a link or an edited hash still does.
+//               A number out of range opens the nearest slide and the hash is corrected to it.
+//   Motion      fast tier, CSS only: slide/fade transitions and clip-path reveals on [data-reveal] (see slideshow.css).
+//               prefers-reduced-motion switches both off.
+//   Phone       held upright, the slide stays 16:9 and the controls sit in a bar below it, with a hint to turn the phone.
+//   Events      document 'df:slidechange', detail { from, to, slide } (1-based; from is null on the first show), so a
+//               medium or high tier (GSAP, Motion One, WebGL) can hook in.
+//   API         window.__DF_SLIDESHOW__ = { go(n), next(), prev(), get current(), get count() }
+//
+// window.__DF_EXPORT__ === true (set by the export and the checker before this script runs) turns everything off:
+// every section stays in the normal flow and every [data-reveal] is at rest.
+(() => {
+  'use strict';
+  if (window.__DF_EXPORT__ === true || window.__DF_SLIDESHOW_BOOT__) return;
+  window.__DF_SLIDESHOW_BOOT__ = true; // a second <script> tag must not start a second slideshow
+
+  const SLIDE = { width: 1920, height: 1080 };
+  const SWIPE = { distance: 50, ratio: 1.5 };
+  const LEAVE_MS = 700; // how long a slide that was left keeps its reveals, so they do not snap shut mid-fade
+  const root = document.documentElement;
+  const pad = (n) => String(n).padStart(2, '0');
+  const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function start() {
+    const slides = [...document.querySelectorAll('section[data-section]')];
+    if (!slides.length) return;
+    let current = 0;
+    let shown = false;
+
+    slides.forEach((slide, i) => {
+      slide.setAttribute('role', 'region');
+      slide.setAttribute('aria-roledescription', 'slide');
+      slide.setAttribute('aria-label', `Slide ${i + 1} de ${slides.length}`);
+      slide.tabIndex = -1; // so focus can follow the slide; no ring, it is not a control
+    });
+
+    // The first layout is set without a transition, so the slides do not animate in from an unscaled state.
+    root.classList.add('df-resizing', 'df-slideshow');
+    hideEverythingElse(slides);
+
+    // On-screen controls
+    const ui = document.createElement('nav');
+    ui.className = 'df-ui';
+    ui.setAttribute('aria-label', 'Slideshow');
+    ui.innerHTML = '<button type="button" class="df-nav df-prev" aria-label="Previous slide">&#8249;</button>'
+      + '<button type="button" class="df-nav df-next" aria-label="Next slide">&#8250;</button>'
+      + '<div class="df-counter" aria-hidden="true"></div>'
+      + '<p class="df-hint" aria-hidden="true">Gire o celular para tela cheia</p>';
+    document.body.appendChild(ui);
+    const live = document.createElement('div');
+    live.className = 'df-live';
+    live.setAttribute('role', 'status');
+    live.setAttribute('aria-live', 'polite');
+    live.setAttribute('aria-atomic', 'true');
+    document.body.appendChild(live);
+    const prevButton = ui.querySelector('.df-prev');
+    const nextButton = ui.querySelector('.df-next');
+    const counter = ui.querySelector('.df-counter');
+    prevButton.addEventListener('click', () => go(current - 1));
+    nextButton.addEventListener('click', () => go(current + 1));
+
+    function fit() {
+      root.style.setProperty('--df-scale', String(Math.min(window.innerWidth / SLIDE.width, window.innerHeight / SLIDE.height)));
+    }
+    let resizing;
+    window.addEventListener('resize', () => {
+      root.classList.add('df-resizing'); // no transition while the viewport changes
+      clearTimeout(resizing);
+      resizing = setTimeout(() => root.classList.remove('df-resizing'), 150);
+      fit();
+    });
+    fit();
+
+    function reveal(slide) {
+      const targets = slide.querySelectorAll('[data-reveal]');
+      if (reducedMotion()) { targets.forEach((el) => el.classList.add('df-revealed')); return; }
+      requestAnimationFrame(() => requestAnimationFrame(() => targets.forEach((el) => el.classList.add('df-revealed'))));
+    }
+
+    function render(from) {
+      slides.forEach((slide, i) => {
+        slide.classList.toggle('df-active', i === current);
+        slide.classList.toggle('df-before', i < current);
+        slide.classList.toggle('df-after', i > current);
+        slide.inert = i !== current;
+        if (i === current) slide.removeAttribute('aria-hidden'); else slide.setAttribute('aria-hidden', 'true');
+      });
+      counter.textContent = `${pad(current + 1)} / ${pad(slides.length)}`;
+      live.textContent = `Slide ${current + 1} de ${slides.length}`;
+      prevButton.setAttribute('aria-disabled', String(current === 0));
+      nextButton.setAttribute('aria-disabled', String(current === slides.length - 1));
+      reveal(slides[current]);
+      setTimeout(() => slides.forEach((slide, i) => {
+        if (i !== current) slide.querySelectorAll('.df-revealed').forEach((el) => el.classList.remove('df-revealed'));
+      }), LEAVE_MS);
+      document.dispatchEvent(new CustomEvent('df:slidechange', {
+        bubbles: true,
+        detail: { from: from === null ? null : from + 1, to: current + 1, slide: slides[current] },
+      }));
+    }
+
+    // The hash is rewritten in place: moving through the slides must not fill the history, and a hash that was out of
+    // range is corrected to the slide that opened. replaceState can refuse on some file:// origins; replace() is the fallback.
+    function writeHash() {
+      const hash = `#slide-${current + 1}`;
+      if (window.location.hash === hash) return;
+      try { window.history.replaceState(window.history.state, '', hash); } catch { window.location.replace(hash); }
+    }
+
+    // Focus follows the slide, except when it is on a control (a keyboard user stepping with the button keeps their place)
+    // and on the very first show, which must not take focus from the page.
+    function moveFocus(first) {
+      if (first || ui.contains(document.activeElement)) return;
+      slides[current].focus({ preventScroll: true });
+    }
+
+    function go(n, { fromHash = false, correctHash = false } = {}) {
+      const next = Math.max(0, Math.min(slides.length - 1, Math.round(n)));
+      if (shown && next === current) { if (correctHash) writeHash(); return; }
+      const from = shown ? current : null;
+      current = next;
+      shown = true;
+      render(from);
+      moveFocus(from === null);
+      if (!fromHash || correctHash) writeHash();
+    }
+
+    // { index, outOfRange }: #slide-N, or the slide that holds #some-id, else the first.
+    function readHash() {
+      let hash = window.location.hash.slice(1);
+      try { hash = decodeURIComponent(hash); } catch { /* a malformed escape (%E0) is read as it is */ }
+      const numbered = hash.match(/^slide-(\d+)$/);
+      if (numbered) {
+        const n = Number(numbered[1]);
+        return { index: n - 1, outOfRange: n < 1 || n > slides.length };
+      }
+      const holder = hash && document.getElementById(hash)?.closest('section[data-section]');
+      return { index: holder ? slides.indexOf(holder) : 0, outOfRange: false };
+    }
+    const followHash = () => { const { index, outOfRange } = readHash(); go(index, { fromHash: true, correctHash: outOfRange }); };
+    window.addEventListener('hashchange', followHash);
+
+    // Keys
+    document.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      if (e.target.isContentEditable || e.target.closest?.('input, textarea, select')) return;
+      const target = { ArrowRight: current + 1, PageDown: current + 1, ArrowLeft: current - 1, PageUp: current - 1, Home: 0, End: slides.length - 1 }[e.key];
+      if (target === undefined) return;
+      e.preventDefault();
+      go(target);
+    });
+
+    // Swipe
+    let touch = null;
+    document.addEventListener('touchstart', (e) => {
+      touch = e.touches.length === 1 && !e.target.closest?.('[data-no-swipe], input, textarea, select, iframe')
+        ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (!touch) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touch.x;
+      const dy = t.clientY - touch.y;
+      touch = null;
+      if (Math.abs(dx) >= SWIPE.distance && Math.abs(dx) > Math.abs(dy) * SWIPE.ratio) go(current + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+
+    window.__DF_SLIDESHOW__ = {
+      go: (n) => go(n - 1),
+      next: () => go(current + 1),
+      prev: () => go(current - 1),
+      get current() { return current + 1; },
+      get count() { return slides.length; },
+    };
+    followHash();
+    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('df-resizing')));
+  }
+
+  // Only the slides, the elements that hold them, and the controls stay visible: artboards ([data-social]), stray
+  // wrappers and the like never become slides. The watermark layer, when present, is left alone.
+  function hideEverythingElse(slides) {
+    const keep = new Set();
+    slides.forEach((slide) => { for (let n = slide; n && n !== document.body; n = n.parentElement) keep.add(n); });
+    const walk = (parent) => {
+      for (const child of parent.children) {
+        if (/^(SCRIPT|STYLE|LINK|META|TEMPLATE|NOSCRIPT)$/.test(child.tagName) || child.hasAttribute('data-df-watermark')) continue;
+        if (!keep.has(child)) child.classList.add('df-off');
+        else if (!slides.includes(child)) walk(child);
+      }
+    };
+    walk(document.body);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+  else start();
+})();
