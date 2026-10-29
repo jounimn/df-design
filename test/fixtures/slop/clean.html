@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Padaria Miolo</title>
+<meta name="description" content="Pão de fermentação longa, três fornadas por dia, no Carmo.">
+<!-- df-design · waive numbered-markers · the three steps are the real order of a morning at the oven -->
+<style>
+/* df-design · waive mono-costume · the hour labels are measurements the baker reads off the oven clock */
+:root {
+  --canvas: #f3eee4;
+  --surface: #faf7f0;
+  --line: #d8cfbd;
+  --ink: #1f1b16;
+  --ink-muted: #5a5248;
+  --brand: #2f5d3a;
+  --focus: #1f5aa8;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Public Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --radius: 4px;
+  --radius-pill: 999px;
+  --space-1: 8px; --space-2: 16px; --space-3: 32px; --space-4: 64px;
+  --dur: 320ms; --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+html, body { overflow-x: clip; }
+body { margin: 0; background: var(--canvas); color: var(--ink); font: 400 17px/1.55 var(--font-body); }
+.wrap { max-width: 1280px; margin-inline: auto; padding-inline: var(--space-2); }
+h1, h2 { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.025em; overflow-wrap: break-word; min-width: 0; }
+h1 { font-size: clamp(44px, 6vw, 80px); line-height: 1.02; }
+h2 { font-size: clamp(32px, 3.4vw, 48px); line-height: 1.08; }
+.hero { min-height: 90svh; display: grid; align-items: center; }
+.hero p { max-width: 60ch; }
+.btn { display: inline-flex; align-items: center; min-height: 48px; padding: 0 var(--space-3); border: 1px solid var(--ink); border-radius: var(--radius); background: var(--ink); color: var(--canvas); font: 500 17px/1 var(--font-body); text-decoration: none; cursor: pointer; transition: background-color var(--dur) var(--ease), transform 120ms var(--ease); }
+.btn:hover { background: var(--brand); border-color: var(--brand); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn--quiet { background: transparent; color: var(--ink); border-color: var(--line); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.fornadas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3); }
+.hour { font-family: var(--font-mono); font-size: 15px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.photo { aspect-ratio: 4 / 5; border-radius: var(--radius); }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.js .reveal { opacity: 0; transform: translateY(8px); transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease); }
+.js .reveal.is-in { opacity: 1; transform: none; }
+.steps { counter-reset: step; }
+.steps li { list-style: none; }
+.steps li::before { counter-increment: step; content: counter(step, decimal-leading-zero); font-family: var(--font-mono); }
+.rule { height: 1px; background: var(--line); }
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: background-color var(--dur) linear; }
+  .js .reveal { opacity: 1; transform: none; transition: none; }
+}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add('js');</script>
+<a class="btn btn--quiet" href="#main">Saltar para o conteúdo</a>
+<header class="wrap">
+  <a href="/" aria-label="Padaria Miolo, início">Miolo</a>
+  <nav aria-label="Principal"><a href="#fornadas">Fornadas</a> <a href="#onde">Onde estamos</a> <a class="btn" href="#encomendar">Encomendar pão</a></nav>
+</header>
+<main id="main">
+  <section class="hero wrap">
+    <div>
+      <h1>Pão às quatro, acabado às dez</h1>
+      <p>Fermentação de 36 horas, farinha moída na serra, três fornadas por dia na Rua do Carmo.</p>
+      <a class="btn" href="#encomendar">Encomendar para amanhã</a>
+    </div>
+    <figure class="photo"><img src="img/forma.jpg" width="1200" height="1500" alt="Formas de pão de fermentação longa a arrefecer na grelha"></figure>
+  </section>
+
+  <section class="wrap" id="fornadas">
+    <h2>Três fornadas por manhã</h2>
+    <div class="fornadas">
+      <figure class="photo"><img src="img/massa.jpg" width="1200" height="1500" alt="Massa a levedar em cestos de vime" loading="lazy"></figure>
+      <ol class="steps">
+        <li><span class="hour">04:00</span> Alentejano e broa de milho</li>
+        <li><span class="hour">07:30</span> Baguete e pão de centeio</li>
+        <li><span class="hour">10:00</span> Folhados e brioche</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="wrap reveal" id="onde">
+    <h2>Rua do Carmo, 12</h2>
+    <p>Terça a sábado, das 7h às 14h. Encomendas até às 18h do dia anterior.</p>
+    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+  </section>
+
+  <section class="wrap" id="encomendar">
+    <h2>Encomendar para amanhã</h2>
+    <form data-endpoint="" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required>
+      <button class="btn" type="submit">Reservar o pão</button>
+      <p aria-live="polite"></p>
+    </form>
+  </section>
+</main>
+<footer class="wrap">
+  <div class="rule"></div>
+  <p>Padaria Miolo, Carmo. Fotografias da casa.</p>
+</footer>
+</body>
+</html>

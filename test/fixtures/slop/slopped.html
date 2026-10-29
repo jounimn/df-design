@@ -1,0 +1,101 @@
+<!doctype html>
+<!--
+  Deliberately generated-looking page for the check-slop self-test. Every tell below is one the static tier must name.
+  Adapted from Hallmark's sloplint fixture (github.com/nutlope/hallmark, MIT) and extended with df-design's own anti-slop list.
+  Floor (FAIL):   transition-all · animates-layout · overflow-hidden · literal-colour · literal-font · gradient-ai · italic-word
+                  card-in-card · emoji-icon · focus-visible · focus-fades · reduced-motion · hidden-at-rest · decorative-svg
+                  img-alt · autoplay-unmuted · placeholder-copy
+  Reflex:         eyebrow · tracked-caps · mono-costume · safe-display-face · middle-dots · arrow-glued · word-dash-label
+                  numbered-markers · stock-second-action · buzzwords · uniform-radius · glow · sticky-collision · vh-hero
+                  bare-1fr-image-track · three-tiles · invented-proof
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<title>Nexus - Unleash Seamless Workflows</title>
+<style>
+:root {
+  --font-display: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --paper: #ffffff;
+  --ink: #111111;
+  --brand: #7c3aed;
+}
+html { overflow-x: hidden; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); }
+.nav { position: sticky; top: 0; background: var(--paper); }
+.section-head { position: sticky; top: 0; }
+.hero { min-height: 100vh; width: 100vw; }
+h1 {
+  font-family: var(--font-display);
+  background: linear-gradient(90deg, #8b5cf6, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.card { transition: all 0.3s ease; border-radius: 16px; box-shadow: 0 0 60px rgba(124, 58, 237, 0.6); }
+.tile { border-radius: 16px; }
+.pill { border-radius: 16px; }
+.quote { border-radius: 16px; }
+.promo { color: #e91e63; font-family: Georgia, serif; }
+.eyebrow { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.14em; font-size: 12px; }
+.meta { font-family: var(--font-mono); font-size: 13px; }
+.nav a:focus { outline: none; }
+.cta:focus-visible { outline: 2px solid var(--ink); transition: outline 200ms ease; }
+.gallery { display: grid; grid-template-columns: 1fr 1fr; }
+.bar { animation: grow 2s ease infinite; }
+@keyframes grow { from { width: 0; } to { width: 100%; } }
+.reveal { opacity: 0; transform: translateY(12px); transition: opacity 0.4s, transform 0.4s; }
+.reveal.is-in { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+<header class="nav">
+  <span class="meta">NEXUS</span>
+  <button class="cta">Get started</button>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Unleash <em>seamless</em> workflows</h1>
+    <p class="promo">Trusted by 50,000+ teams shipping 10x faster. Lorem ipsum dolor sit amet.</p>
+    <p class="meta">Design · Build · Ship</p>
+    <a class="cta" href="#more">Learn more →</a>
+    <svg width="120" height="40" viewBox="0 0 120 40"><circle cx="20" cy="20" r="16"></circle></svg>
+    <video autoplay loop src="loop.mp4"></video>
+  </section>
+
+  <div class="section-head">
+    <span class="eyebrow">FEATURES — what you get</span>
+    <h2>Everything, seamlessly</h2>
+  </div>
+
+  <section class="features">
+    <div class="tile"><svg aria-hidden="true" width="24" height="24"></svg><h3>Magic sync</h3><p>Robust and effortless.</p></div>
+    <div class="tile"><svg aria-hidden="true" width="24" height="24"></svg><h3>Smart routing</h3><p>World-class delivery.</p></div>
+    <div class="tile"><svg aria-hidden="true" width="24" height="24"></svg><h3>Instant search</h3><p>Industry-leading speed.</p></div>
+  </section>
+
+  <section class="steps">
+    <div class="card"><span class="num">01</span><h3>Connect</h3>
+      <div class="card"><p>A card inside a card.</p></div>
+    </div>
+    <div class="card"><span class="num">02</span><h3>Configure</h3></div>
+    <div class="card"><span class="num">03</span><h3>Celebrate</h3><div class="icon">✨</div></div>
+    <div class="bar"></div>
+  </section>
+
+  <section class="gallery">
+    <img src="shot-1.png">
+    <img src="shot-2.png" alt="Product screenshot two">
+  </section>
+
+  <section class="voices reveal">
+    <blockquote class="quote">"It changed everything for our team."</blockquote>
+    <p>Jane Doe, Head of Operations, Acme Corp</p>
+  </section>
+</main>
+<script>document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-in'));</script>
+</body>
+</html>
