@@ -27,7 +27,7 @@ Practical:     Language: English (en). Locale: none needed (no prices, no dates)
 Grammar:       Type: Schibsted Grotesk (SIL OFL) standing in for Söhne, display 80px at -0.045em and UI 13 to 18px;
                  JetBrains Mono for data only (service names, durations, trace ids, the install command, code).
                Colour: ground #0B0D10, panel #101318, lines #1D2229 / #2A3039, ink ladder #E9EBEE / #A3AAB4 /
-                 #6B737E, one accent #FF6A1A spent on the request hairline, the slow span, the primary action and
+                 #7A828D, one accent #FF6A1A spent on the request hairline, the slow span, the primary action and
                  the focus ring; dark-only, colour-scheme dark.
                Geometry: 4px radius on controls and panels, 2px on span bars, 1px hairlines; a 1200px container
                  with 32px gutters; no shadows, elevation by lightness.
@@ -73,7 +73,7 @@ Surfaces:      landing page (home): in scope. Docs, app, admin, 404: not in the 
 
 | Surface | Spec | Approved by author | Implemented | Verified |
 |---|---|---|---|---|
-| home | surfaces/home.md | assumed, 2026-10-29 (author absent; proceeding on stated assumptions) | yes | yes: check-slop Floor 0 FAIL · Reflex 0 (1 waived: invented-proof, sample data) · Finish 1 note · check-motion fast: no check failed · hero-review: subagent · fix · 5 findings · 5 resolved · finish-review: subagent · fix · 8 findings · 7 resolved 1 partial · gap: phone signature, resolved · looked at 1440 + 390 + mid-motion · open: ink 3 contrast 4.06:1 (brief change, author) |
+| home | surfaces/home.md | assumed, 2026-10-29 (author absent; proceeding on stated assumptions) | yes | yes: check-slop Floor 0 FAIL · Reflex 0 (1 waived: invented-proof, sample data) · Finish 1 note · check-motion fast: no check failed · hero-review: subagent · fix · 5 findings · 5 resolved · finish-review: subagent · fix · 8 findings · 7 resolved 1 partial · gap: phone signature, resolved · looked at 1440 + 390 + mid-motion · ink 3 lifted #6B737E → #7A828D (5.0:1), brief change approved by the author 2026-10-29 |
 
 Detail in `verification.md`. Consistency check (`identity.md` §10): one surface in scope, so it runs on home alone and on the presentation; no other surface exists to clash with.
 

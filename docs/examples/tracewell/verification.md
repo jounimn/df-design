@@ -76,10 +76,8 @@ photograph, so no watermark to look for.
 - Safari and Firefox were not opened; the `view()` waterfall falls back to the IntersectionObserver path there, which
   was not exercised in a browser without `animation-timeline` support.
 - The Pause control's hover and focus pausing was read from the code and not driven by a pointer in a test.
-- Contrast was computed from the tokens, not probed per element. **Open, for the author:** ink 3 (`#6B737E`) on the
-  ground (`#0B0D10`) is about 4.06:1, under the 4.5:1 the contrast gate (Floor) asks of small text, and the page sets
-  meta text in it at 11 to 12.5px (hop labels, the terms line, trace ids, the footer line). Ink 3 is one of the
-  settled brand's frozen tokens and motion mode does not change the palette, so this was not fixed here; the fix is a
-  brief change (lift ink 3 to about `#7A828D`, about 5.0:1, or move those labels to ink 2) that the author approves.
-  Ink 2 (`#A3AAB4`, about 8.3:1) and ink pass.
+- Contrast was computed from the tokens, not probed per element. Ink 3 was `#6B737E`, about 4.06:1 on the
+  ground (`#0B0D10`), under the 4.5:1 the contrast gate (Floor) asks of the 11 to 12.5px meta text set in it. The
+  author approved the brief change on 2026-10-29: ink 3 is now `#7A828D` (5.0:1 on the ground, 4.8:1 on the panel,
+  4.5:1 on the code ground), in the page, the deck and the logo system. Ink 2 (`#A3AAB4`, about 8.3:1) and ink pass.
 - The slideshow on a real portrait phone (the checker ran it at 390 headless only).
