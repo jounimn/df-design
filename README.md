@@ -26,6 +26,20 @@ That run touches the main page and nothing else. Research, auditions,
 assets, the loading tier and the consistency check are all limited to it,
 and clashes with untouched pages are reported as notes, not fixed.
 
+When the target already exists, the note can also say how deep to go:
+
+```
+/df-design audit the current homepage             # a report, nothing changed
+/df-design polish: only fix what looks generated  # the tells, in place
+/df-design keep the layout, restyle around the green
+/df-design redesign the site                      # keep the content and the wiring, change the rest
+```
+
+Before a redesign starts, `scripts/check-kept.mjs record` writes down every
+link, field, form, handler, test hook and script the page has; after it,
+`check` fails the redesign if any went missing without a reason on the
+record (`references/redesign.md`).
+
 Then every run opens with two answers, declared before anything else happens
 (a third question, whether the work will be sold and so needs a watermark,
 rides in the same message but never blocks the start):
@@ -134,7 +148,7 @@ flowchart TD
     PL --> SS["Surface spec<br/>one surface at a time"]
     SS --> SA{"Author approves<br/>this surface?"}
     SA -->|no| SS
-    SA -->|yes| BU["Build this surface,<br/>then verify it"]
+    SA -->|yes| BU["Build this surface:<br/>hero · hero review · sections<br/>then check-slop and the finish review"]
     BU -->|next surface| SS
     BU -->|all surfaces done| C["Consistency check<br/>across surfaces"]
     C --> V["Verification gate<br/>look at the rendered pages"]
@@ -152,6 +166,12 @@ flowchart TD
 | Playwright, auditions, loading tier | `references/audition.md` |
 | Assets: icons (mandatory), stock images (author's choice) | `references/icons-and-assets.md`, `references/images.md` |
 | Plan and build, including icons and images in the motion | `references/recipes-design.md`, `references/recipes-motion.md` |
+| The visitor's job: the action, the category's own sections, the close | `references/anatomy.md` |
+| A real brand named: fetched or probed, never recalled | `references/brand-truth.md` |
+| An existing design: audit, polish, restyle, full; the kept record | `references/redesign.md` |
+| The parts every page repeats, written to pass the gates | `references/patterns.md` |
+| The gates: tiers, classes, waivers, the judged clauses | `references/gates.md` |
+| The two reviews in fresh context | `references/reviews.md` |
 | Verification | `references/verification.md` |
 
 ### The repository
@@ -171,14 +191,25 @@ flowchart LR
             IMG["images.md"]
             VER["verification.md"]
             BEN["benchmarks.md"]
+            ANA["anatomy.md"]
+            GAT["gates.md"]
+            PAT["patterns.md"]
+            REV["reviews.md"]
+            RED["redesign.md"]
+            BRT["brand-truth.md"]
         end
     end
     subgraph Rig["Measurement rig"]
         PRB["scripts/probe.mjs"]
         LIBS["scripts/lib/<br/>static pass · motion inventory<br/>property and scroll trace<br/>archetype · validate · bundle"]
-        TST["test/<br/>36 tests, local fixtures"]
+        TST["test/<br/>381 tests in 23 files, local fixtures"]
     end
-    SK --> ID & AUD & LIB & RD & RM & IC & IMG & VER
+    subgraph Gates["Gate checks"]
+        CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
+        CKP["scripts/check-kept.mjs<br/>record · check"]
+        CPT["scripts/capture.mjs"]
+    end
+    SK --> ID & AUD & LIB & RD & RM & IC & IMG & VER & ANA & GAT & PAT & REV & RED & BRT
     LIB --> FAM
     RD & RM --> BEN
     PRB --> LIBS
@@ -186,12 +217,23 @@ flowchart LR
     CAP -. "aggregated into" .-> BEN
     AUD -. "probe the references" .-> PRB
     VER -. "probe the built page" .-> PRB
-    TST --> LIBS
+    GAT -. "implemented by" .-> CSL
+    VER -. "run the gates" .-> CSL
+    RED -. "the record" .-> CKP
+    BRT -. "probe the brand" .-> PRB
+    CSL -. "screenshots for" .-> REV
+    TST --> LIBS & CSL & CKP & CPT
 ```
 
 The skill and the rig are separate halves. The skill tells Claude how to
 work. The rig produced the numbers in `benchmarks.md`, and Claude runs it
-during a job to measure reference sites and the page it built.
+during a job to measure reference sites and the page it built. The gate
+checks sit between: `check-slop` names the mechanical tells of a generated
+page (the static tier reads HTML and CSS; `--render` measures the fold,
+horizontal scroll, focus rings, the measure and the page with scripting
+off), `check-kept` records what a page says and does before a redesign and
+fails the redesign when wiring is lost, and `capture` screenshots the real
+product for the page that sells it.
 
 ---
 
@@ -404,11 +446,23 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `references/recipes-design.md` | Ten sections: type roles and measure, colour ladders, page structure, chrome vocabulary, subject-derived identity, layout, anti-slop, the plan-and-review pass, words as design, and the checklist. |
 | `references/recipes-motion.md` | The rules every motion technique obeys: the signature curve, the reduced-motion contract, icons and images in motion, and a checklist. The techniques themselves are 34 cards in `references/techniques/` (23 fast, 4 medium, 7 high), 18 of them with a measured cost, and the other 16 say "not measured". |
 | `references/verification.md` | How to confirm the work is real. Read this one even if you skip the rest. |
+| `references/gates.md` | The one list of what the skill refuses to ship: Floor (never waived), Reflex (waived on the record), Finish (noted). Which a script settles, which a browser measures, which the eye judges; the judged clauses. |
+| `references/anatomy.md` | What a page is built around, by the visitor's job: subscribe, book, visit, attend, buy, try, sign up, hire, join, listen, work in. Where the action lives, the category's own sections, how pages end. |
+| `references/patterns.md` | The parts every page repeats, written to pass the gates: controls in eight states, a photograph in a slot, a missing fact, a form that posts nowhere yet, a reveal that survives no script, a loop that can pause. |
+| `references/reviews.md` | The two reviews in fresh context, hero and finish: the thread that built the page is its weakest reviewer. |
+| `references/redesign.md` | An existing design as the material: audit, polish, restyle or full; what every depth keeps; the record and the handoff. |
+| `references/brand-truth.md` | Never theme a real brand from memory: probe or fetch its colours and faces, with the fetch rules that keep it safe. |
 | `scripts/probe.mjs` | The prober CLI. |
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. |
 | `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle. |
 | `test/` | 36 tests and the HTML fixtures they run against. |
+| `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs. Exit 1 on a FAIL or an open REFLEX. |
+| `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
+| `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
+| `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle; the slop gates (static and render) and the page record. |
+| `test/` | 381 tests in 23 files, and the HTML fixtures they run against. |
+| `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT). |
 
 Claude reads the mode's recipe file and works from it; `benchmarks.md` and
 `verification.md` are pulled in as needed.
@@ -528,7 +582,31 @@ diagnostic: when seven of nine fields reproduce to the pixel, the other two
 are defects, not noise, and they are exactly the ones no fixture encoded.
 Where a field legitimately differs, record why beside the row, so the
 comparison stays a live check instead of decaying into noise.
+**Adding gates.** A gate is a row in `references/gates.md` §3 with a tier
+and a class, and, when a script can settle it, an entry in `GATES`
+(`scripts/lib/slop-static.mjs`) with its check and a line in the fixtures
+that trips it. The test suite refuses a gate documented on one side only.
+A gate is Floor only when no admired page breaks it on purpose; a rule the
+measured sites break (the eyebrow, tracked caps) is Reflex, however common
+the tell, because this skill's authority is the measurement, not the taste.
 
 Design specs and implementation plans are gitignored on purpose — they are
 working documents for whoever is driving a build, not part of the shipped
 skill.
+
+---
+
+## Credits
+
+Parts of this skill adapt [Hallmark](https://github.com/nutlope/hallmark)
+(MIT, Copyright (c) 2026 Hallmark contributors): the gate list and its
+tiers, the page anatomy by the visitor's job, the brand-truth protocol, the
+redesign depths and the kept record, the two fresh-context reviews, the
+patterns, and the capture script. Each was rewritten for this skill's stack
+(Playwright, its own CLI and test conventions) and reconciled with its
+evidence base; where the two disagree, the measurement wins and the file
+says so. The licence is in `licenses/hallmark-LICENSE`.
+
+`references/recipes-design.md` also adapts guidance from Anthropic's
+`frontend-design` skill (Apache-2.0), and `scripts/lib/browser.mjs` ports
+the browser detector from the `impeccable` skill.

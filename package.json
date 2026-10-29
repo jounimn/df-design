@@ -1,12 +1,15 @@
 {
   "name": "df-design",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "private": true,
   "engines": { "node": ">=22" },
   "scripts": {
     "test": "node --test --test-concurrency=2",
-    "probe": "node scripts/probe.mjs"
+    "probe": "node scripts/probe.mjs",
+    "check-slop": "node scripts/check-slop.mjs",
+    "check-kept": "node scripts/check-kept.mjs",
+    "capture": "node scripts/capture.mjs"
   },
   "dependencies": {
     "playwright": "^1.48.0"

@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- df-design · waive three-tiles · the three entries are the catalogue's numbered rooms, each a plate with its own data, not feature tiles -->
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
@@ -222,15 +223,15 @@ h1, h2, h3 { margin: 0; font-family: var(--f-display); font-weight: 800; }
 .hours .where { margin-top: 26px; display: flex; gap: 10px; align-items: flex-start; font-size: .98rem; }
 
 /* ---------- schools: the dark chapter ---------- */
-.schools { background: rgb(22 31 29); color: rgb(233 236 230); }
+.schools { background: rgb(var(--schools-ground)); color: rgb(var(--schools-ink)); }
 .schools .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px 64px; align-items: start; }
 .schools h2 { display: flex; align-items: center; gap: 16px; font-size: clamp(2.2rem, 4.4vw, 3.8rem); letter-spacing: -0.035em; line-height: 1; }
 .schools h2 .ico { width: .8em; height: .8em; color: rgb(var(--signal)); }
-.schools p { color: rgb(176 186 181); max-width: 50ch; }
+.schools p { color: rgb(var(--schools-muted)); max-width: 50ch; }
 .schools ul { list-style: none; margin: 0 0 28px; padding: 0; }
-.schools li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgb(64 76 72); }
-.schools li .data { color: rgb(255 194 26); }
-.schools .btn { box-shadow: 3px 3px 0 rgb(233 236 230); border-color: rgb(233 236 230); }
+.schools li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgb(var(--schools-line)); }
+.schools li .data { color: rgb(var(--signal)); }
+.schools .btn { box-shadow: 3px 3px 0 rgb(var(--schools-ink)); border-color: rgb(var(--schools-ink)); }
 .schools .btn:active { box-shadow: none; }
 
 /* ---------- footer ---------- */

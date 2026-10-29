@@ -23,6 +23,40 @@ Only looking finds them.
 
 ---
 
+## Run the gates before you look
+
+```bash
+node scripts/check-slop.mjs <page.html or folder> --render          # a built page
+node scripts/check-slop.mjs --url http://localhost:3000/pricing     # a route on a dev server
+node scripts/check-slop.mjs <page.html> --tier floor                # the quick gate while building, static only
+```
+
+The static tier reads the HTML and CSS for the Floor and Reflex gates: the
+tokens, the gradients, the eyebrow, tracked caps, mono as costume, the
+emoji icon, the missing focus ring, motion with no reduced-motion fallback,
+content hidden until a script runs, the placeholder copy. `--render` opens
+the page in Playwright for what only a browser can settle: the fold at
+1280 x 800, horizontal scroll at six widths, focus rings found by tabbing,
+the measure, images that load, the container at 1920, the page with
+scripting off. It writes the screenshots the look needs to
+`captures/slop/<page>/` (`fold-1280.png`, `hero-1440.png`, `full-1440.png`,
+`full-390.png`), captured at rest with reduced motion and after a scroll
+through, so the next section's trick is already applied.
+
+Read the summary line: `Floor 0 FAIL · Reflex 1 (1 waived) · Finish 2
+notes`. A Floor finding is fixed; a Reflex finding is fixed or waived in
+the page with a reason (`gates.md` §2); a Finish note is read. Then walk
+the judged gates the script cannot settle (`gates.md` §3, class J, and §5)
+from the screenshots, and send the finish review (`reviews.md` §2) the same
+screenshots. **The script settles the mechanical half. It does not say the
+page looks designed; the review and the look do.**
+
+On a redesign, `check-kept check` runs here too, against the record taken
+before the work started (`redesign.md` §6): a link, a field, a handler or a
+test hook that went missing fails the redesign.
+
+---
+
 ## Capture the page at rest
 
 A full-page screenshot does **not** scroll the page — the browser captures
@@ -136,6 +170,7 @@ State what the look showed, including when it showed nothing useful.
 
 - "Verified: 1,386 rows → 32 in the DOM, document height 53,677px → 900px."
 - "Axis labels legible in both themes; console clean on every route."
+- "check-slop: Floor 0 FAIL · Reflex 1 waived (eyebrow: the step labels are a real sequence) · finish review: fix, 3 findings, 3 resolved."
 - "I could not verify this visually — the dev server would not start."
 
 That last one is an acceptable sentence. **"Done" without having looked is

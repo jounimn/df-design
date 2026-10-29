@@ -169,6 +169,14 @@ to reach a count.** Every band answers a question the reader actually has.
 If a band exists because the checklist said "8+", cut it. The failure the
 benchmark guards against is thin bands, not few bands.
 
+**The bands come from the visitor's job, not from a default sequence.**
+Hero beside a picture, a figure row, three steps, a split, a showcase, an
+email band is how software pages look and almost nothing else. Before
+choosing bands, read the job in `anatomy.md`: where real sites in the
+category put the action, which sections are the category's own (the menu,
+the lineup, the issues, the record), and how they end. The measured sites
+are long because they have that much to say in their category's own form.
+
 **Switch the ground between chapters.** ClickHouse uses 3 distinct section
 backgrounds, Cube 4, Stripe 4, dbt 3. Greptile drops from warm gray to dark
 violet-slate for its "how it works" band, and that colour change alone is
@@ -300,6 +308,14 @@ not spend the freedom on these:
 Each one is legitimate for some brief. The problem is reaching for it on
 every brief. That makes it a default, not a choice.
 
+The mechanical half of this list is enforced: `scripts/check-slop.mjs`
+names the gradient, the literal colour, the eyebrow, the tracked label, the
+mono costume, the safe display face, the named look, the middle dots and
+arrows, the ordinal markers, the three tiles and the rest, each graded by
+`gates.md` (Floor, never waived; Reflex, waived on the record with the
+reason the brief gives it). The whole-look clusters and the judged tells
+are walked by eye from the screenshots it writes.
+
 **When the brief points at one of these looks, take its most specific
 reading.** "Old newsletter" can be a generic broadsheet, or a duplicated
 stencil sheet, a parish bulletin or a typed notice on the shop door. The
@@ -376,6 +392,8 @@ microcopy on every surface (admin and 404 included) uses the same one.
 ## 10. Checklist before calling design done
 
 - [ ] Plan written and reviewed against the generic before any code (§8)
+- [ ] The page is built from the visitor's job (`anatomy.md`), not from the stock sequence
+- [ ] `check-slop --render` at 0 FAIL, every Reflex fixed or waived on the record (`gates.md`)
 - [ ] Three type roles filled, by as many families as the identity needs; a mono only where there is real data
 - [ ] Display face is not the body face
 - [ ] Body text within its measure (60–70ch sans, ≤75ch serif, 35–45ch per column)

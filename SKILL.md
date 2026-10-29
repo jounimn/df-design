@@ -1,6 +1,6 @@
 ---
 name: df-design
-description: Use when designing, rebranding, auditioning or animating any web UI - landing pages, marketing sites, product surfaces, dashboards, admin and error pages - or when choosing a visual identity or style direction, comparing design directions, or turning reference sites, screenshots or videos into a design. Measures the work against benchmarks from 30 probed production sites and will not let it be called done until someone has looked at the rendered page.
+description: Use when designing, rebranding, auditioning or animating any web UI - landing pages, marketing sites, product surfaces, dashboards, admin and error pages - or when choosing a visual identity or style direction, comparing design directions, turning reference sites, screenshots or videos into a design, or auditing, polishing or redesigning a site that already exists. Measures the work against benchmarks from 30 probed production sites, checks it against the tells of a generated page, and will not let it be called done until someone has looked at the rendered page.
 ---
 
 # df-design
@@ -90,10 +90,22 @@ If yes, ask for the text (default: the author's studio or name) and, for the
 image variant, the file or permission to use the author's logo. Types,
 opacity, scope and the preview/final split: `references/watermark.md`.
 
+**4. Depth, only when the target already exists.** A site, a route, a
+folder of pages or a component tree that is already designed is the
+material, and the first message asks how deep to go, in the author's words:
+**audit** (a report, nothing changed), **polish** (only what looks
+generated), **restyle** (keep the layout, change the system) or **full**
+(keep the content and the wiring, change the rest). Read it from the note
+when it already says ("keep the layout" is a restyle; "tell me what is
+wrong" is an audit). The depths, the record of what the page says and does,
+and what each depth keeps: `references/redesign.md`.
+
 Once path and mode are known (and the watermark answered or defaulted to
 none), record them as one status line:
 
-`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> load=<fast|medium|high|custom> selling=<now|end|skip> tier=<fast|medium|high> — <conditions from step 0, one line>`
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> load=<fast|medium|high|custom> selling=<now|end|skip> tier=<fast|medium|high> redesign=<audit|polish|restyle|full> — <conditions from step 0, one line>`
+
+`redesign=` appears only when the target exists (question 4).
 
 `load=` is the site's loading tier, the author's answer to the tier
 message (`audition.md` §4). The message is asked with the candidates (on
@@ -186,6 +198,12 @@ heavier tier, or the images weigh more than the first message assumed.
 | Looking at it | `references/verification.md` |
 | Watermark: question, layer, preview and final | `references/watermark.md` |
 | Selling-positioning: logo, positioning, mockups, slideshow, export | `references/selling-positioning.md` |
+| The visitor's job: where the action lives, the category's own sections, how the page ends | `references/anatomy.md` |
+| A real brand named in the brief: fetch or probe its colours and faces, never recall them | `references/brand-truth.md` |
+| An existing design: audit, polish, restyle or full; the record a redesign is checked against | `references/redesign.md` |
+| The gates: what a script refuses, what a browser measures, what the eye judges; waivers | `references/gates.md` |
+| The parts every page repeats, written to pass the gates | `references/patterns.md` |
+| The two reviews in fresh context: the hero, then the finished surface | `references/reviews.md` |
 
 In `motion` mode the identity stages shrink to one: read the identity the
 site already has and keep to it.
@@ -234,15 +252,24 @@ the two disagree, or neither makes it clear, ask before writing anything.
 **The loop, per surface:**
 
 1. **Surface spec.** Write a short spec for this surface only: who uses it,
-   on what device, its content and flows, its density, and how it carries
-   the identity (`identity.md` §9). Keep it in its own place (e.g.
-   `docs/surfaces/<surface>.md`, or a clearly titled message).
+   on what device, its content and flows, its density, its **job** (the one
+   thing a visitor comes to do, and the sections that job is built around:
+   `anatomy.md`), and how it carries the identity (`identity.md` §9). Keep
+   it in its own place (e.g. `docs/surfaces/<surface>.md`, or a clearly
+   titled message).
 2. **Author approves it.** An explicit yes on *this* spec. Approval of the
    identity brief is not approval of a surface spec, and silence is not
    approval.
-3. **Build it.** Only what the approved spec says.
-4. **Verify it.** Look at the rendered surface (the verification gate) and
-   report what the look showed.
+3. **Build it.** Only what the approved spec says. The nav and the hero
+   first; then the hero review in fresh context (`reviews.md` §1); then the
+   sections. The parts every page repeats (controls in all eight states, a
+   photograph in a slot, a missing fact, a form that posts nowhere yet, a
+   reveal that survives no script) come from `patterns.md`.
+4. **Verify it.** Run the gates (`node scripts/check-slop.mjs <page> --render`)
+   to 0 FAIL with every Reflex fixed or waived on the record (`gates.md`),
+   then the finish review in fresh context (`reviews.md` §2), then look at
+   the rendered surface (the verification gate) and report what the look
+   showed.
 5. **Mark it done** in the surface ledger (`identity.md` §8). Only then
    start the next surface's spec.
 
@@ -349,6 +376,20 @@ page *at rest* so scroll-triggered content is not photographed at
 `opacity: 0`. If Playwright is not allowed, the author does the looking;
 tell them exactly what to check.
 
+**Before the look, the gates.** `node scripts/check-slop.mjs <page> --render`
+names the mechanical tells of a generated page (a purple-to-blue gradient,
+`transition: all`, a colour literal outside the tokens, an eyebrow, tracked
+caps, an emoji icon, a missing focus ring, motion with no reduced-motion
+fallback, content hidden until a script runs) and measures what only a
+browser can (the fold at 1280 x 800, horizontal scroll at six widths, focus
+by tabbing, the measure, images that load, the page with scripting off). It
+writes the screenshots the look needs. Nothing ships with an open `FAIL` or
+an open `REFLEX`; a Reflex gate is fixed or waived on the record with a
+reason. The whole list, its tiers and the judged gates the script cannot
+settle: `references/gates.md`. Then the finish review in fresh context
+(`references/reviews.md`): the thread that built the page is its weakest
+reviewer.
+
 Then run the consistency check in `identity.md` §10 across every surface.
 
 Report honestly what the look showed. "I could not verify this visually"
@@ -396,3 +437,11 @@ is an acceptable sentence. "Done" without having looked is not.
 | "The images rule says no watermark, so I can't add one" | That rule is about third-party marks in what ships. The author's protective watermark is separate. `watermark.md`. |
 | "They chose an audition, so go straight to assets" | Offer `selling-positioning` first: now, at the end, or skip. `selling-positioning.md` §1. |
 | "An icon per feature item will carry the section" | Three columns, three circled icons, three paragraphs is the template tell. None of the thirty measured sites do it. |
+| "A hero, three features, a call to action and a footer" | The stock anatomy of a software page, applied to a bakery. Build from the visitor's job: where real sites in the category put the action, the sections that are the category's own, how they end. `anatomy.md`. |
+| "I know Stripe's purple" | A brand colour recalled from training data is a named failure: memory hex = fail. Probe or fetch the real values. `brand-truth.md`. |
+| "An eyebrow above every heading gives the sections structure" | The eyebrow is the commonest tell of a generated page. Delete the line and read the page: if nothing was lost but a name for what comes next, it was an eyebrow. Keep one only where it carries a fact or a real sequence, and say so on the record. `gates.md` §5. |
+| "Trusted by 10,000 teams reads well" | Never an invented metric, testimonial, logo wall or case-study count. The author's number with its source, or nothing. `gates.md`. |
+| "The product isn't live yet, so a styled-div mock will do" | If it runs anywhere (a URL, a dev server, a folder, an app), capture it: `scripts/capture.mjs`. A built mock is right only for a product not built yet. |
+| "The linter passed, so it looks designed" | The script settles the mechanical gates. The judged gates, the two reviews and the look are still owed. `gates.md` §3, `reviews.md`. |
+| "I'll tidy the old page's links while I rebuild it" | A redesign keeps every link, field, form, handler and test hook, or puts the loss on the record. `check-kept` fails when one goes missing. `redesign.md`. |
+| "They said redesign, so tokens and type on the same layout" | That is a restyle. Say the depth back to the author: audit, polish, restyle or full. `redesign.md` §1. |

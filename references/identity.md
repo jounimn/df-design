@@ -59,6 +59,11 @@ read from context, ask — one line per reference, not an interrogation.
 A reference can carry several classes. Write the classification down; it
 decides how hard the reference pulls.
 
+A `BRAND` reference, or a real company the brief names, runs
+`brand-truth.md` before anything is themed: probe or fetch its colours and
+faces and record them in `docs/brand-spec.md`. A brand colour recalled from
+memory is a named failure.
+
 ### Analyse a website reference across
 
 Hero structure · navigation · type · layout · colour behaviour · information
@@ -237,6 +242,8 @@ Icons:         <the one set, its stroke and size logic, and why it fits (icons-a
 Images:        <author's answer on stock images; if yes: sources, treatment, which pages; asset record path (images.md §5)>
 Loading tier:  <fast / medium / high / custom, as chosen by the author (audition.md §4), and what justifies it>
 Surfaces:      <every surface in scope: landing, app, admin, docs, 404...; name out-of-scope surfaces as untouched>
+Brand:         <only when a real brand is named: docs/brand-spec.md, the values fetched or probed, never recalled (brand-truth.md)>
+Redesign:      <only when the target exists: the depth, then the Before, Keeps and Files lines (redesign.md §4)>
 ```
 
 When more than one surface is in scope, keep a **surface ledger** under the
@@ -246,10 +253,14 @@ time (`SKILL.md`, "One surface at a time"):
 ```markdown
 | Surface | Spec | Approved by author | Implemented | Verified |
 |---|---|---|---|---|
-| landing | docs/surfaces/landing.md | yes, 2026-10-06 | yes | yes, looked at 1440 + 390 |
+| landing | docs/surfaces/landing.md | yes, 2026-10-06 | yes | yes: check-slop Floor 0 · Reflex 1 waived · hero-review fix 3/3 · finish-review ship · looked at 1440 + 390 |
 | admin   | docs/surfaces/admin.md   | waiting          | no  | no  |
 | 404     | not started              | no               | no  | no  |
 ```
+
+The Verified cell carries the gate counts and the two review outcomes
+(`gates.md`, `reviews.md`) beside the look, so "verified" is never a bare
+word.
 
 Implementation must not drift toward generic conventions. "Archival
 editorial bakery" approved and "modern SaaS dashboard" delivered is the

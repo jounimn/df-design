@@ -11,7 +11,7 @@
 <style>
 :root{
   --paper:#F4F5F0; --white:#FFFFFF; --ink:#1D2420; --muted:#55605A; --rule:#C8CEC7;
-  --accent:#0B6E4F; --accent-ink:#08533B; --error:#B3261E;
+  --accent:#0B6E4F; --accent-ink:#08533B; --error:#B3261E; --field-line:#8E9891;
   --serif:"Source Serif 4",Georgia,serif;
   --sans:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
@@ -79,7 +79,7 @@ h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;color:var(--ink)}
 .duotone figcaption{font-size:.85rem;color:var(--muted);padding-top:12px;border-top:1px solid var(--rule);margin-top:12px}
 .who p{max-width:66ch;margin-top:20px}
 .facts{margin:36px 0 0;padding:0;display:grid;gap:0;border-top:2px solid var(--ink)}
-.facts div{display:grid;grid-template-columns:9rem 1fr;gap:20px;padding-block:16px;border-bottom:1px solid var(--rule)}
+.facts div{display:grid;grid-template-columns:9rem minmax(0,1fr);gap:20px;padding-block:16px;border-bottom:1px solid var(--rule)}
 .facts dt{font-family:var(--serif);font-size:1.6rem;font-weight:600;line-height:1.1}
 .facts dd{margin:0;color:var(--muted);align-self:center}
 .facts dd .icon{color:var(--ink);margin-right:6px}
@@ -117,7 +117,7 @@ form{display:grid;gap:26px}
 .err-summary a{color:var(--error)}
 .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:8px}
 .field .hint{display:block;font-size:.9rem;color:var(--muted);margin:-4px 0 8px}
-input,textarea{width:100%;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--white);border:1px solid #8E9891;border-radius:4px;padding:12px 14px}
+input,textarea{width:100%;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--white);border:1px solid var(--field-line);border-radius:4px;padding:12px 14px}
 textarea{min-height:9rem;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .field.is-error textarea{border:2px solid var(--error)}
@@ -144,7 +144,7 @@ button:hover{background:var(--accent-ink)}
 .oa{font-family:var(--mono);font-size:.85rem}
 
 @media (max-width: 1040px){
-  .hero-grid,.sec-grid,.form-grid{grid-template-columns:1fr;gap:48px}
+  .hero-grid,.sec-grid,.form-grid{grid-template-columns:minmax(0,1fr);gap:48px}
   .steps{grid-template-columns:1fr 1fr}
   .steps li:nth-child(3){padding-left:0;border-left:0}
   .steps li:nth-child(n+3){border-top:1px solid var(--rule)}
@@ -162,7 +162,7 @@ button:hover{background:var(--accent-ink)}
   .index li{grid-template-columns:1fr;gap:0}
   .index a{font-size:1.75rem;padding-block:18px 6px}
   .margin-ref{border-left:0;padding:0 0 18px;font-size:.85rem}
-  .facts div{grid-template-columns:1fr;gap:4px}
+  .facts div{grid-template-columns:minmax(0,1fr);gap:4px}
   .steps{grid-template-columns:1fr}
   .steps li,.steps li+li{padding:20px 0;border-left:0}
   .steps li+li{border-top:1px solid var(--rule)}

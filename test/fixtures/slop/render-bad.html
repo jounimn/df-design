@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Render tier fixture, the bad page</title>
+<meta name="description" content="Trips fold, horizontal-scroll, focus-ring, measure, broken-image, hidden-without-script, text-strain, container-cap, dead-half.">
+<style>
+:root { --ink: #1c1c1c; --paper: #f6f3ec; --font-body: Georgia, serif; --font-display: Georgia, serif; }
+html, body { overflow-x: clip; margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); }
+.banner { height: 820px; }
+.hero { padding: 24px; width: 40%; }
+.hero h1 { font-family: var(--font-display); font-size: 48px; }
+.wide { width: 2200px; height: 10px; }
+.btn { display: inline-block; padding: 12px 20px; border: 1px solid var(--ink); color: var(--ink); }
+.btn:focus { outline: none; }
+.btn:focus-visible { outline: none; }
+.prose { max-width: none; font-size: 16px; padding: 0 24px; }
+.tiny { font-size: 10px; }
+.reveal { opacity: 0; }
+.reveal.is-in { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="banner"></div>
+<section class="hero">
+  <h1>A headline pushed below the fold</h1>
+  <p>One line of lede.</p>
+  <a class="btn" href="#x">Start here</a>
+</section>
+<div class="wide"></div>
+<main>
+  <p class="prose">This paragraph has no measure at all and runs the full width of the viewport, which at nineteen twenty pixels is far more than ninety characters a line, and at fourteen forty it is still well past the reading limit every typographer agrees on, so the render tier should name it as a measure failure and not let it ship.</p>
+  <p class="tiny">This text is set at ten pixels, which strains the eye over more than a few words of running copy.</p>
+  <img src="missing-file.png" alt="A file that does not exist">
+  <h2 class="reveal">A heading that stays invisible without a script</h2>
+  <p class="reveal">And a paragraph with it, which a visitor without JavaScript never sees.</p>
+</main>
+<script>document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-in'));</script>
+</body>
+</html>
