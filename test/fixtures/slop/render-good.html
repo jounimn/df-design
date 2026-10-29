@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Render tier fixture, the good page</title>
+<meta name="description" content="Passes every render gate: the fold, the widths, focus, the measure, the cap, scripting off.">
+<style>
+:root { --ink: #1c1c1c; --ink-muted: #5b564d; --paper: #f6f3ec; --line: #d9d2c3; --focus: #1f5aa8; --font-body: "Public Sans", system-ui, sans-serif; --font-display: Georgia, serif; }
+html, body { overflow-x: clip; margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 400 17px/1.55 var(--font-body); }
+.wrap { max-width: 1200px; margin-inline: auto; padding-inline: 24px; }
+.hero { min-height: 80svh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+h1 { font-family: var(--font-display); font-size: clamp(40px, 5vw, 64px); line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 16px; overflow-wrap: break-word; min-width: 0; }
+h2 { font-family: var(--font-display); font-size: 36px; margin: 0 0 12px; }
+p { max-width: 60ch; margin: 0 0 16px; }
+.btn { display: inline-block; min-height: 48px; padding: 12px 24px; border: 1px solid var(--ink); border-radius: 4px; background: var(--ink); color: var(--paper); text-decoration: none; }
+.btn:focus-visible, a:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.art { width: 100%; aspect-ratio: 4 / 3; display: block; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; padding-block: 64px; border-top: 1px solid var(--line); }
+@media (max-width: 760px) { .hero, .row { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<header class="wrap"><a href="/">Harbour Rooms</a></header>
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1>Rooms by the harbour, from 120 a night</h1>
+      <p>Twelve rooms over the quay, breakfast until half past ten, the ferry at the door.</p>
+      <a class="btn" href="#book">Book a room</a>
+    </div>
+    <svg class="art" viewBox="0 0 400 300" role="img" aria-label="The quay at dusk, drawn as three bands of colour"><rect width="400" height="300" fill="#2b3a4a"/><rect y="180" width="400" height="120" fill="#5a6f7c"/><rect y="230" width="400" height="70" fill="#8a9aa5"/></svg>
+  </section>
+  <section class="row" id="rooms">
+    <div><h2>The rooms</h2><p>Each one faces the water. Oak floors, a desk under the window, a bath you can lie down in.</p></div>
+    <div><h2>Breakfast</h2><p>Bread from the bakery on the corner, eggs from the farm up the hill, coffee roasted in town.</p></div>
+  </section>
+  <section class="row" id="book">
+    <div><h2>Book a room</h2><p>Call the desk or write; we answer the same day.</p><a class="btn" href="mailto:desk@example.com">Write to the desk</a></div>
+  </section>
+</main>
+</body>
+</html>

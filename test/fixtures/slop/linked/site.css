@@ -1,0 +1,7 @@
+:root { --ink: #1a1a1a; --paper: #f7f4ee; --font-body: system-ui, sans-serif; }
+html, body { overflow-x: clip; }
+body { color: var(--ink); background: var(--paper); font-family: var(--font-body); }
+.btn { transition: all 200ms ease; }
+.btn:focus-visible { outline: 2px solid var(--ink); }
+:root { --font-display: Georgia, serif; }
+h1 { font-family: var(--font-display); }
