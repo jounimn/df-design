@@ -64,7 +64,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Botanical / natural-history illustration
 - **Grammar:** engraved or watercolour specimen plates (Redouté, Haeckel, Audubon) on cream; Latin binomials in italic old-style (Caslon, Garamond, Plantin, Cormorant); plate numbers, specimen labels, thin rules; muted greens, ochres, ink black.
 - **Says:** knowledge, patience, nature catalogued with care.
-- **Fits:** gardens, apothecary/skincare, tea, natural history, conservation, perfume. **Misfits:** urban tech, sport, nightlife.
+- **Fits:** gardens, apothecary/skincare, tea, natural history, conservation, perfume; orchards, apiaries, cideries, distilleries, nature reserves and trails. **Misfits:** urban tech, sport, nightlife.
 - **Trap:** public-domain plates used as wallpaper (clichéd "apothecary" look); high-res scans unoptimised; script-y faux-Victorian type.
 - **Load:** medium (illustration scans).
 - **Seen at:** https://www.c82.net/werner (Nicholas Rougeux's interactive Werner's Nomenclature of Colours — natural-history colour plates); https://publicdomainreview.org (essays built around natural-history plates); https://www.diptyqueparis.com (illustrated botanical labels across the shop).
@@ -82,7 +82,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Catalogue / mail-order
 - **Grammar:** dense grids of item + number + price; tiny product photos or line drawings; part numbers, index tabs, order forms; utilitarian sans or catalogue serifs; yellow/kraft accents; Whole Earth hand-assembled pages or McMaster-Carr precision.
 - **Says:** abundance, trustworthy utility, "everything you need".
-- **Fits:** hardware/industrial supply, outdoor gear, tool libraries, curated shops, directories. **Misfits:** single-product launches, luxury, storytelling brands.
+- **Fits:** hardware/industrial supply, outdoor gear, tool libraries, curated shops, directories; materials libraries and sample catalogues for architects. **Misfits:** single-product launches, luxury, storytelling brands.
 - **Trap:** density without fast search/filter is just noise; nostalgia print scans with no live data; lazy-loading kills the scanning speed that defines it.
 - **Load:** fast (McMaster is the benchmark for speed).
 - **Seen at:** https://www.mcmaster.com (McMaster-Carr — line drawings, instant catalogue navigation); https://wholeearth.info (Whole Earth Index — complete scanned catalogue archive); https://www.presentandcorrect.com (Present & Correct — stationery shop with archival-catalogue feel).
@@ -143,7 +143,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Field guide / almanac
 - **Grammar:** dense, indexed, tabular: tide/moon tables, small-caps headings, numbered entries, marginal icons, two-column reference layout; humanist serifs (Scotch Roman, Caslon, Century); rough woodcut-ish spot illustrations; newsprint or kraft tones.
 - **Says:** useful, folksy wisdom, practical, seasonal.
-- **Fits:** gardening, outdoors, weather, food/seasonal produce, birding, slow-living. **Misfits:** luxury, cutting-edge tech, nightlife.
+- **Fits:** gardening, outdoors, weather, food/seasonal produce, birding, slow-living; reference handbooks, datasets, directories, glossaries, specifications. **Misfits:** luxury, cutting-edge tech, nightlife.
 - **Trap:** density without hierarchy becomes a wall; ad-heavy almanac sites dilute the identity; cutesy "rustic" pastiche.
 - **Load:** fast.
 - **Seen at:** https://www.almanac.com (Old Farmer's Almanac — moon/tide/planting tables); https://www.audubon.org/field-guide (Audubon bird guide — entry/specimen structure); https://solar.lowtechmagazine.com (solar-powered magazine — almanac-like battery/weather meta, dithered plates).
@@ -197,7 +197,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Letterpress
 - **Grammar:** debossed/impressed type on cotton-paper texture; wood and metal type (Clarendon, Antique No. 6, Caslon, Chiswick, wood-type gothics); 1–2 inks, ink-squash edges, slight uneven coverage; printer's ornaments, rules and fleurons; centred, justified compositions.
 - **Says:** craft, permanence, slowness, care.
-- **Fits:** stationers, wedding/invitation, print studios, heritage drinks, book arts. **Misfits:** tech launches, fast fashion, data products.
+- **Fits:** stationers, wedding/invitation, print studios, heritage drinks, book arts; roasteries, cellars, apothecaries, bookshops, small presses. **Misfits:** tech launches, fast fashion, data products.
 - **Trap:** faux-emboss via inset box-shadow looks like 2009 skeuomorphism; paper-texture JPGs bloat the page; low-contrast grey "ink" on cream.
 - **Load:** medium (paper texture images, several historic webfonts).
 - **Seen at:** https://woodtype.org (Hamilton Wood Type Museum — wood-type specimens as identity); https://letterpresscommons.com (community archive — press and type documentation).
@@ -300,7 +300,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Grammar:** paper textures, tape, torn edges, handwriting, polaroids,
   stickers, collage at slight rotations.
 - **Says:** personal, memory, craft, warmth.
-- **Fits:** journaling apps, travel, family products, makers, small food brands. **Misfits:** enterprise.
+- **Fits:** journaling apps, travel, family products, makers, small food brands; habit, learning and daily-practice apps. **Misfits:** enterprise.
 - **Trap:** texture images everywhere bloat the page; rotated text hurts
   reading. Keep body copy straight.
 - **Load:** medium (texture images; use SVG filters for the cheaper torn edges).
@@ -358,8 +358,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Vintage packaging / label
 - **Grammar:** tin, can and bottle label conventions: badges, banners, borders, "Est." dates, illustrated mascots, chunky slab and condensed display (Cooper, Recoleta, Clarendon, GT Super), sunburst rules; limited flat palettes per SKU; product photography styled as still life.
 - **Says:** heritage-with-a-wink, quality ingredients, giftable.
-- **Fits:** DTC food and drink, pantry goods, cosmetics, candles. **Misfits:** software, finance, public services.
-- **Trap:** every DTC brand already does it (Recoleta + pastel + mascot); illustration-only CTAs lose affordance; nostalgia without product truth.
+- **Fits:** DTC food and drink, pantry goods, cosmetics, candles; cider, perry, harvest produce. **Misfits:** software, finance, public services.
+- **Trap:** every DTC brand already does it (Recoleta + pastel + mascot); illustration-only CTAs lose affordance; nostalgia without product truth. Cream paper, a serif and terracotta is also the most recognised generated look (`recipes-design.md` §7): take it only with a medium, era and place of its own.
 - **Load:** medium (packshots, display fonts).
 - **Seen at:** https://eatfishwife.com (Fishwife — illustrated tinned-fish labels as site identity); https://graza.co (Graza — squeeze-bottle label language, playful display type); https://brightland.co (Brightland — artful label-led olive oil).
 - **Search:** "DTC packaging website"; Packaging of the World; site:fontsinuse.com label; Godly "food"; "tinned fish branding".

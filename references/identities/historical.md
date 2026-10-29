@@ -46,7 +46,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Arts & Crafts
 - **Grammar:** William Morris dense botanical repeats (acanthus, strawberry thief), woodcut borders, Kelmscott blackletter-roman (Golden Type; modern: Goudy Old Style, Jenson, IM Fell). Indigo, madder red, weld yellow, olive, parchment. Hand-printed texture, drop caps, framed text blocks. Almost no motion.
 - **Says:** handmade, honest materials, heritage craft, anti-industrial.
-- **Fits:** furniture makers, bookbinders, heritage, textiles, independent publishers, gardens. **Misfits:** tech, fast fashion, nightlife.
+- **Fits:** furniture makers, bookbinders, heritage, textiles, independent publishers, gardens; weaving and linen studios, cloth. **Misfits:** tech, fast fashion, nightlife.
 - **Trap:** wallpaper pattern behind body text kills legibility; large tiled raster patterns heavy; museum-gift-shop cliché.
 - **Load:** fast with SVG repeats; medium with scanned patterns.
 - **Seen at:** https://www.wmgallery.org.uk (William Morris Gallery — Morris patterns throughout); https://morrisandco.sandersondesigngroup.com (Morris & Co. — live commerce on the original pattern archive); https://www.libertylondon.com (Liberty — Arts & Crafts/Nouveau print heritage as brand).
@@ -74,7 +74,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Concrete Brutalism (architectural)
 - **Grammar:** the 1950s–70s béton-brut building as visual: board-marked concrete photography, monochrome grey, heavy rectilinear blocks and cantilevers as layout, stencil and municipal signage sans (Barbican's custom, DIN, Gill Sans), orange or yellow wayfinding accents. Monumental scale, slow camera-like scroll.
 - **Says:** civic ambition, permanence, honesty of material, urban culture.
-- **Fits:** arts centres, architecture, housing, urbanism, photography books, techno. **Misfits:** soft consumer, kids, wellness.
+- **Fits:** arts centres, architecture, housing, urbanism, photography books, techno; contractors, skateparks, civil works, foundries. **Misfits:** soft consumer, kids, wellness.
 - **Trap:** confusion with web "Brutalism"/Neo-brutalism (raw HTML) — this is about the architecture; grey on grey contrast; heavy full-bleed photography.
 - **Load:** medium (large photography).
 - **Seen at:** https://www.barbican.org.uk (Barbican — arts centre in a Brutalist estate, identity built on its architecture); https://www.sosbrutalism.org (SOS Brutalism — DAM database of endangered Brutalist buildings).
