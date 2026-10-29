@@ -353,7 +353,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Grammar:** a bitmap or pixel display face, a hard-edged limited
   palette, stepped (not eased) motion, 8-bit icons.
 - **Says:** playful, gaming, retro-computing, craft.
-- **Fits:** games, developer tools with humour, indie brands. **Misfits:** luxury, health.
+- **Fits:** games, developer tools with humour, indie brands; indie launches, demo nights, game jams. **Misfits:** luxury, health.
 - **Trap:** pixel fonts at body size; smoothed scaling (use
   `image-rendering: pixelated` and integer scales).
 - **Load:** fast.

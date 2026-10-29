@@ -18,8 +18,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### AI lab
 - **Grammar:** two poles. Warm editorial (Anthropic: custom serif + sans, ivory #faf9f5 ground, clay accent, hand-drawn illustration); stark research (OpenAI: custom grotesk OpenAI Sans, black/white, large photographic or abstract gradient imagery); expressive (Mistral: pixel logo, sunset gradients, orange). Research posts as primary content.
 - **Says:** serious stewards of powerful technology; human, not sci-fi.
-- **Fits:** model labs, AI research orgs, safety/policy. **Misfits:** consumer playful apps, sales-heavy SaaS.
-- **Trap:** neural-net glow, brain icons, purple "AI gradient" and sparkles. Best escape with a warm non-tech palette, editorial typography, and treating papers/essays as the product.
+- **Fits:** model labs, AI research orgs, safety/policy, generative-media tools and model APIs. **Misfits:** consumer playful apps, sales-heavy SaaS.
+- **Trap:** neural-net glow, brain icons, purple "AI gradient" and sparkles. Best escape with a warm non-tech palette, editorial typography, and treating papers/essays as the product. Both poles have a cliché of their own, both in `recipes-design.md` §7: the warm pole slides into cream paper, a high-contrast serif and terracotta; the dark pole into violet-black, a lowercase serif and one molten accent with a second coloured verb. One hue in two strengths, never a gradient.
 - **Load:** fast–medium.
 - **Seen at:** anthropic.com — ivory, serif, editorial research hub; openai.com — monochrome grotesk with soft imagery; mistral.ai — pixel M, sunset gradients, orange CTA.
 - **Search:** webdesignhot.com design.md anthropic; creativereview "Mistral design"; godly.website AI; "AI company brand identity" 2025.
@@ -60,6 +60,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Seen at:** aesop.com — Work & Co build, packaging-led calm; glossier.com — millennial pink, product-on-skin; rhodeskin.com — glazed minimal, product close-ups.
 - **Search:** footer.design aesop; "beauty website design" godly; land-book.com beauty; "skincare ecommerce" siteinspire.
 
+### Ceramics studio / kiln
+- **Grammar:** the work in its own light: a warm plaster or bone ground, pieces photographed close and lit low (a candle, a window, the table), a serif display over a grotesk body (Heath: Schoolbook over BentonSans; East Fork: Quincy CF over Galano), the glaze palette as the site's colour system (East Fork's swatch row), a mono label face for the studio log on potters' own sites. The instrument pole: a near-black hero lit by the warm object itself, the temperature as the figure, mono labels, one ember accent only ever as a fill (Ember).
+- **Says:** fired by hand, in this place; heat measured, not advertised.
+- **Fits:** potteries and ceramics studios, glaze and clay suppliers, kiln and controller makers, workshop schools, heat instruments, firing-log apps. **Misfits:** cold tech, anything that must look fast, kids' brands.
+- **Trap:** the pottery template: terracotta and cream, Playfair Display over DM Sans, floury hands, "handmade with love", a class carousel; kiln makers fall off the other side into Montserrat on a blue band with a spec table. Best escape with the work in its own light (Heath), the glaze palette as the colour system (East Fork), or the temperature as the hero figure on near-black (Ember). A firing curve coloured from ash to white heat is a free move nobody ships yet.
+- **Load:** medium (photography); fast when type and the glaze palette carry it; high with film.
+- **Seen at:** heathceramics.com — plaster ground, Schoolbook over BentonSans, the table lit by candles, a long editorial scroll; eastfork.com — Quincy CF over Galano, "The Palette" swatch row as the colour system, a journal; ember.com — near-black hero with the mug lit warm, Larken serif, IBM Plex Mono labels, 120°–145°F as the figure.
+- **Search:** "ceramics studio website" on Siteinspire, Land-book, Godly; Fonts In Use "ceramics", "pottery"; BP&O "ceramics"; "kiln controller" with "firing schedule" for the instrument pole; "temperature control" product sites (Ember, Fellow, Combustion Inc).
+
 ### Climate tech
 - **Grammar:** grotesk + data; earth palette (forest, moss, sand) or bright optimistic greens, satellite/landscape imagery, charts of emissions, map visualisations; calm motion.
 - **Says:** measurable, credible, optimistic climate action.
@@ -81,7 +90,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Craft beer / wine
 - **Grammar:** label art as the entire visual language, each release its own illustration (Omnipollo), or wine-like minimalism (Cloudwater), product shots of cans/bottles, taproom info.
 - **Says:** craft, character, collectability.
-- **Fits:** breweries, wineries, distilleries, natural wine bars. **Misfits:** health, finance.
+- **Fits:** breweries, wineries, distilleries and gin, natural wine bars; mushroom growers, fermentation, foragers. **Misfits:** health, finance.
 - **Trap:** hop cone, chalkboard, vintage badge logo. Best escape by turning the label system into the web grid or adopting wine-house restraint.
 - **Load:** medium.
 - **Seen at:** omnipollo.com — psychedelic label art per release (Karl Grandin); cloudwaterbrew.co — wine-inspired minimal identity; otherhalfbrewing.com — can-art grid.
@@ -110,7 +119,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
   accent, product UI as hero, masks, blends and corner glows, a signature
   curve (Linear, Vercel, Warp; `recipes-motion.md`).
 - **Says:** fast, serious, built by craftspeople.
-- **Fits:** software tools and platforms. **Misfits:** warm or physical subjects. It is also the default every AI reaches for, so propose it only when the subject earns it.
+- **Fits:** software tools and platforms; lab notebooks and observability, render and VFX pipeline tools. **Misfits:** warm or physical subjects. It is also the default every AI reaches for, so propose it only when the subject earns it.
 - **Trap:** "near-black plus one acid accent" with no masks or blends:
   the flat version is a slop cluster.
 - **Load:** fast to medium.
@@ -120,7 +129,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Designer portfolio
 - **Grammar:** small type, personal craft details (interaction experiments, playful cursors), work list or index, minimal colour, micro-interactions as proof of skill.
 - **Says:** taste and craft demonstrated, not claimed.
-- **Fits:** product/interaction designers, design engineers. **Misfits:** client-facing agency sales.
+- **Fits:** product/interaction designers, design engineers; branding and art-direction studios showing case studies. **Misfits:** client-facing agency sales.
 - **Trap:** "Hi, I'm X, a passionate designer" + 3 Dribbble shots. Best escape with demonstrable craft (Rauno's interaction lab, Emil Kowalski's animation posts).
 - **Load:** fast–medium.
 - **Seen at:** rauno.me — design-engineer craft experiments; emilkowal.ski — interaction/animation writing; paco.me — terse personal index.
@@ -138,11 +147,20 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### DTC challenger brand playful
 - **Grammar:** strong voice first — handwritten/irregular display (Oatly), heavy condensed caps (Liquid Death), cream or black grounds, product photography with jokes, long copy, sticker and stamp graphics; wry micro-interactions.
 - **Says:** we know this category is ridiculous; we are in on it.
-- **Fits:** food & drink, household goods, CPG disruptors. **Misfits:** medicine, finance, grief, B2B.
+- **Fits:** food & drink, household goods, CPG disruptors; food boxes and grocers, sticker and merch makers. **Misfits:** medicine, finance, grief, B2B.
 - **Trap:** "quirky" pastel blob + rounded sans + exclamation marks. Best escape by having an actual point of view in the copy, and a type system as opinionated as the voice.
 - **Load:** medium.
 - **Seen at:** liquiddeath.com — black/white heavy-metal caps, irreverent copy; oatly.com — cream ground, hand-drawn type, editorial food talk; graza.co — squeezy-bottle product as mascot, punchy green.
 - **Search:** webdesignhot.com design.md oatly; "DTC brand website" godly; land-book.com food; "challenger brand" packaging website.
+
+### Earth observation / space ops
+- **Grammar:** an instrument at night: warm or neutral black paper, hairlines doing all the dividing, square surfaces, a grotesk at medium weight for heads (Space Grotesk capitals at Apex, NB International at Albedo) and a mono for every label and number (Space Mono, Chivo Mono), measurements set large with the unit half-size beside them ("150 KG", "600 KM"), a spec table parted by vertical hairlines, one warm signal and a cool second, factory and hardware photography with the people small, the earth from directly above; a film behind the hero and little else moving.
+- **Says:** exact, scheduled, built; hardware and arithmetic, not wonder.
+- **Fits:** satellite makers and bus platforms, earth-observation and SAR constellations, ground stations, launch and in-space logistics, telemetry and mission software. **Misfits:** consumer astronomy, space tourism, anything that needs warmth or a joke.
+- **Trap:** the frontier page: a starfield, the glowing planet, an orbit traced round a globe, "Unlock the future"; or the corporate EO portal with Montserrat, a cookie wall and stock imagery (planet.com). Best escape by treating the page as the spec sheet: mono numerals with units, a hairline table, the hardware photographed in the factory.
+- **Load:** medium; high with a hero film (Albedo runs fourteen).
+- **Seen at:** apexspace.com — Space Grotesk capitals over Space Mono labels, nav numbered 1.0 to 6.0, a three-column bus spec table parted by hairlines, factory film behind the hero; muonspace.com — Chivo Mono as the only face, a 130px "600 KM" over the earth from above, counters in a hairline row; varda.com — navy, burnt-orange duotone photography, a 2px-bordered grid of square plates, no video; albedo.com — NB International with its mono in the corners, lime CTA, the satellite as a dark object on a grey-lilac field.
+- **Search:** "space hardware website design"; "satellite bus spec sheet"; carney.co/work/satellogic; parallelhq.com/work/pixxel; Godly and Siteinspire "space", "aerospace"; Fonts In Use "Space Mono", "Chivo Mono", "NB International".
 
 ### Education / course creator
 - **Grammar:** instructor-face hero, video trailer, curriculum as accordion/timeline, cohort dates, testimonials, friendly sans or bold display; dark cinematic (MasterClass) or bright playful (Brilliant).
@@ -152,6 +170,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Load:** medium–high.
 - **Seen at:** masterclass.com — dark cinematic instructor trailers; brilliant.org — interactive problem previews, playful illustration; maven.com — cohort-course marketplace, instructor-led cards.
 - **Search:** "course landing page"; land-book.com education; godly.website education; onepagelove.com course.
+
+### Farm software / land records
+- **Grammar:** a working records voice on warm paper: cream or manila ground, deep green ink, one warm fill (wheat, ochre, a lime pill), a plain grotesk in a display cut (Lateral at Ambrook, PP Neue Montreal at Halter), small radii, and the land as the picture: an aerial of the paddock with the fence polygon drawn on it, a cow with her ear tag in frame, the yard in ordinary weather. Figures carry their units; a typewriter face appears only as an artefact (a stamp on a manila label). No golden hour, no slider, no pastoral adjective.
+- **Says:** made for the people who do the work; records you can take to the bank, the vet or the inspector.
+- **Fits:** farm management and livestock records, agricultural finance and bookkeeping, land and field mapping, compliance logs, rural contractors and fleets. **Misfits:** commodity trading, lifestyle farm-to-table brands, anything that wants the land to look like a postcard.
+- **Trap:** the agtech template in two flavours: golden-hour stock photography with capitals over it (herdwatch.com), or the blue SaaS page with a laptop mock-up, Montserrat and a pill CTA (agriwebb.com, bushelfarm.com). Best escape by warming the paper and cooling the photography: cream ground, green ink, the holding in flat daylight, the record itself (tag numbers, hectares, dates) as the content.
+- **Load:** medium (one film behind the hero at Halter); fast on photography alone.
+- **Seen at:** halterhq.com — PP Neue Montreal on off-white, dark green ink, a paddock aerial with the fence polygon drawn on, a Courier Prime stamp on a manila label; ambrook.com — Lateral family, cream ground, deep green and sage ink, wheat and ochre fills, "Financial tools worthy of your work" (read from its HTML; the page bot-walls headless browsers).
+- **Search:** "farm software website design"; "agtech brand identity"; "ranch management app"; Fonts In Use "Lateral", "PP Neue Montreal"; Siteinspire and Land-book "agriculture"; blog.herdwatch.com/introducing-the-new-herdwatch-brand as the counter-example.
 
 ### Fashion e-commerce experimental
 - **Grammar:** brutal or deliberately "wrong" UI (system fonts, Times, Arial at odd sizes), editorial-first homepages, product on stark white, unexpected interactions (Balenciaga's scroll oddities), glitch or OS metaphors; abrupt cuts not eases.
@@ -165,8 +192,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Fintech trust
 - **Grammar:** grotesk/neo-grotesk (Söhne, custom Sohne-likes, Inter Display, Arcadia at Mercury) at tight tracking; near-white or deep navy ground; one saturated accent or a slow mesh gradient (Stripe); precise 1px hairlines, product-UI screenshots rendered as crisp vector cards, tabular numerals; motion is slow, eased, data-like (counters, flowing lines).
 - **Says:** competent, regulated, engineered — your money is handled by adults who also ship good software.
-- **Fits:** payments, banking-as-a-service, spend management, treasury, B2B infra. **Misfits:** consumer play, lifestyle, anything that wants warmth or mess.
-- **Trap:** purple-to-blue gradient blob, Inter, floating dashboard mock tilted in 3D, "trusted by" logo row. Best escape with a single owned material (Stripe's animated gradient + exact typographic rhythm; Mercury's dusk photography and serif-tinged warmth; Ramp's acid-lime against black) and real product numbers.
+- **Fits:** payments, banking-as-a-service, spend management, treasury and the month-end close, billing and invoicing, B2B infra. **Misfits:** consumer play, lifestyle, anything that wants warmth or mess.
+- **Trap:** purple-to-blue gradient blob, Inter, floating dashboard mock tilted in 3D, "trusted by" logo row. Best escape with a single owned material (Stripe's animated gradient + exact typographic rhythm; Mercury's dusk photography and serif-tinged warmth; Ramp's acid-lime against black) and real product numbers. The SaaS card kit (identical rounded cards, one radius, the same grey shadow under each) is the same trap in a quieter coat (`recipes-design.md` §7).
 - **Load:** medium (WebGL gradient at Stripe pushes high).
 - **Seen at:** stripe.com — animated mesh gradient, documentation-grade type; mercury.com — muted dusk imagery, calm dark/light rhythm, private-bank feel; ramp.com — lime/black, bold claims backed by savings figures.
 - **Search:** saaslandingpage.com fintech; godly.website "finance"; land-book.com fintech; "stripe gradient" breakdown; lapa.ninja finance.
@@ -210,7 +237,7 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Health clinical calm
 - **Grammar:** humanist sans (Graphik, GT America, Matter) with occasional soft serif; off-white, sage, pale blue, warm grey; generous whitespace, rounded but not bubbly radii; real staff/patient photography; minimal motion.
 - **Says:** safe, accessible, medically serious yet humane.
-- **Fits:** primary care, insurers, clinics, mental health providers, health systems. **Misfits:** performance/biohacking, entertainment, youth brands.
+- **Fits:** primary care, insurers, clinics, mental health providers, health systems; medication and carer apps, reminders, pharmacies. **Misfits:** performance/biohacking, entertainment, youth brands.
 - **Trap:** stock stethoscope, teal-and-white, smiling doctor with folded arms. Best escape with editorial photography, plain-language navigation by need, and one warm accent (Oscar's playful illustration, One Medical's warm neutrals).
 - **Load:** fast.
 - **Seen at:** hioscar.com — insurer with illustration-led warmth and simple plan explainer; onemedical.com — calm neutrals, appointment-first layout; nhs.uk — content-design-led, accessible clinical clarity.
@@ -251,6 +278,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Load:** fast.
 - **Seen at:** harvey.ai — warm near-black, serif headlines, 4px corners; mckinsey.com — insight-led editorial with strong serif; wachtell.com — extreme plainness as signal.
 - **Search:** webdesignhot.com design.md harvey; fontsinuse.com Harvey; "law firm website design" siteinspire; "professional services website" awwwards.
+
+### Lidar / spatial scanning
+- **Grammar:** the measured thing as the image: a blue-black or flat white ground, a geometric grotesk at medium weight (Chivo over DM Sans at Looq, Aeonik at Ouster, GT Planar on cream at Polycam), and the scan itself as the hero: a point cloud of a real street or warehouse, a survey drawing with contours, the scanned object on a plain field. Hairline frames with corner ticks around the measured thing, one warm signal for what was found, a record card in mono beside the object (Asset ID, Height, Accuracy, Captured, each with its unit). Never a particle network, never a grid floor receding to a horizon.
+- **Says:** we measured it; here is how big, how accurate, how soon.
+- **Fits:** lidar makers, reality capture, surveying and mapping, digital twins, inspection drones and robots, construction progress tools, heritage digitisation. **Misfits:** consumer 3D toys, anything playful, anything that cannot show a real scan.
+- **Trap:** the sensor-vendor template: a product render on a dark gradient, "A New Standard in Sensing", a logo wall, blue pill buttons (emesent.com, navvis.com). Best escape by putting a real capture on the first screen and labelling it like a survey: callouts with figures and units, accuracy stated, the date it was captured.
+- **Load:** medium; high with a live point cloud as a WebGL hero.
+- **Seen at:** looq.ai — navy ground, Chivo heads, an isometric survey drawing with contours and orange callouts, a mono asset-record card; ouster.com — Aeonik over Saans, sensor photography on near-black and white bands, a grid of real point-cloud captures named by place; poly.cam — cream ground, GT Planar, scanned objects as the imagery, an isometric measured floor plan.
+- **Search:** "reality capture website"; "lidar company brand identity"; wild.as/work/ouster; "point cloud" on Godly and Siteinspire; "survey drawing" and "isometric technical illustration" on Behance; geoweeknews.com and lidarmag.com vendor lists; Fonts In Use "Chivo", "GT Planar".
 
 ### Luxury fashion house
 - **Grammar:** logo-wordmark as the only type gesture (Celine, Bottega), tiny uppercase sans UI at 10–12px, full-bleed campaign photography or film, near-zero chrome, black/white or one house colour (Bottega green); slow crossfades, no decoration.
@@ -309,11 +345,20 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Photographer portfolio
 - **Grammar:** image grid or single-image sequence, tiny caption type, white or black ground, keyboard navigation, project index; no decoration.
 - **Says:** the work speaks; book-like sequencing.
-- **Fits:** photographers, artists, illustrators. **Misfits:** service businesses needing persuasion.
+- **Fits:** photographers, artists, illustrators; film and analogue studios, print sales, exhibitions. **Misfits:** service businesses needing persuasion.
 - **Trap:** Squarespace masonry with lightbox and watermark. Best escape with book-like sequencing, caption discipline, and image-first pacing (Soth, Kawauchi).
 - **Load:** high (imagery).
 - **Seen at:** alecsoth.com — project-led archive; rinkokawauchi.com — soft, poetic image sequences; vanschneider.com (Semplice showcase) — curated photo-portfolio examples.
 - **Search:** siteinspire photography; "photographer portfolio" godly; Semplice showcase; cargo.site photographer.
+
+### Pool, lido and spa
+- **Grammar:** a warm off-white or plaster ground, sunlit water photographed with hard shadows or a dusk lagoon on film, a deep water ink (teal, cobalt, navy), a calm display (a light geometric or grotesk sans: Ease Geometric at Allas, TWK Lausanne at Hvammsvík, Clash Display at Forest Lagoon; or a quiet serif: Caudex at Sky Lagoon), pills for the booking action, and the hour and the water as figures (warm pool 27°, sea pool 11°, open 6:30). Water rendered live is rare but shipped: Bains des Pâquis draws the lake as a WebGL ripple field across the first screen with today's air and water °C in the header.
+- **Says:** cool water, strong sun, the hour you will be there.
+- **Fits:** pools, lidos, bathhouses, lagoons and thermal spas, hotels with a pool, swimwear and sunscreen, swim tech, skincare built on light. **Misfits:** dark product tech, nocturnal subjects, finance, anything that must feel indoors.
+- **Trap:** the lido template: Gill Sans or Jost, a photo slider, an aqua button, a PDF timetable and a cookie bar over the hero; the spa version is thin gold serif on cream with a candle. Best escape with one water signal (Allas's cobalt band), the hour as data (two pool temperatures, an opening-hours card), or the water itself moving on the page (Bains des Pâquis).
+- **Load:** medium (sunlit photography, one film); high with live water or several films.
+- **Seen at:** allaspool.fi — Bond's identity, Ease Geometric, cobalt band, white water-blob shapes, pool temperatures as figures; bains-des-paquis.ch — a live WebGL ripple field as the hero, air and water °C in the header, a hand-drawn wordmark; forestlagoon.is — plaster ground, deep teal ink, Clash Display, dusk lagoon film, an opening-hours card; skylagoon.com — Caudex over Public Sans, moss pill, lagoon film; hvammsvik.com — TWK Lausanne, a glass pill over a sea-pool film.
+- **Search:** "lido", "bathhouse", "lagoon", "thermal spa" on Siteinspire, Land-book, Godly; BP&O "pool"; Transform magazine "Allas Pool identity"; Fonts In Use "swimming"; "three.js water caustics" for the technique; "piscine", "Freibad", "badi", "strandbad" for the lidos the English galleries miss.
 
 ### Publishing / newsletter
 - **Grammar:** serif reading face (Tiempos, GT Super, Spectral), 60–70ch measure, author-centric, subscribe box as hero, minimal nav, dark-mode toggle; static.
@@ -336,8 +381,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Record label / musician
 - **Grammar:** release grid of square artwork, black/white chrome so covers carry colour, mono or grotesk catalogue numbers (WARP123), embedded players, tour dates table.
 - **Says:** curation, catalogue, scene.
-- **Fits:** labels, artists, radio, music shops. **Misfits:** consumer apps, services.
-- **Trap:** Bandcamp-clone or artist hero photo with social icons. Best escape with catalogue numbers as identity and covers as the only colour.
+- **Fits:** labels, artists, radio, music shops; stems and DJ tools, players, podcasts, comedy. **Misfits:** consumer apps, services.
+- **Trap:** Bandcamp-clone or artist hero photo with social icons. Best escape with catalogue numbers as identity and covers as the only colour. One hue in two strengths is the rule; a gradient between two hues is the generated look (`recipes-design.md` §7).
 - **Load:** medium.
 - **Seen at:** warp.net — catalogue-led label hub; ghostly.com — curated releases and editorial; xlrecordings.com — clean artist/release grid.
 - **Search:** siteinspire music; godly.website music; "record label website"; fontsinuse.com music.
@@ -351,10 +396,19 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Seen at:** noma.dk — seasonal, minimal, image-led; dishoom.com — Irani-café graphics and storytelling; gramercytavern.com — refined classic, reservation-first.
 - **Search:** siteinspire restaurant; godly.website restaurant; "restaurant website design" awwwards; fontsinuse.com restaurant.
 
+### Sleep and sound
+- **Grammar:** two colourways of one idea. Night: a black or blue-black ground, a quiet sans at 400 (Apercu at Endel, TT Commons at Hatch) or a serif at statement size (Libre Baskerville at Portal), the device or the app lit out of the dark, sound drawn as line, never a waveform. Dawn: a warm cream, a serif italic for the promise (Austin News Deck at Loftie), the lamp or clock photographed as the only light in a dim bedroom. The instrument is real: A Soft Murmur's whole page is ten faders that set the mix. One signal at most.
+- **Says:** the hour before sleep, handled quietly; sound you can set, not a promise.
+- **Fits:** sleep and soundscape apps, white-noise and sunrise devices, meditation and breathing, sleep headphones, wind-down routines. **Misfits:** urgency, daytime productivity, kids' brands, anything that must be loud.
+- **Trap:** the sleep default: navy-to-violet gradient, moon and stars, a stock sleeper, "wake up refreshed", a glossy app mockup. Best escape with a working instrument as the hero (A Soft Murmur), the device as the light source in a real room (Hatch, Loftie), or sound as line drawing (Endel).
+- **Load:** fast when the instrument carries it (A Soft Murmur is 10 KB of JS); medium with device film.
+- **Seen at:** endel.io — black ground, Apercu at 60px, devices and generated line figures; hatch.co — navy band over cream sections, TT Commons, the Sleep Clock glowing in a dark bedroom, 41 reduced-motion rules; asoftmurmur.com — ten sound faders as the whole page; byloftie.com — cream, Messina Sans with Austin News Deck italic, the clock lamp on the nightstand; portal.app — Libre Baskerville at 90px over a waterfall film.
+- **Search:** "sleep app", "soundscape", "white noise" on Godly, Land-book, Siteinspire; Product Hunt "sleep sounds"; Fonts In Use "sleep"; the generators themselves (myNoise, Noisli, A Soft Murmur) for working instruments; "sunrise alarm" and "sound machine" for devices.
+
 ### Sports & performance
 - **Grammar:** condensed heavy grotesk (Nike Futura Condensed Extra Bold, Helvetica Now Display Black), all-caps slogans, full-bleed athlete photography and video, black/white plus volt or brand orange (Strava), data overlays (pace, heart rate), punchy cuts.
 - **Says:** effort, speed, identity through performance.
-- **Fits:** athletic apparel, fitness apps, wearables, clubs, events. **Misfits:** contemplative, luxury quiet, B2B.
+- **Fits:** athletic apparel, fitness apps, wearables, clubs, events; leagues and race results, ski resorts, trail events. **Misfits:** contemplative, luxury quiet, B2B.
 - **Trap:** sweaty stock athlete + motivational quote. Best escape with owned data (Strava's maps/segments, Whoop's strain charts) and real athlete storytelling.
 - **Load:** high (video).
 - **Seen at:** nike.com — condensed caps over campaign film; strava.com — orange + route maps and social proof via activity; whoop.com — dark performance data UI as hero.
@@ -368,3 +422,12 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Load:** medium.
 - **Seen at:** hims.com — consultation-first flow, discreet product photography; ro.co — clinical-modern hub across conditions; functionhealth.com — lab-data as hero, premium health-OS tone.
 - **Search:** "DTC health landing page"; landingdoctors.com teardowns hims; land-book.com wellness; "telehealth website design".
+
+### Transit / wayfinding
+- **Grammar:** the network's own signage set as a page: one network colour as the only accent (BVG yellow, LA Metro's blue and orange bands, the line colours), the signage typeface carried onto the web (Transit at BVG, Atkinson Hyperlegible at Metro), line bullets as small filled squares or discs beside the line's name, and the utilities first: a from/to search, the arrivals or status board, alerts and maps on the first screen before any story. Status is rows, each line with its bullet, its name in bold and its state as a coloured pill at the right edge; service notes in a bordered plate; flat cards on white or pale grey with a hairline; photography of the actual network.
+- **Says:** you are on the network; here is the line, the platform, the minute.
+- **Fits:** transit agencies, rail and metro operators, airports and stations, wayfinding studios, live-departure and status products, mobility operators. **Misfits:** consumer "car-free life" apps that want warmth and mascots, anything that must sell rather than direct.
+- **Trap:** the agency portal: a stock slider with a tagline, a cookie wall over the hero, twenty icon fonts and the signage identity reduced to a logo in the corner (int.bahn.de); or the friendly consumer app with pastel illustration and a mascot (transitapp.com, citymapper.com). Best escape by letting the signage system be the page: the network colour as the single accent, the signage face as the web face, the status board above the news. A monospace departure board is a free move none of the agencies ships.
+- **Load:** fast; the heaviest thing on these pages is photography.
+- **Seen at:** bvg.de/en — the Transit face as the only typeface, a yellow plate holding the ticket price and one action, a from/to search under the hero, service-note plates with line squares; mbta.com — Routes, Trip Planner and Alerts as tabs on the first screen, a subway-status list of line bullets with "Normal Service" pills, Inter throughout; metro.net — Arrivals, Trip Planner, Alerts and Maps as a utility quartet before anything else, Atkinson Hyperlegible, bands in the network's blue and orange.
+- **Search:** "transit agency website redesign"; Fonts In Use "transit", "signage"; fontsinuse.com/uses/11754/citymapper-identity-2013; MTC Bay Area "regional mapping and wayfinding" guide; GitHub mbta/dotcom (the MBTA site is open source); Transit Mapping Symposium talks.
