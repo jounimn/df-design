@@ -1,19 +1,18 @@
 <!doctype html>
-<!-- df-design · waive eyebrow · the hero line carries the version and the licence, and the chapter labels are the tour's fixed stages, kept for the README screenshots -->
-<!-- df-design · waive invented-proof · the 45% figure is sample data inside the built trace, not a claim about the product -->
+<!-- df-design · waive invented-proof · every figure on the page is sample data inside the built trace (GET /checkout, 212 ms), captioned as a sample; none is a claim about the product -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tracewell</title>
-<meta name="description" content="Tracewell: open-source distributed tracing for backend engineers. df-design example, path=design mode=motion.">
+<meta name="description" content="Tracewell: open-source distributed tracing for backend engineers. Follow a request through every service it touches and see where the milliseconds went.">
 <!--
-  df-design: path=design mode=motion — Tracewell's brand is settled (near-black, one signal orange,
-  Söhne → grotesk fallback, JetBrains Mono for data, 4px corners); this page adds the motion plan only.
-  Display/UI face: Schibsted Grotesk (SIL OFL) standing in for Söhne. Both descend from the
-  Akzidenz-Grotesk line; Schibsted keeps the closed apertures and flat terminals Söhne has, where
-  Inter Tight / Geist read rounder and more neo-grotesque.
-  Icons: Lucide (lucide-static v1.52.0, ISC), inlined, stroke-width 1.5. See assets.md.
+  df-design: path=design mode=motion scope=landing page (home) watermark=none load=fast selling=now tier=fast
+  Tracewell's brand is settled (near-black, one signal orange, Söhne with a grotesk stand-in, JetBrains Mono for
+  data, 4px corners); this page adds the motion plan and the sign-up anatomy only. Brief: identity.md; spec:
+  surfaces/home.md; assets: assets.md. Display/UI face: Schibsted Grotesk (SIL OFL) standing in for Söhne.
+  Icons: Lucide (lucide-static v1.52.0, ISC), inlined, stroke-width 1.5.
+  Every figure on the page is sample data inside a built trace, marked as a sample; nothing is a claim about the product.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,16 +20,17 @@
 <style>
 :root{
   --ground:#0B0D10; --panel:#101318; --line:#1D2229; --line-2:#2A3039;
-  --ink:#E9EBEE; --ink-2:#A3AAB4; --ink-3:#6B737E;
+  --ink:#E9EBEE; --ink-2:#A3AAB4; --ink-3:#7A828D;
   --brand:#FF6A1A; --brand-rgb:255 106 26; --ink-rgb:233 235 238;
   --brand-ink:#0B0D10; --brand-hover:#FF7D38; --brand-tip:#FFD2B8;
   --line-hover:#47505C; --ground-hover:#12161B; --ground-raised:#1A1F26; --ground-code:#151A20;
-  --ground-glass:rgb(11 13 16 / .7); --ground-install:rgb(16 19 24 / .85);
-  --bar:#5B6573; --bar-root:#3A424D;
+  --ground-install:rgb(16 19 24 / .85);
+  --bar:#5B6573; --bar-root:#3A424D; --bar-prev:#2E3540;
+  --code-key:#9CC4E4; --code-str:#C9B28A;
   --radius:4px;
   --sans:"Schibsted Grotesk","Söhne",ui-sans-serif,system-ui,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  /* Signature curve: Linear's weighted ease. ~80% of transitions use it. */
+  /* Signature curve: Linear's weighted ease. About 80% of transitions use it. */
   --ease-weighted:cubic-bezier(0.32,0.72,0,1);
   --dur-feedback:.15s; --dur-content:.3s;
   color-scheme:dark;
@@ -38,46 +38,56 @@
 /* Dark-only brand: these tokens are its single theme. */
 
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;overflow-x:clip;scroll-behavior:smooth}
 body{margin:0;background:var(--ground);color:var(--ink);font:400 16px/1.55 var(--sans);overflow-x:clip;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
+::selection{background:var(--brand);color:var(--brand-ink)}
 .wrap{max-width:1200px;margin:0 auto;padding:0 32px}
 .ico{width:1em;height:1em;flex:none;stroke-width:1.5;transform:translateY(-.5px)}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.skip{position:absolute;left:16px;top:-64px;z-index:9;padding:8px 12px;background:var(--ink);color:var(--ground);border-radius:var(--radius);font-size:14px}
+.skip:focus-visible{top:12px}
+h2{margin:0;font:600 48px/1.04 var(--sans);letter-spacing:-.035em;text-wrap:balance}
+h3{margin:0;font:600 22px/1.25 var(--sans);letter-spacing:-.015em}
+.lede{margin:18px 0 0;max-width:52ch;color:var(--ink-2);font-size:17px;text-wrap:pretty}
+code,pre,kbd{font-family:var(--mono)}
 
-/* ---------- buttons ---------- */
+/* ---------- controls, all eight states ---------- */
 .btn{display:inline-flex;align-items:center;gap:.55em;height:44px;padding:0 18px;border-radius:var(--radius);
-  font:500 15px/1 var(--sans);letter-spacing:-.005em;border:1px solid transparent;cursor:pointer;
+  font:500 15px/1 var(--sans);letter-spacing:-.005em;border:1px solid transparent;cursor:pointer;white-space:nowrap;
   transition:background-color var(--dur-feedback) var(--ease-weighted),border-color var(--dur-feedback) var(--ease-weighted),transform var(--dur-feedback) var(--ease-weighted)}
 .btn:active{transform:translateY(1px)}
+.btn:disabled,.btn[aria-disabled="true"]{opacity:.55;cursor:not-allowed;transform:none}
+.btn[aria-busy="true"]{cursor:progress}
 .btn .ico{font-size:15px}
 .btn-primary{background:var(--brand);color:var(--brand-ink)}
 .btn-primary:hover{background:var(--brand-hover)}
-.btn-primary .ico{transition:transform var(--dur-content) var(--ease-weighted)}
-.btn-primary:hover .ico{transform:translate(3px,-.5px)}
-.btn-ghost{border-color:var(--line-2);color:var(--ink)}
+.btn-ghost{border-color:var(--line-2);color:var(--ink);background:transparent}
 .btn-ghost:hover{border-color:var(--line-hover);background:var(--ground-hover)}
 :focus-visible{outline:2px solid var(--brand);outline-offset:3px}
 
 /* ---------- nav ---------- */
 .nav{position:relative;z-index:3;border-bottom:1px solid var(--line)}
-.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:24px}
 .mark{display:flex;align-items:center;gap:10px;font:600 17px/1 var(--sans);letter-spacing:-.02em}
 .mark svg{width:20px;height:20px}
+.mark .m1{fill:var(--ink)} .mark .m2{fill:var(--brand)} .mark .m3{fill:var(--ink-3)}
 .nav-links{display:flex;gap:28px;font-size:14px;color:var(--ink-2)}
 .nav-links a:hover{color:var(--ink)}
-.nav-right{display:flex;gap:10px;align-items:center}
+.nav-right{display:flex;gap:18px;align-items:center}
 .nav-right .btn{height:34px;padding:0 12px;font-size:13.5px}
 .nav-right .btn .ico{font-size:13.5px}
-.star-count{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);padding-left:10px;margin-left:2px;border-left:1px solid var(--line-2);height:16px;display:inline-flex;align-items:center}
+.repo{display:inline-flex;align-items:center;gap:8px;height:34px;font-size:13.5px;color:var(--ink-2)}
+.repo:hover{color:var(--ink)}
+.repo .ico{font-size:13.5px}
 
 /* ---------- hero ---------- */
 .hero{position:relative;overflow:hidden;isolation:isolate;border-bottom:1px solid var(--line)}
-/* Ambient field: Hex's masked dot grid (§5) as the static base, Linear's firing dots (§2) on top,
+/* Ambient field: a masked dot grid as the static base (the dots exist without script), firing dots on top,
    the whole field faded at the edges by one radial mask so it never fights the copy. */
 .field{position:absolute;inset:0;z-index:-1;pointer-events:none;
-  -webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 46%,#000 25%,transparent 78%);
-          mask-image:radial-gradient(ellipse 72% 70% at 50% 46%,#000 25%,transparent 78%)}
+  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 60% 40%,#000 25%,transparent 78%);
+          mask-image:radial-gradient(ellipse 80% 70% at 60% 40%,#000 25%,transparent 78%)}
 .field-base{position:absolute;inset:0;background:rgb(var(--ink-rgb) / .2);
   -webkit-mask-image:radial-gradient(circle at center,#000 1px,transparent 1.5px);
           mask-image:radial-gradient(circle at center,#000 1px,transparent 1.5px);
@@ -86,63 +96,81 @@ a{color:inherit;text-decoration:none}
   animation:span-fire var(--t,7s) var(--ease-weighted) infinite;animation-delay:var(--d)}
 @keyframes span-fire{0%,62%,100%{opacity:0}68%{opacity:1}}
 
-.hero-inner{position:relative;padding-top:128px;padding-bottom:176px;text-align:center}
-.eyebrow{display:inline-flex;align-items:center;gap:10px;font:500 13px/1 var(--sans);color:var(--ink-2);
-  padding:7px 12px 7px 10px;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--ground-glass)}
-.eyebrow b{font:500 11.5px/1 var(--mono);color:var(--brand);letter-spacing:.02em}
-h1{margin:28px auto 0;max-width:13ch;font:600 80px/1 var(--sans);letter-spacing:-.045em;text-wrap:balance}
-.sub{margin:24px auto 0;max-width:52ch;font-size:18.5px;line-height:1.55;color:var(--ink-2);text-wrap:pretty}
-.ctas{margin-top:36px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.install{margin:28px auto 0;display:inline-flex;align-items:center;gap:14px;height:40px;padding:0 6px 0 14px;
+.hero-inner{position:relative;padding-top:96px;padding-bottom:0}
+h1{margin:0;max-width:19ch;font:600 80px/1 var(--sans);letter-spacing:-.045em;text-wrap:balance}
+.hero-row{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:48px;align-items:end;margin-top:40px}
+.sub{margin:0;max-width:46ch;font-size:18.5px;line-height:1.55;color:var(--ink-2);text-wrap:pretty}
+.act{display:flex;flex-direction:column;align-items:flex-start;gap:16px}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.install{display:inline-flex;align-items:center;gap:14px;height:40px;padding:0 6px 0 14px;max-width:100%;
   border:1px solid var(--line);border-radius:var(--radius);background:var(--ground-install);font:400 13.5px/1 var(--mono);color:var(--ink-2)}
 .install .ps{color:var(--ink-3)}
 .install code{font:inherit;color:var(--ink)}
+.terms{margin:0;font:400 12.5px/1.5 var(--mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.terms span+span::before{content:"";display:inline-block;width:1px;height:10px;background:var(--line-2);margin:0 12px;vertical-align:-1px}
 
-/* Copy → check: one control, two glyphs from the same set, rotated through the change (§15). */
+/* Copy to check: one control, two glyphs from the same set, rotated through the change. */
 .copy{display:grid;place-items:center;width:30px;height:30px;border-radius:var(--radius);border:0;background:transparent;color:var(--ink-2);cursor:pointer;
   transition:background-color var(--dur-feedback) var(--ease-weighted),color var(--dur-feedback) var(--ease-weighted)}
 .copy:hover{background:var(--ground-raised);color:var(--ink)}
+.copy:active{transform:translateY(1px)}
+.copy:disabled{opacity:.55;cursor:not-allowed}
 .icon-swap{display:grid}
 .icon-swap>svg{grid-area:1/1;width:15px;height:15px;stroke-width:1.5;transition:opacity 180ms,transform 240ms var(--ease-weighted)}
 .icon-swap>svg:last-child{opacity:0;transform:rotate(-45deg) scale(.8);color:var(--brand)}
 .is-copied .icon-swap>svg:first-child{opacity:0;transform:rotate(45deg) scale(.8)}
 .is-copied .icon-swap>svg:last-child{opacity:1;transform:none}
+.sr{position:absolute;left:-9999px}
 
-/* One request crossing the services: a masked orange hairline, screen-blended (§5, §9). */
-.request{position:absolute;left:0;right:0;bottom:72px;height:28px;pointer-events:none}
-.request .wire{position:absolute;left:0;right:0;top:0;height:1px;overflow:hidden;mix-blend-mode:screen;
-  background:linear-gradient(to right,transparent,rgb(var(--brand-rgb) / .38) 20%,rgb(var(--brand-rgb) / .38) 80%,transparent);
-  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%);
-          mask-image:linear-gradient(to right,transparent 0,#000 12%,#000 88%,transparent 100%)}
+/* One request crossing the services: a masked orange hairline, screen-blended, in the hero's own flow.
+   Each hop lights as the pulse reaches it (delays solved from the weighted curve), and the three it has
+   passed stay lit at rest. */
+.request{position:relative;margin-top:72px;height:64px;pointer-events:none}
+.request .wire{position:absolute;left:0;right:0;top:12px;height:1px;overflow:hidden;mix-blend-mode:screen;
+  background:linear-gradient(to right,transparent,rgb(var(--brand-rgb) / .5) 12%,rgb(var(--brand-rgb) / .5) 88%,transparent);
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 8%,#000 92%,transparent 100%);
+          mask-image:linear-gradient(to right,transparent 0,#000 8%,#000 92%,transparent 100%)}
 .request .pulse{position:absolute;top:0;left:0;width:22%;height:1px;
   background:linear-gradient(to right,transparent,var(--brand) 70%,var(--brand-tip) 96%,transparent);
   transform:translateX(-100%);animation:request 5.2s var(--ease-weighted) infinite}
 @keyframes request{0%{transform:translateX(-100%)}72%,100%{transform:translateX(460%)}}
-.hop{position:absolute;top:-3px;width:7px;height:7px;margin-left:-3.5px;border:1px solid var(--line-2);background:var(--ground);border-radius:1px}
-.hop span{position:absolute;top:14px;left:50%;transform:translateX(-50%);font:400 11px/1 var(--mono);color:var(--ink-3);white-space:nowrap}
+.hop{position:absolute;top:8px;width:9px;height:9px;margin-left:-4.5px;border:1px solid var(--line-2);background:var(--ground);border-radius:1px;
+  animation:hop-light 5.2s linear infinite;animation-delay:var(--h)}
+@keyframes hop-light{0%,1%{border-color:var(--brand);background:var(--brand)}10%{border-color:var(--brand);background:var(--ground)}30%,100%{border-color:var(--line-2);background:var(--ground)}}
+.hop span{position:absolute;top:18px;left:50%;transform:translateX(-50%);font:400 12px/1 var(--mono);color:var(--ink-3);white-space:nowrap}
+.hop b{position:absolute;top:34px;left:50%;transform:translateX(-50%);font:400 11px/1 var(--mono);color:var(--ink-3);white-space:nowrap;opacity:.8}
+/* The two ambient loops (dots, request) run past 5 s, so the hero is a loop that can pause: still until the
+   script runs, paused off-screen, on hover and focus, under reduced motion, and from a visible control. */
+[data-loop]:not(.is-running) .field i,[data-loop]:not(.is-running) .pulse,[data-loop]:not(.is-running) .hop{animation-play-state:paused!important}
+html:not(.js) [data-loop-toggle]{display:none}
+.loop-toggle{position:absolute;right:32px;bottom:16px;z-index:2;height:30px;padding:0 10px;font-size:12.5px;color:var(--ink-2)}
+
+/* ---------- section chrome ---------- */
+.band{padding:128px 0}
+.band-panel{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.head{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:48px;align-items:end;margin-bottom:64px}
+.head p{margin:0;color:var(--ink-2);font-size:17px;text-wrap:pretty;max-width:44ch}
 
 /* ---------- how it works ---------- */
-.how{padding:128px 0 136px}
 .how .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:72px;align-items:start}
-.kicker{font:500 13px/1 var(--sans);color:var(--brand);letter-spacing:.01em}
-h2{margin:16px 0 0;font:600 48px/1.04 var(--sans);letter-spacing:-.035em;text-wrap:balance}
 .steps{list-style:none;margin:44px 0 0;padding:0;border-top:1px solid var(--line)}
 .steps li{display:grid;grid-template-columns:44px 1fr;padding:22px 0;border-bottom:1px solid var(--line)}
 .steps .n{font:500 12.5px/1.7 var(--mono);color:var(--ink-3)}
-.steps h3{margin:0;font:600 17px/1.35 var(--sans);letter-spacing:-.01em}
+.steps h3{font-size:17px;line-height:1.35;letter-spacing:-.01em}
 .steps p{margin:6px 0 0;color:var(--ink-2);font-size:15px;line-height:1.55}
 .steps code{font:400 13px/1 var(--mono);color:var(--ink);background:var(--ground-code);padding:2px 5px;border-radius:3px}
 
-.stat{margin-top:36px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
-.stat-label{font-size:13.5px;color:var(--ink-2);width:100%}
-.stat-label .mono{font-size:12.5px;color:var(--ink)}
-.counter{font:500 56px/1 var(--mono);letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--ink)}
-.counter small{font-size:22px;letter-spacing:0;color:var(--ink-2);margin-left:4px}
-.delta{font:400 13px/1 var(--mono);color:var(--brand)}
+.stat{grid-column:1/-1;margin-top:24px;padding-top:40px;border-top:1px solid var(--line);display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:72px;align-items:end}
+.stat-for{display:block;font-size:13.5px;color:var(--ink-2);margin-bottom:14px}
+.stat-for .mono{font-size:12.5px;color:var(--ink)}
+.counter{font:500 80px/1 var(--mono);letter-spacing:-.045em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.counter small{font-size:26px;letter-spacing:0;color:var(--ink-2);margin-left:6px}
+.stat-note{margin:0;max-width:48ch;color:var(--ink-2);font-size:15.5px;text-wrap:pretty}
+.delta{display:block;font:400 13px/1 var(--mono);color:var(--brand);margin-bottom:12px}
 
 /* Waterfall panel */
-.trace{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden;view-timeline:--wf block}
-/* Linear's corner glow (§3): a mask, not a background, anchored top-left. */
+.trace{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);overflow:hidden;view-timeline:--wf block;margin:0}
+/* Corner glow: a mask, not a background, anchored top-left. */
 .trace::before{content:"";position:absolute;inset:0;background:var(--brand);opacity:.07;pointer-events:none;
   -webkit-mask-image:radial-gradient(320px 220px at 0% 0%,#000 0%,rgb(0 0 0 / .5) 35%,transparent 70%);
           mask-image:radial-gradient(320px 220px at 0% 0%,#000 0%,rgb(0 0 0 / .5) 35%,transparent 70%)}
@@ -154,11 +182,9 @@ h2{margin:16px 0 0;font:600 48px/1.04 var(--sans);letter-spacing:-.035em;text-wr
 .scale .ticks{display:flex;justify-content:space-between}
 .rows{list-style:none;margin:0;padding:6px 0 14px}
 .row{display:grid;grid-template-columns:132px 1fr 64px 18px;gap:0 14px;align-items:center;padding:7px 18px;font:400 12.5px/1.2 var(--mono)}
-.row .svc{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .svc{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:calc(var(--depth,0) * 10px)}
 .row .svc em{display:block;font-style:normal;color:var(--ink-3);font-size:11px;margin-top:3px}
-.row .svc{padding-left:calc(var(--depth,0) * 10px)}
-.track{position:relative;height:18px;
-  background:linear-gradient(to right,var(--line) 1px,transparent 1px) 0 0/25% 100%}
+.track{position:relative;height:18px;background:linear-gradient(to right,var(--line) 1px,transparent 1px) 0 0/25% 100%}
 .bar{position:absolute;top:4px;bottom:4px;left:var(--x);width:var(--w);border-radius:2px;background:var(--bar);transform-origin:left center}
 .row.root .bar{background:var(--bar-root)}
 .row.slow .bar{background:var(--brand)}
@@ -170,8 +196,8 @@ h2{margin:16px 0 0;font:600 48px/1.04 var(--sans);letter-spacing:-.035em;text-wr
 .trace-foot{display:flex;gap:10px;align-items:center;padding:12px 18px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
 .trace-foot .ico{color:var(--brand);font-size:14px}
 
-/* Span bars draw left-to-right, one after another.
-   Finished state is the default; motion is layered on only where supported (§10). */
+/* Span bars draw left to right, one after another. The finished state is the default; motion is layered
+   on only where supported. */
 .bar{transform:none}
 .status{opacity:1}
 @supports (animation-timeline: view()){
@@ -184,134 +210,244 @@ h2{margin:16px 0 0;font:600 48px/1.04 var(--sans);letter-spacing:-.035em;text-wr
 }
 @keyframes bar-draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes stamp{from{opacity:0;transform:scale(1.25)}to{opacity:1;transform:none}}
-/* IntersectionObserver fallback: time-based, 55ms stagger x 6 = 330ms total (< 500ms). */
+/* IntersectionObserver fallback: time-based, 55ms stagger x 6 = 330ms total (under 500ms). */
 .io .bar{transform:scaleX(0);transition:transform .55s var(--ease-weighted);transition-delay:calc(var(--i) * 55ms)}
 .io .status{opacity:0;transform:scale(1.25);transition:opacity .25s,transform .3s var(--ease-weighted);transition-delay:calc(var(--i) * 55ms + 300ms)}
 .io .in-view .bar{transform:none}
 .io .in-view .status{opacity:1;transform:none}
 
+/* ---------- what you see: two named moments ---------- */
+.moment{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:72px;align-items:center;padding:56px 0;border-top:1px solid var(--line)}
+.moment:last-child{border-bottom:1px solid var(--line)}
+.moment.flip{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}
+.moment.flip .copy-col{order:2}
+.moment p{margin:14px 0 0;color:var(--ink-2);font-size:16px;max-width:40ch;text-wrap:pretty}
+.panel{border:1px solid var(--line);border-radius:var(--radius);background:var(--ground);overflow:hidden;margin:0}
+.panel-head{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line);font:400 12.5px/1 var(--mono);color:var(--ink-2)}
+.panel-head .svc{color:var(--ink)}
+.panel-head .tot{margin-left:auto}
+.panel-head .tot.hot{color:var(--brand)}
+.kv{list-style:none;margin:0;padding:8px 0}
+.kv li{display:grid;grid-template-columns:160px 1fr;gap:14px;padding:7px 18px;font:400 12.5px/1.3 var(--mono)}
+.kv .k{color:var(--ink-3)}
+.kv .v{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kv .v.hot{color:var(--brand)}
+.p99{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start;padding:16px 18px 14px;border-top:1px solid var(--line);font:400 12px/1 var(--mono);color:var(--ink-3)}
+.p99>span:first-child{white-space:nowrap;padding-top:6px}
+.p99 .range{position:relative;height:38px}
+.p99 .range i{position:absolute;top:8px;height:2px;background:var(--line-2);left:0;right:0;border-radius:1px}
+.p99 .range b{position:absolute;top:3px;width:1px;height:12px;background:var(--ink-2)}
+.p99 .range b::after{content:attr(data-l);position:absolute;top:16px;left:50%;transform:translateX(-50%);font-weight:400;color:var(--ink-3);white-space:nowrap}
+.p99 .range b.hot{background:var(--brand);width:2px}
+.p99 .range b.hot::after{color:var(--brand)}
+.cmp{width:100%;border-collapse:collapse;font:400 12.5px/1.2 var(--mono)}
+.cmp th,.cmp td{text-align:left;padding:9px 18px;border-bottom:1px solid var(--line)}
+.cmp th{font-weight:400;color:var(--ink-3);font-size:11.5px}
+.cmp td.num,.cmp th.num{text-align:right;font-variant-numeric:tabular-nums}
+.cmp tr:last-child td{border-bottom:0}
+.cmp td.svc{color:var(--ink)}
+.cmp td{color:var(--ink-2)}
+.cmp .pair{position:relative;height:14px}
+.cmp .pair i{position:absolute;left:0;height:5px;border-radius:1px;background:var(--bar-prev);top:0}
+.cmp .pair i+i{top:8px;background:var(--bar)}
+.cmp tr.gain .pair i+i{background:var(--brand)}
+.cmp td.gain{color:var(--brand)}
+.cmp td.same{color:var(--ink-3)}
+
+/* ---------- instrument: tabs that work without script ---------- */
+.tabs{border:1px solid var(--line);border-radius:var(--radius);background:var(--ground);overflow:hidden}
+.tabs input{position:absolute;opacity:0;width:1px;height:1px}
+.tablist{display:flex;gap:4px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tablist label{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:var(--radius);color:var(--ink-2);font:500 13.5px/1 var(--sans);cursor:pointer;
+  transition:background-color var(--dur-feedback) var(--ease-weighted),color var(--dur-feedback) var(--ease-weighted)}
+.tablist label:hover{color:var(--ink);background:var(--ground-hover)}
+.tabs pre{margin:0;padding:26px 28px 30px;min-height:300px;font:400 14px/1.75 var(--mono);color:var(--ink-2);overflow-x:auto;tab-size:2}
+.tabs pre .k{color:var(--code-key)} .tabs pre .s{color:var(--code-str)} .tabs pre .c{color:var(--ink-3)}
+.tabs pre .f{color:var(--ink)}
+#t-node:checked ~ .tablist label[for="t-node"],#t-py:checked ~ .tablist label[for="t-py"],#t-go:checked ~ .tablist label[for="t-go"]{color:var(--ink);background:var(--ground-raised)}
+#t-node:focus-visible ~ .tablist label[for="t-node"],#t-py:focus-visible ~ .tablist label[for="t-py"],#t-go:focus-visible ~ .tablist label[for="t-go"]{outline:2px solid var(--brand);outline-offset:-2px}
+#t-node:checked ~ pre:not(.p-node),#t-py:checked ~ pre:not(.p-py),#t-go:checked ~ pre:not(.p-go){display:none}
+.wrapped{list-style:none;margin:40px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.wrapped li{display:grid;gap:6px;padding:4px 24px;border-left:1px solid var(--line);font-size:15px;color:var(--ink-2);text-wrap:pretty}
+.wrapped li:first-child{padding-left:0;border-left:0}
+.wrapped li span:first-child{color:var(--ink);font-weight:500}
+
+/* ---------- run it ---------- */
+.run .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.run .col{padding:40px 48px 44px 0;min-width:0}
+.run .col+.col{border-left:1px solid var(--line);padding:40px 0 44px 48px}
+.run .col h3{display:flex;align-items:center;gap:10px}
+.run .col h3 .ico{font-size:20px;color:var(--ink-2)}
+.run .col p{margin:12px 0 0;color:var(--ink-2);font-size:15.5px;max-width:40ch;text-wrap:pretty}
+.cmdline{margin:22px 0 0;display:flex;align-items:center;gap:12px;padding:0 6px 0 14px;min-height:44px;min-width:0;max-width:100%;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);font:400 13px/1 var(--mono);color:var(--ink-2)}
+.cmdline .ps{color:var(--ink-3)}
+.cmdline code{color:var(--ink);flex:1 1 auto;min-width:0;overflow-wrap:anywhere;line-height:1.5;padding:10px 0}
+.cmdline .copy{margin-left:auto;flex:none}
+.storage{display:flex;gap:12px;align-items:flex-start;margin:40px 0 0;color:var(--ink-2);font-size:15.5px;max-width:64ch}
+.storage .ico{font-size:18px;color:var(--ink-2);margin-top:3px}
+
+/* ---------- questions ---------- */
+.qa .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:72px;align-items:start}
+.qlist{border-top:1px solid var(--line)}
+.qlist details{border-bottom:1px solid var(--line)}
+.qlist summary{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 0;cursor:pointer;list-style:none;font:500 18px/1.3 var(--sans);letter-spacing:-.01em}
+.qlist summary::-webkit-details-marker{display:none}
+.qlist summary .ico{font-size:18px;color:var(--ink-3);transition:transform var(--dur-content) var(--ease-weighted)}
+.qlist details[open] summary .ico{transform:translateY(-.5px) rotate(180deg)}
+.qlist summary:hover{color:var(--ink)}
+.qlist p{margin:0 0 22px;color:var(--ink-2);font-size:16px;max-width:60ch;text-wrap:pretty}
+
+/* ---------- close ---------- */
+.close{padding:112px 0 120px;text-align:center;border-top:1px solid var(--line)}
+.close h2{max-width:16ch;margin:0 auto}
+.close .install{margin-top:36px}
+.close .ctas{justify-content:center;margin-top:20px}
+
 /* ---------- footer ---------- */
 footer{border-top:1px solid var(--line);padding:32px 0 40px;font-size:13.5px;color:var(--ink-3)}
 footer .wrap{display:flex;gap:24px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-footer nav{display:flex;gap:22px}
+footer nav{display:flex;gap:22px;flex-wrap:wrap}
 footer a:hover{color:var(--ink)}
 
 /* ---------- small screens ---------- */
 @media (max-width:900px){
-  .how .wrap{grid-template-columns:1fr;gap:56px}
   .nav-links{display:none}
+  .hero-row,.how .wrap,.qa .wrap,.head,.stat{grid-template-columns:minmax(0,1fr);gap:40px}
+  .stat{gap:24px}
+  .wrapped{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px 0}
+  .wrapped li:nth-child(odd){padding-left:0;border-left:0}
+  .moment,.moment.flip{grid-template-columns:minmax(0,1fr);gap:32px}
+  .moment.flip .copy-col{order:0}
+  .run .cols{grid-template-columns:minmax(0,1fr)}
+  .run .col,.run .col+.col{padding:36px 0;border-left:0}
+  .run .col+.col{border-top:1px solid var(--line)}
 }
 @media (max-width:640px){
   .wrap{padding:0 16px}
-  .hero-inner{padding-top:80px;padding-bottom:140px}
+  .hero-inner{padding-top:64px}
   h1{font-size:46px;letter-spacing:-.04em}
-  .sub{font-size:16.5px}
-  .btn{height:44px}
-  .ctas .btn{flex:1 1 100%;justify-content:center}
-  .install{font-size:12.5px;max-width:100%}
-  .hop span{display:none}
-  .request{bottom:56px}
-  .how{padding:88px 0 96px}
   h2{font-size:36px}
-  .counter{font-size:48px}
-  .nav-right .btn-ghost .label{display:none}
+  .sub{font-size:16.5px}
+  .ctas .btn{flex:1 1 100%;justify-content:center}
+  .install{font-size:12.5px}
+  .terms{font-size:12px}
+  .terms span+span::before{margin:0 8px}
+  .hop span{font-size:10.5px}
+  .hop b{display:none}
+  .request{margin-top:48px;height:44px}
+  .band{padding:88px 0}
+  .head{margin-bottom:40px}
+  .nav-right .repo .label{display:none}
+  .nav .wrap{gap:12px}
+  .nav-right{gap:10px}
+  .nav-right .btn{padding:0 10px}
   .scale,.row{grid-template-columns:92px 1fr 46px 15px;gap:0 10px;padding-left:12px;padding-right:12px}
   .row{font-size:11.5px}
-  .trace-head{padding:12px}
-  .trace-foot{padding:12px}
+  .trace-head,.trace-foot,.panel-head{padding:12px}
+  .kv li{grid-template-columns:120px 1fr;padding:7px 12px}
+  .cmp th,.cmp td{padding:8px 10px}
+  .cmp .pairc{display:none}
+  .p99{grid-template-columns:96px 1fr;padding:12px}
+  .counter{font-size:64px}
+  .panel-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
+  .panel-head .svc{grid-column:1/-1}
+  .panel-head .tot{margin-left:0;justify-self:end}
+  .close{padding:80px 0 88px}
 }
 
-/* ---------- reduced motion: the floor, then every resting state (§14) ---------- */
+/* ---------- reduced motion: the floor, then every resting state ---------- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
-  /* Field keeps its texture; a few dots rest lit so it still reads as live services. */
-  .field i{animation:none!important;opacity:var(--rest,0)!important}
-  /* The request rests mid-flight, past the third hop. */
+  /* Field keeps its texture and holds still; the firing dots stay dark so nothing reads as specks. */
+  .field i{animation:none!important;opacity:0!important}
+  /* The request rests mid-flight, past the third hop; the hops it passed stay lit. */
   .request .pulse{animation:none!important;transform:translateX(165%)!important}
+  .hop{animation:none!important}
+  .hop.passed{border-color:var(--brand)!important}
+  [data-loop-toggle]{display:none}
   .bar,.status,.io .bar,.io .status{animation:none!important;opacity:1!important;transform:none!important}
 }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
 <header class="nav">
   <div class="wrap">
     <a class="mark" href="#" aria-label="Tracewell home">
-      <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="3" width="18" height="2.5" rx="1" fill="#E9EBEE"/><rect x="5" y="8.75" width="10" height="2.5" rx="1" fill="#FF6A1A"/><rect x="9" y="14.5" width="6" height="2.5" rx="1" fill="#6B737E"/></svg>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><rect class="m1" x="1" y="3" width="18" height="2.5" rx="1"/><rect class="m2" x="5" y="8.75" width="10" height="2.5" rx="1"/><rect class="m3" x="9" y="14.5" width="6" height="2.5" rx="1"/></svg>
       tracewell
     </a>
     <nav class="nav-links" aria-label="Primary">
-      <a href="#how">How it works</a><a href="#">Docs</a><a href="#">Integrations</a><a href="#">Changelog</a>
+      <a href="#how">How it works</a><a href="#instrument">Integrations</a><a href="#">Docs</a><a href="#">Changelog</a>
     </nav>
     <div class="nav-right">
-      <a class="btn btn-ghost" href="#" aria-label="Star Tracewell on GitHub, 4,218 stars">
+      <a class="repo" href="#" aria-label="Tracewell on GitHub">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>
-        <span class="label">Star</span><span class="star-count">4.2k</span>
+        <span class="label">GitHub</span>
       </a>
+      <a class="btn btn-ghost" href="#install">Start tracing</a>
     </div>
   </div>
 </header>
 
-<main>
-<section class="hero">
+<main id="main">
+<section class="hero" data-loop>
   <div class="field" aria-hidden="true"><div class="field-base"></div></div>
 
   <div class="wrap hero-inner">
-    <span class="eyebrow"><b>v0.9</b> OpenTelemetry-native, Apache-2.0</span>
     <h1>See every request, end to end.</h1>
-    <p class="sub">Tracewell follows a request through every service it touches and shows you exactly where the milliseconds went. Open source, self-hosted, one line to instrument.</p>
-    <div class="ctas">
-      <a class="btn btn-primary" href="#how">Start tracing
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
-      <a class="btn btn-ghost" href="#">
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></svg>
-        Read the docs</a>
+    <div class="hero-row">
+      <p class="sub">Tracewell follows a request through every service it touches and shows you exactly where the milliseconds went. Open source, self&#8209;hosted, one line to instrument.</p>
+      <div class="act">
+        <div class="ctas">
+          <a class="btn btn-primary" href="#install">Start tracing</a>
+          <a class="btn btn-ghost" href="#">Read the docs</a>
+        </div>
+        <div class="install" id="install">
+          <span class="ps" aria-hidden="true">$</span><code id="cmd">npm i @tracewell/sdk</code>
+          <button class="copy" type="button" data-copy="#cmd" aria-label="Copy install command">
+            <span class="icon-swap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+          </button>
+        </div>
+        <p class="terms"><span>v0.9</span><span>OpenTelemetry-native</span><span>Apache-2.0</span></p>
+      </div>
     </div>
-    <div class="install">
-      <span class="ps" aria-hidden="true">$</span><code id="cmd">npm i @tracewell/sdk</code>
-      <button class="copy" type="button" aria-label="Copy install command">
-        <span class="icon-swap" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-        </span>
-      </button>
-    </div>
-  </div>
 
-  <div class="request" aria-hidden="true">
-    <div class="wire"><div class="pulse"></div></div>
-    <i class="hop" style="left:14%"><span>edge</span></i>
-    <i class="hop" style="left:32%"><span>auth</span></i>
-    <i class="hop" style="left:50%"><span>orders</span></i>
-    <i class="hop" style="left:68%"><span>payments</span></i>
-    <i class="hop" style="left:86%"><span>postgres</span></i>
+    <div class="request" aria-hidden="true">
+      <div class="wire"><div class="pulse"></div></div>
+      <i class="hop passed" style="left:8%;--h:.18s"><span>edge</span><b>GET /checkout</b></i>
+      <i class="hop passed" style="left:29%;--h:.36s"><span>auth</span><b>18 ms</b></i>
+      <i class="hop passed" style="left:50%;--h:.51s"><span>orders</span><b>38 ms</b></i>
+      <i class="hop" style="left:71%;--h:.65s"><span>payments</span><b>96 ms</b></i>
+      <i class="hop" style="left:92%;--h:.80s"><span>postgres</span><b>36 ms</b></i>
+    </div>
   </div>
+  <button class="btn btn-ghost loop-toggle" type="button" data-loop-toggle aria-label="Pause the background animation">Pause</button>
+  <span class="sr" role="status" aria-live="polite" id="copied"></span>
 </section>
 
-<section class="how" id="how">
+<section class="band how" id="how">
   <div class="wrap">
     <div>
-      <div class="kicker">How it works</div>
       <h2>One trace. Every hop. Nothing guessed.</h2>
       <ol class="steps">
         <li><span class="n">01</span><div><h3>Instrument once</h3><p>Add <code>@tracewell/sdk</code> and call <code>trace.init()</code>. HTTP, gRPC, queues and SQL are wrapped for you.</p></div></li>
         <li><span class="n">02</span><div><h3>Propagate context</h3><p>W3C <code>traceparent</code> headers ride along every hop, so each service adds its span to the same trace.</p></div></li>
         <li><span class="n">03</span><div><h3>Read the waterfall</h3><p>Every span is drawn where its time went. Slow spans are flagged against their own p99, not a global threshold.</p></div></li>
       </ol>
-      <div class="stat">
-        <span class="stat-label">p99 for <span class="mono">orders.load-cart</span> after the cache fix</span>
-        <span class="counter" aria-label="38 milliseconds"><span id="p99" aria-hidden="true">38</span><small aria-hidden="true">ms</small></span>
-        <span class="delta">&darr; 41 ms vs. last deploy</span>
-      </div>
     </div>
 
-    <figure class="trace" style="margin:0" aria-label="Trace waterfall for GET /checkout, 212 milliseconds, one slow span in payments">
+    <figure class="trace" aria-label="Sample trace waterfall for GET /checkout, 212 milliseconds, one slow span in payments">
       <div class="trace-head">
         <span class="method">GET /checkout</span><span class="id">trace 7f3a9c&hellip;e21</span><span class="tot">212 ms</span>
       </div>
       <div class="scale" aria-hidden="true"><span>service</span><span class="ticks"><span>0</span><span>106</span><span>212 ms</span></span><span></span><span></span></div>
       <ol class="rows">
-        <li class="row root" style="--i:0"><span class="svc">edge-gateway<em>GET /checkout</em></span><span class="track"><span class="bar" style="--x:0%;--w:100%"></span></span><span class="ms">212</span><span class="status" title="ok"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
+        <li class="row root" style="--i:0"><span class="svc">edge-gateway<em>GET /checkout</em></span><span class="track"><span class="bar" style="--x:0%;--w:100%"></span></span><span class="ms">212</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
         <li class="row" style="--i:1;--depth:1"><span class="svc">auth<em>verify-token</em></span><span class="track"><span class="bar" style="--x:1.9%;--w:8.5%"></span></span><span class="ms">18</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
         <li class="row" style="--i:2;--depth:1"><span class="svc">orders<em>load-cart</em></span><span class="track"><span class="bar" style="--x:11.3%;--w:17.9%"></span></span><span class="ms">38</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
         <li class="row" style="--i:3;--depth:1"><span class="svc">inventory<em>reserve</em></span><span class="track"><span class="bar" style="--x:30.2%;--w:12.3%"></span></span><span class="ms">26</span><span class="status"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-label="ok"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></span></li>
@@ -321,31 +457,229 @@ footer a:hover{color:var(--ink)}
       </ol>
       <figcaption class="trace-foot">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-        payments.charge took 96 ms, 2.1&times; its p99. 45% of this request.
+        payments.charge took 96 ms, 2.1&times; its p99, and 45% of this request. Sample trace.
       </figcaption>
     </figure>
+
+    <div class="stat">
+      <div>
+        <span class="stat-for">p99 for <span class="mono">orders.load-cart</span> after the cache fix (sample)</span>
+        <span class="counter" aria-label="38 milliseconds"><span id="p99" aria-hidden="true">38</span><small aria-hidden="true">ms</small></span>
+      </div>
+      <p class="stat-note"><span class="delta">&darr; 41 ms vs. last deploy</span>The same route a deploy earlier took 79 ms in orders. The counter counts to the figure it reports and shows which way it moved; a number with no direction is decoration.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band band-panel see" id="see">
+  <div class="wrap">
+    <div class="head">
+      <h2>Where the time went, and why it went there.</h2>
+      <p>Two screens from the trace view, built here as samples. The product cannot be captured before it ships; the values are the ones in the waterfall above.</p>
+    </div>
+
+    <div class="moment">
+      <div class="copy-col">
+        <h3>Every span against its own history</h3>
+        <p>Open a span and its attributes come with it: the peer it called, the status it got, the retries it made. The bar under them puts this run against the span's own p50 and p99, so a slow charge is slow by its own standard.</p>
+      </div>
+      <figure class="panel" aria-label="Sample span detail for payments.charge, 96 milliseconds, against its p50 of 31 and p99 of 46">
+        <div class="panel-head"><span class="svc">payments.charge</span><span>span 3b81f0</span><span class="tot hot">96 ms</span></div>
+        <ul class="kv">
+          <li><span class="k">span.kind</span><span class="v">client</span></li>
+          <li><span class="k">peer.service</span><span class="v">psp-gateway</span></li>
+          <li><span class="k">http.status_code</span><span class="v">200</span></li>
+          <li><span class="k">retry.count</span><span class="v hot">1</span></li>
+          <li><span class="k">retry.reason</span><span class="v">upstream timeout after 48 ms</span></li>
+          <li><span class="k">parent</span><span class="v">edge-gateway GET /checkout</span></li>
+        </ul>
+        <div class="p99" aria-hidden="true"><span>vs its own p99</span><span class="range"><i></i><b style="left:28%" data-l="p50 31"></b><b style="left:44%" data-l="p99 46"></b><b class="hot" style="left:92%" data-l="this 96"></b></span></div>
+      </figure>
+    </div>
+
+    <div class="moment flip">
+      <div class="copy-col">
+        <h3>Compare two traces, hop by hop</h3>
+        <p>Pick any two traces of the same route, a deploy apart, and read where the time moved. The cache fix in orders took 41 ms off the request; nothing else changed, and the table says so.</p>
+      </div>
+      <figure class="panel" aria-label="Sample comparison of GET /checkout before and after a deploy, 253 to 212 milliseconds">
+        <div class="panel-head"><span class="svc">GET /checkout</span><span>deploy 4f1 vs 4f2</span><span class="tot">253 to 212 ms</span></div>
+        <table class="cmp">
+          <thead><tr><th>service</th><th class="pairc"></th><th class="num">before</th><th class="num">after</th><th class="num">change</th></tr></thead>
+          <tbody>
+            <tr><td class="svc">edge-gateway</td><td class="pairc"><span class="pair"><i style="width:100%"></i><i style="width:84%"></i></span></td><td class="num">253</td><td class="num">212</td><td class="num gain">&minus;41</td></tr>
+            <tr><td class="svc">auth</td><td class="pairc"><span class="pair"><i style="width:7%"></i><i style="width:7%"></i></span></td><td class="num">18</td><td class="num">18</td><td class="num same">0</td></tr>
+            <tr class="gain"><td class="svc">orders</td><td class="pairc"><span class="pair"><i style="width:31%"></i><i style="width:15%"></i></span></td><td class="num">79</td><td class="num">38</td><td class="num gain">&minus;41</td></tr>
+            <tr><td class="svc">inventory</td><td class="pairc"><span class="pair"><i style="width:10%"></i><i style="width:10%"></i></span></td><td class="num">26</td><td class="num">26</td><td class="num same">0</td></tr>
+            <tr><td class="svc">payments</td><td class="pairc"><span class="pair"><i style="width:38%"></i><i style="width:38%"></i></span></td><td class="num">96</td><td class="num">96</td><td class="num same">0</td></tr>
+            <tr><td class="svc">postgres</td><td class="pairc"><span class="pair"><i style="width:14%"></i><i style="width:14%"></i></span></td><td class="num">36</td><td class="num">36</td><td class="num same">0</td></tr>
+            <tr><td class="svc">notify</td><td class="pairc"><span class="pair"><i style="width:6%"></i><i style="width:6%"></i></span></td><td class="num">14</td><td class="num">14</td><td class="num same">0</td></tr>
+          </tbody>
+        </table>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="band inst" id="instrument">
+  <div class="wrap">
+    <div class="head">
+      <h2>Instrument once. Trace everything it calls.</h2>
+      <p>One call at start-up. The SDK wraps the clients your service already uses and sends spans over OTLP to your Tracewell, batched, off the request path.</p>
+    </div>
+    <div class="tabs">
+      <input type="radio" name="lang" id="t-node" checked>
+      <input type="radio" name="lang" id="t-py">
+      <input type="radio" name="lang" id="t-go">
+      <div class="tablist" aria-label="Language"><label for="t-node">Node</label><label for="t-py">Python</label><label for="t-go">Go</label></div>
+<pre class="p-node"><code><span class="k">import</span> { trace } <span class="k">from</span> <span class="s">"@tracewell/sdk"</span>;
+
+trace.<span class="f">init</span>({
+  service: <span class="s">"orders"</span>,
+  endpoint: <span class="s">"http://tracewell:4318"</span>,
+  sample: { ratio: <span class="s">0.2</span>, keepErrors: <span class="k">true</span>, keepSlow: <span class="k">true</span> },
+});
+<span class="c">// HTTP, gRPC, queues and SQL are wrapped from here on.</span></code></pre>
+<pre class="p-py"><code><span class="k">from</span> tracewell <span class="k">import</span> trace
+
+trace.<span class="f">init</span>(
+    service=<span class="s">"orders"</span>,
+    endpoint=<span class="s">"http://tracewell:4318"</span>,
+    sample=trace.<span class="f">Sample</span>(ratio=<span class="s">0.2</span>, keep_errors=<span class="k">True</span>, keep_slow=<span class="k">True</span>),
+)
+<span class="c"># requests, httpx, grpc, celery and SQLAlchemy are wrapped from here on.</span></code></pre>
+<pre class="p-go"><code><span class="k">import</span> <span class="s">"github.com/tracewell/sdk-go/trace"</span>
+
+<span class="k">func</span> <span class="f">main</span>() {
+    trace.<span class="f">Init</span>(trace.Config{
+        Service:  <span class="s">"orders"</span>,
+        Endpoint: <span class="s">"http://tracewell:4318"</span>,
+        Sample:   trace.Sample{Ratio: <span class="s">0.2</span>, KeepErrors: <span class="k">true</span>, KeepSlow: <span class="k">true</span>},
+    })
+    <span class="k">defer</span> trace.<span class="f">Shutdown</span>()
+}
+<span class="c">// net/http, grpc, database/sql and sarama are wrapped from here on.</span></code></pre>
+    </div>
+    <ul class="wrapped">
+      <li><span>HTTP</span><span>Express, Fastify, Koa, fetch, undici</span></li>
+      <li><span>RPC</span><span>gRPC, tRPC</span></li>
+      <li><span>Queues</span><span>BullMQ, SQS, Kafka (kafkajs)</span></li>
+      <li><span>SQL</span><span>pg, mysql2, Prisma, Drizzle</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="band band-panel run" id="run">
+  <div class="wrap">
+    <div class="head">
+      <h2>Your spans never leave your network.</h2>
+      <p>Tracewell is Apache-2.0 and self-hosted: one container or one chart, on the infrastructure you already run. There is nothing on this page to buy.</p>
+    </div>
+    <div class="cols">
+      <div class="col">
+        <h3><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>Docker Compose</h3>
+        <p>One container for the collector and the UI, one for storage. Point the SDK at port 4318 and the first trace is on screen before the second request lands.</p>
+        <div class="cmdline"><span class="ps" aria-hidden="true">$</span><code id="cmd-compose">docker compose -f tracewell.yml up -d</code>
+          <button class="copy" type="button" data-copy="#cmd-compose" aria-label="Copy the Docker Compose command">
+            <span class="icon-swap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+      <div class="col">
+        <h3><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>Kubernetes</h3>
+        <p>The chart runs the collector as a DaemonSet and the UI behind your ingress, with the SDK endpoint resolved by the cluster DNS.</p>
+        <div class="cmdline"><span class="ps" aria-hidden="true">$</span><code id="cmd-helm">helm install tracewell oci://ghcr.io/tracewell/charts/tracewell</code>
+          <button class="copy" type="button" data-copy="#cmd-helm" aria-label="Copy the Helm command">
+            <span class="icon-swap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="storage"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg><span>Storage is yours to pick: Postgres to start, ClickHouse when the volume asks for it. Both are a line in the config, and traces can be moved between them.</span></p>
+  </div>
+</section>
+
+<section class="band qa" id="questions">
+  <div class="wrap">
+    <div>
+      <h2>Sampling, retention, overhead, the licence.</h2>
+      <p class="lede">The questions that come up in the first issue thread, answered the way the docs answer them.</p>
+    </div>
+    <div class="qlist">
+      <details>
+        <summary>Does it need OpenTelemetry?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p>Tracewell speaks OTLP. Anything that already emits OpenTelemetry spans can send them to Tracewell without the SDK; the SDK is there for the services that have nothing yet.</p>
+      </details>
+      <details>
+        <summary>How much overhead does the SDK add?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p>Spans are built in the process and shipped in batches off the request path. Sampling happens before a span is built, so an unsampled request pays for a header read and nothing else.</p>
+      </details>
+      <details>
+        <summary>How is sampling decided?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p>Head sampling by ratio per service, plus every trace that errors or crosses its route's p99 is kept whatever the ratio. The slow ones are the ones you came for.</p>
+      </details>
+      <details>
+        <summary>How long are traces kept?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p>Retention is a setting per project, in days. The storage you chose sets the ceiling: Postgres for a team's volume, ClickHouse for a fleet's.</p>
+      </details>
+      <details>
+        <summary>What does the licence allow?<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <p>Apache-2.0: run it, change it, ship it inside your own product. No copyleft, no open-core tier, no feature behind a key.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="close" id="start">
+  <div class="wrap">
+    <h2>Start tracing in one line.</h2>
+    <div class="install">
+      <span class="ps" aria-hidden="true">$</span><code id="cmd-2">npm i @tracewell/sdk</code>
+      <button class="copy" type="button" data-copy="#cmd-2" aria-label="Copy install command">
+        <span class="icon-swap" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </span>
+      </button>
+    </div>
+    <div class="ctas">
+      <a class="btn btn-ghost" href="#">Read the docs</a>
+    </div>
   </div>
 </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>tracewell &middot; Apache-2.0 &middot; built in the open</span>
-    <nav aria-label="Footer"><a href="#">Docs</a><a href="#">GitHub</a><a href="#">Discord</a><a href="#">Security</a></nav>
+    <span>Tracewell is Apache-2.0 and built in the open.</span>
+    <nav aria-label="Footer"><a href="#">Docs</a><a href="#">GitHub</a><a href="#">Discord</a><a href="#">Security</a><a href="#">Changelog</a></nav>
   </div>
 </footer>
 
 <script>
-(()=>{const d=document,R=matchMedia("(prefers-reduced-motion: reduce)").matches;
-/* firing dots: sparse cells on the 32px grid, irregular delays (§2) */
+(()=>{const d=document,R=matchMedia("(prefers-reduced-motion: reduce)").matches;d.documentElement.classList.add("js");
+/* the hero's ambient loops: run only when seen, not hovered or focused, not held, not under reduced motion */
+const L=d.querySelector("[data-loop]"),T=L.querySelector("[data-loop-toggle]"),S={seen:false,hover:false,focus:false,held:R};
+const sync=()=>{L.classList.toggle("is-running",S.seen&&!S.hover&&!S.focus&&!S.held);T.textContent=S.held?"Play":"Pause";T.setAttribute("aria-label",(S.held?"Play":"Pause")+" the background animation")};
+T.onclick=()=>{S.held=!S.held;sync()};
+[["pointerenter","hover",1],["pointerleave","hover",0],["focusin","focus",1],["focusout","focus",0]].forEach(([e,k,v])=>L.addEventListener(e,()=>{S[k]=!!v;sync()}));
+new IntersectionObserver(([e])=>{S.seen=e.isIntersecting;sync()}).observe(L);
+/* firing dots: sparse cells on the 32px grid, irregular delays */
 const f=d.querySelector(".field"),w=f.clientWidth,h=f.clientHeight,c=w/32|0,r=h/32|0,n=c*r,k=Math.min(140,n/7|0);
 for(let i=0;i<k;i++){const j=(i*977+i*i*31)%n,e=d.createElement("i");
-e.style.cssText=`left:${(j%c)*32+14.5}px;top:${(j/c|0)*32+14.5}px;--d:-${(i*977)%7000}ms;--t:${5+(i*613)%4000/1000}s;--rest:${i%9?0:.7}`;f.appendChild(e)}
-/* copy -> check */
-const b=d.querySelector(".copy");b.onclick=()=>{navigator.clipboard?.writeText(d.getElementById("cmd").textContent).catch(()=>{});
-b.parentNode.classList.add("is-copied");b.setAttribute("aria-label","Copied");clearTimeout(b.t);
-b.t=setTimeout(()=>{b.parentNode.classList.remove("is-copied");b.setAttribute("aria-label","Copy install command")},1600)};
-/* waterfall fallback + p99 counter (§10, §12) */
+e.style.cssText=`left:${(j%c)*32+14.5}px;top:${(j/c|0)*32+14.5}px;--d:-${(i*977)%7000}ms;--t:${5+(i*613)%4000/1000}s`;f.appendChild(e)}
+/* copy to check, every copy control */
+const note=d.getElementById("copied");
+d.querySelectorAll(".copy[data-copy]").forEach(b=>{b.onclick=()=>{navigator.clipboard?.writeText(d.querySelector(b.dataset.copy).textContent).catch(()=>{});
+b.parentNode.classList.add("is-copied");note.textContent="Copied";clearTimeout(b.t);
+b.t=setTimeout(()=>{b.parentNode.classList.remove("is-copied");note.textContent=""},1600)}});
+/* waterfall fallback + p99 counter */
 const t=d.querySelector(".trace"),p=d.getElementById("p99");
 if(!R&&!CSS.supports("animation-timeline: view()"))d.documentElement.classList.add("io");
 if(R)return;p.textContent="0";

@@ -10,79 +10,105 @@
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#F4F5F0; --white:#FFFFFF; --ink:#1D2420; --muted:#55605A; --rule:#C8CEC7;
+  --paper:#F4F5F0; --white:#FFFFFF; --ink:#1D2420; --muted:#55605A; --rule:#C8CEC7; --rule-soft:#E2E6E0;
   --accent:#0B6E4F; --accent-ink:#08533B; --error:#B3261E; --field-line:#8E9891;
   --serif:"Source Serif 4",Georgia,serif;
   --sans:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,monospace;
-  --gutter:clamp(16px,4vw,56px); --wrap:1240px; --margin-col:15rem;
+  --gutter:clamp(16px,4vw,56px); --wrap:1240px; --margin-col:14rem;
+  --dur-micro:150ms; --ease-out:cubic-bezier(.2,.7,.2,1);
 }
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font:400 19px/1.55 var(--sans)}
+html{-webkit-text-size-adjust:100%;overflow-x:clip;scroll-behavior:auto}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 19px/1.55 var(--sans);overflow-x:clip}
+::selection{background:var(--accent);color:var(--white)}
 img{max-width:100%;height:auto;display:block}
 a{color:var(--accent);text-underline-offset:.18em;text-decoration-thickness:1px}
 a:hover{color:var(--accent-ink);text-decoration-thickness:2px}
-a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .icon{width:1em;height:1em;flex:none;fill:currentColor;vertical-align:-.14em}
 .wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--gutter)}
 p{text-wrap:pretty;margin:0}
-h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;color:var(--ink)}
-.mono{font-family:var(--mono);font-size:.84em;letter-spacing:0}
-.skip{position:absolute;left:-999px}
-.skip:focus{left:16px;top:16px;background:var(--white);padding:8px 12px;z-index:9}
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;color:var(--ink);overflow-wrap:break-word;min-width:0}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.skip{position:absolute;left:var(--gutter);top:-100px;z-index:9;background:var(--ink);color:var(--white);padding:8px 12px;text-decoration:none}
+.skip:focus-visible{top:12px}
+.fill{padding:0 .25em;border:1px dashed var(--muted);border-radius:3px;color:var(--muted);-webkit-box-decoration-break:clone;box-decoration-break:clone}
 
 /* Header */
 .site-head{border-bottom:1px solid var(--rule)}
-.site-head .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px;flex-wrap:wrap}
+.site-head .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px 32px;padding-block:18px;flex-wrap:wrap}
 .wordmark{font-family:var(--serif);font-size:1.6rem;font-weight:600;letter-spacing:-.015em;color:var(--ink);text-decoration:none;line-height:1}
 .wordmark small{display:block;font-family:var(--sans);font-size:.8rem;font-weight:400;letter-spacing:0;color:var(--muted);margin-top:6px}
 .head-tools{display:flex;align-items:center;gap:28px;font-size:.95rem}
-.head-tools a{color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
-.head-tools a:hover{color:var(--accent)}
-.lang{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
-.lang a{padding:4px 2px}
-.lang a[aria-current]{font-weight:700;color:var(--ink);text-decoration:underline;text-underline-offset:.3em}
-.lang .sep{color:var(--rule)}
+.head-tools .tel{display:inline-flex;align-items:center;gap:8px;color:var(--muted)}
+.head-tools .tel .icon{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 22px;border:1px solid var(--accent);border-radius:4px;background:var(--accent);color:var(--white);font:700 1rem/1 var(--sans);text-decoration:none;cursor:pointer;white-space:nowrap;transition:background-color var(--dur-micro) var(--ease-out),border-color var(--dur-micro) var(--ease-out)}
+.btn:hover{background:var(--accent-ink);border-color:var(--accent-ink);color:var(--white)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled,.btn[aria-disabled="true"]{opacity:.55;cursor:not-allowed;transform:none}
+.btn[aria-busy="true"]{cursor:progress}
+.btn--quiet{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn--quiet:hover{background:var(--white);color:var(--ink);border-color:var(--ink)}
 
 /* Hero */
-.hero{padding-block:72px 88px}
-.hero-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px 72px;align-items:start}
-.hero h1{font-size:64px;line-height:1.02;letter-spacing:-.02em;text-wrap:balance}
-.hero-lede{margin-top:28px;max-width:38ch;color:var(--muted)}
-.hero-call{margin-top:32px;font-size:.95rem;color:var(--muted)}
-.hero-call a{font-weight:700;font-size:1.2rem;color:var(--ink);display:inline-flex;align-items:center;gap:10px;margin-top:6px;text-decoration:none}
-.hero-call a:hover{color:var(--accent)}
+.hero{padding-block:56px 80px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:56px 72px;align-items:center}
+.hero h1{font-size:72px;line-height:1.0;letter-spacing:-.025em;text-wrap:balance}
+.hero-lede{margin-top:28px;max-width:40ch;color:var(--muted);font-size:1.1rem}
+.hero-call{margin-top:36px;display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px}
+.hero-call .tel{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:.95rem}
+.hero-call .tel .icon{color:var(--ink)}
 .index-head{display:grid;grid-template-columns:1fr var(--margin-col);gap:24px;font-size:.9rem;color:var(--muted);padding-bottom:12px;border-bottom:2px solid var(--ink)}
 .index-head span:last-child{padding-left:20px}
 .index{list-style:none;margin:0;padding:0}
 .index li{display:grid;grid-template-columns:1fr var(--margin-col);gap:24px;border-bottom:1px solid var(--rule)}
-.index a{font-family:var(--serif);font-size:2.35rem;font-weight:600;line-height:1.12;letter-spacing:-.015em;text-decoration:none;display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-block:22px 24px}
-.index a .icon{font-size:.62em;transform:translateY(.05em);opacity:.85;transition:transform .15s ease}
-.index a:hover .icon{transform:translate(4px,.05em)}
+.index a{font-family:var(--serif);font-size:2.15rem;font-weight:600;line-height:1.1;letter-spacing:-.015em;color:var(--ink);text-decoration:none;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:calc(2.2em + 40px);padding-block:18px}
+.index a .icon{font-size:.62em;opacity:.85;transition:transform var(--dur-micro) var(--ease-out)}
+.index a:hover{color:var(--accent-ink)}
+.index a:hover .icon{transform:translateX(4px)}
 .index a:hover span{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.15em}
-.margin-ref{font-family:var(--mono);font-size:.88rem;line-height:1.5;color:var(--ink);border-left:1px solid var(--rule);padding:30px 0 20px 20px}
-.margin-ref span{display:block;color:var(--muted)}
+.margin-ref{font-size:.9rem;line-height:1.5;color:var(--ink);border-left:1px solid var(--rule);padding:20px 0 18px 20px;align-self:center;height:100%;display:flex;flex-direction:column;justify-content:center}
+.margin-ref b{display:block;font-weight:700}
+.margin-ref .num{font-family:var(--mono);font-weight:500;font-size:.88rem}
+.margin-ref .art{display:block;font-family:var(--mono);font-size:.84rem;color:var(--muted)}
+.margin-ref .note{display:block;color:var(--muted)}
 .index-note{margin-top:16px;font-size:.9rem;color:var(--muted);max-width:60ch}
 
 /* Bands */
 .band{padding-block:96px}
 .band-white{background:var(--white);border-block:1px solid var(--rule)}
 .band h2{font-size:2.6rem;line-height:1.08;letter-spacing:-.02em;text-wrap:balance}
-.sec-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px;align-items:start}
+.sec-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px;align-items:stretch}
 
 /* Who we are */
-.duotone{position:relative;isolation:isolate;background:var(--paper);margin:0}
+.duotone{position:relative;isolation:isolate;background:var(--paper);margin:0;display:flex;flex-direction:column}
+.duotone picture{flex:1;min-height:0;display:flex}
+.duotone picture img{height:100%;aspect-ratio:auto;min-height:320px}
 .duotone picture,.duotone img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover}
 .duotone img{filter:grayscale(1) contrast(1.15);mix-blend-mode:multiply}
 .duotone::after{content:"";position:absolute;inset:0;bottom:auto;aspect-ratio:3/2;background:var(--ink);mix-blend-mode:lighten;pointer-events:none}
 .duotone figcaption{font-size:.85rem;color:var(--muted);padding-top:12px;border-top:1px solid var(--rule);margin-top:12px}
-.who p{max-width:66ch;margin-top:20px}
+.who p{max-width:60ch;margin-top:20px}
 .facts{margin:36px 0 0;padding:0;display:grid;gap:0;border-top:2px solid var(--ink)}
 .facts div{display:grid;grid-template-columns:9rem minmax(0,1fr);gap:20px;padding-block:16px;border-bottom:1px solid var(--rule)}
-.facts dt{font-family:var(--serif);font-size:1.6rem;font-weight:600;line-height:1.1}
+.facts dt{font-family:var(--serif);font-size:1.6rem;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
 .facts dd{margin:0;color:var(--muted);align-self:center}
 .facts dd .icon{color:var(--ink);margin-right:6px}
+
+/* Handbook entry */
+.entry-head{display:flex;justify-content:space-between;align-items:end;gap:32px;flex-wrap:wrap}
+.entry-head p{max-width:46ch;color:var(--muted)}
+.entry-head h2{max-width:22ch}
+.entry{margin-top:40px;border-top:2px solid var(--ink)}
+.entry-row{display:grid;grid-template-columns:minmax(0,1fr) var(--margin-col);gap:24px;border-bottom:1px solid var(--rule)}
+.entry-row>div{padding-block:28px 30px}
+.entry-row h3{font-family:var(--sans);font-size:1rem;font-weight:700;margin:0;color:var(--ink);letter-spacing:0}
+.entry-row p{margin-top:10px;max-width:62ch}
+.entry-row ul{margin:10px 0 0;padding-left:1.1em;max-width:62ch}
+.entry-row li+li{margin-top:6px}
+.entry-row .margin-ref{padding-top:30px;justify-content:start}
+.entry-foot{padding-top:16px;font-size:.9rem;color:var(--muted);max-width:66ch}
 
 /* Deadlines table */
 .table-intro{display:flex;justify-content:space-between;align-items:end;gap:32px;flex-wrap:wrap}
@@ -92,17 +118,19 @@ table{width:100%;border-collapse:collapse;font-size:1rem}
 caption{text-align:left;font-size:.9rem;color:var(--muted);padding-bottom:12px}
 th{font-weight:700;text-align:left;font-size:.9rem;color:var(--muted);padding:12px 16px 12px 0;border-bottom:2px solid var(--ink)}
 td{padding:18px 16px 18px 0;border-bottom:1px solid var(--rule);vertical-align:top}
-td:first-child{font-family:var(--serif);font-size:1.25rem;font-weight:600;line-height:1.25;width:30%}
+tr{scroll-margin-top:24px}
+tr:target td:first-child{box-shadow:inset 4px 0 0 var(--accent);padding-left:12px}
+td:first-child{font-family:var(--serif);font-size:1.25rem;font-weight:600;line-height:1.25;width:28%}
 td.deadline{font-family:var(--mono);font-size:1rem;white-space:nowrap}
+td.words{white-space:nowrap}
 td.art{font-family:var(--mono);font-size:.9rem;color:var(--muted);white-space:nowrap}
 td:last-child{color:var(--muted)}
 
 /* How it works */
-.steps{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid var(--ink)}
+.steps{list-style:none;margin:48px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:2px solid var(--ink);counter-reset:step}
 .steps li{padding:24px 28px 8px 0;counter-increment:step}
 .steps li+li{padding-left:28px;border-left:1px solid var(--rule)}
-.steps li::before{content:counter(step);display:block;font-family:var(--serif);font-size:3.2rem;font-weight:400;line-height:1;color:var(--accent);margin-bottom:16px}
-.steps{counter-reset:step}
+.steps li::before{content:counter(step);display:block;font-family:var(--serif);font-size:3.2rem;font-weight:400;line-height:1;color:var(--accent);margin-bottom:16px;font-variant-numeric:tabular-nums}
 .steps h3{font-size:1.45rem;line-height:1.15;letter-spacing:-.01em}
 .steps p{margin-top:10px;color:var(--muted);font-size:1rem}
 
@@ -116,20 +144,18 @@ form{display:grid;gap:26px}
 .err-summary ul{margin:8px 0 0;padding-left:30px}
 .err-summary a{color:var(--error)}
 .field label{display:block;font-weight:700;font-size:1rem;margin-bottom:8px}
-.field .hint{display:block;font-size:.9rem;color:var(--muted);margin:-4px 0 8px}
-input,textarea{width:100%;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--white);border:1px solid var(--field-line);border-radius:4px;padding:12px 14px}
+.field .hint{display:block;font-size:.9rem;color:var(--muted);margin:-4px 0 8px;max-width:60ch}
+input,textarea{width:100%;font:inherit;font-size:1.05rem;color:var(--ink);background:var(--white);border:1px solid var(--field-line);border-radius:4px;padding:12px 14px;min-height:48px}
 textarea{min-height:9rem;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.field.is-error textarea{border:2px solid var(--error)}
-.field.is-error{border-left:4px solid var(--error);padding-left:16px}
-.msg{display:flex;gap:8px;align-items:flex-start;font-size:.95rem;margin-top:8px}
+.field{border-left:4px solid transparent}
+.field.is-error{border-left-color:var(--error);padding-left:16px}
+.field.is-error textarea,.field.is-error input{box-shadow:inset 0 0 0 1px var(--error);border-color:var(--error)}
+.msg{display:flex;gap:8px;align-items:flex-start;font-size:.95rem;margin-top:8px;min-height:1lh}
 .msg .icon{margin-top:.2em}
 .msg.err{color:var(--error);font-weight:700;margin:0 0 8px}
-.msg.ok{color:var(--accent)}
-.field.is-ok input{border-color:var(--accent)}
-button{font:inherit;font-weight:700;font-size:1.05rem;background:var(--accent);color:var(--white);border:0;border-radius:4px;padding:15px 26px;cursor:pointer;justify-self:start}
-button:hover{background:var(--accent-ink)}
-.preview-note{font-size:.85rem;color:var(--muted)}
+.form-foot{display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px}
+.form-help{font-size:.95rem;color:var(--muted);min-height:1lh;max-width:48ch}
 
 /* Footer */
 .site-foot{border-top:2px solid var(--ink);padding-block:48px 56px;font-size:.95rem;color:var(--muted)}
@@ -137,14 +163,17 @@ button:hover{background:var(--accent-ink)}
 .site-foot .wordmark{font-size:1.35rem}
 .site-foot address{font-style:normal;margin-top:14px;display:flex;gap:8px}
 .site-foot address .icon{color:var(--ink);margin-top:.25em}
+.site-foot .tel{margin-top:12px;display:flex;gap:8px;align-items:center}
+.site-foot .tel .icon{color:var(--ink)}
 .site-foot ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .site-foot a{color:var(--ink)}
 .site-foot a:hover{color:var(--accent)}
 .site-foot .ext{display:inline-flex;gap:6px;align-items:center}
-.oa{font-family:var(--mono);font-size:.85rem}
+.site-foot p+p{margin-top:8px}
 
 @media (max-width: 1040px){
   .hero-grid,.sec-grid,.form-grid{grid-template-columns:minmax(0,1fr);gap:48px}
+  .hero-grid{align-items:start}
   .steps{grid-template-columns:1fr 1fr}
   .steps li:nth-child(3){padding-left:0;border-left:0}
   .steps li:nth-child(n+3){border-top:1px solid var(--rule)}
@@ -152,182 +181,222 @@ button:hover{background:var(--accent-ink)}
 @media (max-width: 640px){
   body{font-size:18px}
   .hero{padding-block:44px 56px}
-  .hero h1{font-size:44px}
+  .hero h1{font-size:46px}
+  .hero-lede{font-size:1rem}
   .band{padding-block:64px}
   .band h2{font-size:2rem}
   .head-tools{gap:18px}
-  .head-tools .tel-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .head-tools .tel{display:none}
   .index-head{display:none}
   .index{border-top:2px solid var(--ink)}
   .index li{grid-template-columns:1fr;gap:0}
-  .index a{font-size:1.75rem;padding-block:18px 6px}
-  .margin-ref{border-left:0;padding:0 0 18px;font-size:.85rem}
+  .index a{font-size:1.65rem;min-height:0;padding-block:18px 6px}
+  .margin-ref{border-left:0;padding:0 0 18px;font-size:.85rem;height:auto;display:block}
+  .entry-row{grid-template-columns:minmax(0,1fr);gap:0}
+  .entry-row>div{padding-block:22px 6px}
+  .entry-row .margin-ref{padding:0 0 20px}
   .facts div{grid-template-columns:minmax(0,1fr);gap:4px}
   .steps{grid-template-columns:1fr}
   .steps li,.steps li+li{padding:20px 0;border-left:0}
   .steps li+li{border-top:1px solid var(--rule)}
   .row2{grid-template-columns:1fr}
   .foot-grid{grid-template-columns:1fr;gap:28px}
-  /* table becomes stacked entries */
   table,thead,tbody,tr,td{display:block}
   caption{display:block;width:auto}
-  thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
   tr{padding:16px 0;border-bottom:1px solid var(--rule)}
   td{border:0;padding:2px 0;width:auto}
   td:first-child{width:auto;margin-bottom:6px}
   td.deadline,td.art{display:inline-block;margin-right:12px}
   td:last-child{margin-top:6px}
 }
-@media (prefers-reduced-motion: reduce){ .index a .icon{transition:none} }
+@media (prefers-reduced-motion: reduce){ .index a .icon,.btn{transition:none} }
 </style>
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
 <!-- Phosphor Icons (Regular), MIT licence, https://github.com/phosphor-icons/core -->
-<symbol id="i-translate" viewBox="0 0 256 256"><path d="M247.15,212.42l-56-112a8,8,0,0,0-14.31,0l-21.71,43.43A88,88,0,0,1,108,126.93,103.65,103.65,0,0,0,135.69,64H160a8,8,0,0,0,0-16H104V32a8,8,0,0,0-16,0V48H32a8,8,0,0,0,0,16h87.63A87.76,87.76,0,0,1,96,116.35a87.74,87.74,0,0,1-19-31,8,8,0,1,0-15.08,5.34A103.63,103.63,0,0,0,84,127a87.55,87.55,0,0,1-52,17,8,8,0,0,0,0,16,103.46,103.46,0,0,0,64-22.08,104.18,104.18,0,0,0,51.44,21.31l-26.6,53.19a8,8,0,0,0,14.31,7.16L148.94,192h70.11l13.79,27.58A8,8,0,0,0,240,224a8,8,0,0,0,7.15-11.58ZM156.94,176,184,121.89,211.05,176Z"/></symbol>
 <symbol id="i-phone" viewBox="0 0 256 256"><path d="M222.37,158.46l-47.11-21.11-.13-.06a16,16,0,0,0-15.17,1.4,8.12,8.12,0,0,0-.75.56L134.87,160c-15.42-7.49-31.34-23.29-38.83-38.51l20.78-24.71c.2-.25.39-.5.57-.77a16,16,0,0,0,1.32-15.06l0-.12L97.54,33.64a16,16,0,0,0-16.62-9.52A56.26,56.26,0,0,0,32,80c0,79.4,64.6,144,144,144a56.26,56.26,0,0,0,55.88-48.92A16,16,0,0,0,222.37,158.46ZM176,208A128.14,128.14,0,0,1,48,80,40.2,40.2,0,0,1,82.87,40a.61.61,0,0,0,0,.12l21,47L83.2,111.86a6.13,6.13,0,0,0-.57.77,16,16,0,0,0-1,15.7c9.06,18.53,27.73,37.06,46.46,46.11a16,16,0,0,0,15.75-1.14,8.44,8.44,0,0,0,.74-.56L168.89,152l47,21.05h0s.08,0,.11,0A40.21,40.21,0,0,1,176,208Z"/></symbol>
 <symbol id="i-arrow-right" viewBox="0 0 256 256"><path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/></symbol>
 <symbol id="i-warning-circle" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V80a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"/></symbol>
 <symbol id="i-check" viewBox="0 0 256 256"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
 <symbol id="i-arrow-square-out" viewBox="0 0 256 256"><path d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"/></symbol>
 <symbol id="i-map-pin" viewBox="0 0 256 256"><path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"/></symbol>
+<symbol id="i-book-open" viewBox="0 0 256 256"><path d="M232,48H160a32,32,0,0,0-32,32,32,32,0,0,0-32-32H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a16,16,0,0,1,16,16,8,8,0,0,0,16,0,16,16,0,0,1,16-16h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a16,16,0,0,1,16,16V200A31.82,31.82,0,0,0,96,192Zm128,0H160a31.82,31.82,0,0,0-16,8V80a16,16,0,0,1,16-16h64Z"/></symbol>
 </svg>
 <a class="skip" href="#conteudo">Saltar para o conteúdo</a>
 
 <header class="site-head">
   <div class="wrap">
-    <a class="wordmark" href="#" aria-label="Moreira &amp; Vaz, página inicial">Moreira &amp; Vaz<small>Advogados do trabalho, Lisboa</small></a>
+    <a class="wordmark" href="#conteudo" aria-label="Moreira &amp; Vaz, início da página">Moreira &amp; Vaz<small>Advogados do trabalho, Lisboa</small></a>
     <div class="head-tools">
-      <a href="tel:+351210000000"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg><span class="tel-label">21 000 0000</span></a>
-      <nav class="lang" aria-label="Idioma">
-        <svg class="icon" aria-hidden="true"><use href="#i-translate"/></svg>
-        <a href="#" lang="pt-PT" aria-current="true">PT</a><span class="sep" aria-hidden="true">|</span><a href="#" lang="en" hreflang="en">EN</a>
-      </nav>
+      <span class="tel"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg><span class="fill" data-fill="telefone">telefone por confirmar</span></span>
+      <a class="btn" href="#caso">Conte-nos o seu caso</a>
     </div>
   </div>
 </header>
 
 <main id="conteudo">
-  <section class="hero">
+  <section class="hero" aria-labelledby="h1">
     <div class="wrap hero-grid">
       <div>
-        <h1>Defendemos trabalhadores. Nunca empresas.</h1>
-        <p class="hero-lede">Somos doze advogados em Lisboa e só aceitamos um lado: o de quem trabalha. Comece pelo que lhe aconteceu.</p>
-        <p class="hero-call">Prefere falar já?<br>
-          <a href="tel:+351210000000"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg>21 000 0000</a></p>
+        <h1 id="h1">Defendemos trabalhadores. Nunca empresas.</h1>
+        <p class="hero-lede">Só aceitamos um lado: o de quem trabalha. Comece pelo que lhe aconteceu.</p>
+        <div class="hero-call">
+          <a class="btn btn--quiet" href="#guia"><svg class="icon" aria-hidden="true"><use href="#i-book-open"/></svg>Ler um verbete do guia</a>
+        </div>
       </div>
       <nav aria-labelledby="idx-title">
         <div class="index-head"><span id="idx-title">O que lhe aconteceu?</span><span>Prazo e lei</span></div>
         <ul class="index">
           <li>
-            <a href="#"><span>Fui despedido(a)</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
-            <p class="margin-ref">60 dias<span>art. 387.º CT</span></p>
+            <a href="#guia"><span>Fui despedido(a)</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+            <p class="margin-ref"><b class="num">60 dias</b><span class="art">art. 387.º CT</span></p>
           </li>
           <li>
-            <a href="#"><span>Não me pagaram</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
-            <p class="margin-ref">1 ano após o contrato<span>art. 337.º CT</span></p>
+            <a href="#p-salarios"><span>Não me pagaram</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+            <p class="margin-ref"><b class="num">1 ano</b><span class="note">após o fim do contrato</span><span class="art">art. 337.º CT</span></p>
           </li>
           <li>
-            <a href="#"><span>Estou a ser assediado(a) no trabalho</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
-            <p class="margin-ref">Registe datas já<span>art. 29.º CT</span></p>
+            <a href="#p-assedio"><span>Sou assediado(a) no trabalho</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+            <p class="margin-ref"><b>Registe datas já</b><span class="art">art. 29.º CT</span></p>
           </li>
           <li>
-            <a href="#"><span>Mudaram-me o horário</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
-            <p class="margin-ref">Aviso mínimo 7 dias<span>art. 217.º CT</span></p>
+            <a href="#p-horario"><span>Mudaram-me o horário</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+            <p class="margin-ref"><b class="num">7 dias</b><span class="note">de aviso, no mínimo</span><span class="art">art. 217.º CT</span></p>
+          </li>
+          <li>
+            <a href="#p-acidente"><span>Tive um acidente de trabalho</span><svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+            <p class="margin-ref"><b class="num">1 ano</b><span class="art">art. 179.º Lei 98/2009</span></p>
           </li>
         </ul>
-        <p class="index-note">Os prazos contam a partir do dia em que soube ou em que o contrato terminou. Se não tem a certeza, contacte-nos hoje.</p>
+        <p class="index-note">Prazos e artigos de exemplo, a confirmar no Código do Trabalho antes de publicar. Contam a partir do dia em que soube ou em que o contrato terminou.</p>
       </nav>
     </div>
   </section>
 
   <section class="band" aria-labelledby="quem">
     <div class="wrap sec-grid">
-      <figure class="duotone">
+      <figure class="duotone" data-slot="quem-somos">
         <picture>
           <source srcset="img/calcada-rossio.avif" type="image/avif">
           <img src="img/calcada-rossio.jpg" width="760" height="495" loading="lazy" decoding="async" alt="Calçada portuguesa no Rossio, em Lisboa: ondas de pedra preta e branca.">
         </picture>
-        <figcaption>Calçada do Rossio, Lisboa. O escritório fica a dez minutos a pé.</figcaption>
+        <figcaption>Calçada do Rossio, Lisboa. O escritório fica na Baixa, a poucos minutos a pé.</figcaption>
       </figure>
       <div class="who">
-        <h2 id="quem">Só representamos trabalhadores, desde o primeiro dia.</h2>
-        <p>Não temos empresas como clientes, nem nunca tivemos. Assim nunca há conflito de interesses: quando um patrão nos telefona, a resposta é não.</p>
-        <p>Tratamos despedimentos, salários em atraso, assédio, horários e acidentes de trabalho. Falamos consigo em português claro, e dizemos-lhe à partida se o caso vale a pena.</p>
+        <h2 id="quem">Quando um patrão nos telefona, a resposta é não.</h2>
+        <p>Nunca tivemos uma empresa como cliente, por isso nunca há conflito de interesses nem um colega do outro lado da mesa. O que nos conta fica do seu lado.</p>
+        <p>Tratamos despedimentos, salários em atraso, assédio, horários e acidentes de trabalho. Falamos consigo em português claro, e dizemos-lhe à partida se o caso vale a pena levar por diante.</p>
         <dl class="facts">
           <div><dt>12</dt><dd>advogados, todos em direito do trabalho</dd></div>
-          <div><dt>0</dt><dd>empresas representadas</dd></div>
-          <div><dt>Lisboa</dt><dd><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg>Baixa, Lisboa (morada por confirmar)</dd></div>
+          <div><dt>1</dt><dd>morada, na Baixa de Lisboa, onde o atendemos ao balcão</dd></div>
         </dl>
       </div>
     </div>
   </section>
 
-  <section class="band band-white" aria-labelledby="prazos">
+  <section class="band band-white" aria-labelledby="guia-t" id="guia">
+    <div class="wrap">
+      <div class="entry-head">
+        <h2 id="guia-t">Fui despedido(a): o que a lei diz, o que fazer hoje, o prazo</h2>
+        <p>Um verbete do guia "Os seus direitos no trabalho", que terá um por situação. Artigos 381.º a 389.º do Código do Trabalho.</p>
+      </div>
+      <article class="entry" aria-labelledby="guia-t">
+        <div class="entry-row">
+          <div>
+            <h3>O que a lei diz</h3>
+            <p>Um despedimento precisa de uma razão escrita e de um processo antes da carta. Sem isso pode ser ilícito, e nesse caso a lei prevê uma indemnização ou o regresso ao posto.</p>
+          </div>
+          <p class="margin-ref"><b>Ilicitude</b><span class="art">arts. 381.º e 389.º CT</span></p>
+        </div>
+        <div class="entry-row">
+          <div>
+            <h3>O que fazer hoje</h3>
+            <ul>
+              <li>Não assine nada sem ler. Se já assinou, guarde uma cópia.</li>
+              <li>Guarde a carta de despedimento, os recibos e as mensagens.</li>
+              <li>Anote quem lhe disse o quê, e em que dia.</li>
+              <li>Conte-nos o caso antes de responder à empresa.</li>
+            </ul>
+          </div>
+          <p class="margin-ref"><b>Guarde</b><span class="note">carta, recibos, mensagens</span></p>
+        </div>
+        <div class="entry-row">
+          <div>
+            <h3>Prazo</h3>
+            <p>60 dias a contar do dia em que recebeu a carta. Depois disso, a lei já não deixa reclamar, por mais razão que tenha.</p>
+          </div>
+          <p class="margin-ref"><b class="num">60 dias</b><span class="art">art. 387.º CT</span></p>
+        </div>
+        <p class="entry-foot">Verbete de exemplo, o primeiro do guia.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="prazos-t" id="prazos">
     <div class="wrap">
       <div class="table-intro">
-        <h2 id="prazos">Prazos que não pode deixar passar</h2>
-        <p>Depois de um prazo destes, a lei já não o deixa reclamar, por mais razão que tenha. Esta tabela é um resumo; o seu caso pode ter outro.</p>
+        <h2 id="prazos-t">Prazos que não pode deixar passar</h2>
+        <p>Depois de um prazo destes, a lei já não o deixa reclamar, por mais razão que tenha. O seu caso pode ter outro prazo: pergunte.</p>
       </div>
       <div class="table-scroll">
         <table>
-          <caption>Prazos principais do Código do Trabalho (CT)</caption>
+          <caption>Prazos de exemplo, a confirmar no Código do Trabalho (CT) e na Lei 98/2009 antes de publicar</caption>
           <thead><tr><th scope="col">Situação</th><th scope="col">Prazo</th><th scope="col">Lei</th><th scope="col">O que fazer já</th></tr></thead>
           <tbody>
             <tr><td>Despedimento individual</td><td class="deadline">60 dias</td><td class="art">art. 387.º CT</td><td>Não assine nada sem ler. Guarde a carta de despedimento.</td></tr>
             <tr><td>Despedimento coletivo</td><td class="deadline">6 meses</td><td class="art">art. 388.º CT</td><td>Peça por escrito os critérios de seleção.</td></tr>
-            <tr><td>Salários ou subsídios em falta</td><td class="deadline">1 ano</td><td class="art">art. 337.º CT</td><td>Junte recibos e extratos. O ano conta desde o fim do contrato.</td></tr>
+            <tr id="p-salarios"><td>Salários ou subsídios em falta</td><td class="deadline">1 ano</td><td class="art">art. 337.º CT</td><td>Junte recibos e extratos. O ano conta desde o fim do contrato.</td></tr>
+            <tr id="p-assedio"><td>Assédio no trabalho</td><td class="words">Registe datas já</td><td class="art">art. 29.º CT</td><td>Guarde mensagens, nomes e datas. Se afetar a saúde, vá ao médico e peça relatório.</td></tr>
+            <tr id="p-horario"><td>Mudança de horário</td><td class="deadline">7 dias de aviso</td><td class="art">art. 217.º CT</td><td>Peça a alteração por escrito antes de a aceitar.</td></tr>
             <tr><td>Sair com justa causa</td><td class="deadline">30 dias</td><td class="art">art. 395.º CT</td><td>Fale connosco antes de enviar a carta.</td></tr>
-            <tr><td>Acidente de trabalho</td><td class="deadline">1 ano</td><td class="art">art. 179.º Lei 98/2009</td><td>Participe o acidente e guarde os relatórios médicos.</td></tr>
+            <tr id="p-acidente"><td>Acidente de trabalho</td><td class="deadline">1 ano</td><td class="art">art. 179.º Lei 98/2009</td><td>Participe o acidente e guarde os relatórios médicos.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </section>
 
-  <section class="band" aria-labelledby="como">
+  <section class="band band-white" aria-labelledby="como">
     <div class="wrap">
-      <h2 id="como">Como funciona</h2>
+      <h2 id="como" style="max-width:24ch">Dois dias úteis para responder, o preço antes de marcar</h2>
       <ol class="steps">
         <li><h3>Conte-nos o que aconteceu</h3><p>Pelo formulário, por telefone ou ao balcão. Pode ser em poucas palavras.</p></li>
-        <li><h3>Respondemos em 2 dias úteis</h3><p>Um advogado lê o seu caso e diz-lhe se há prazo a correr.</p></li>
-        <li><h3>Primeira consulta</h3><p>Uma hora, com os seus documentos. Sabe o preço antes de marcar.</p></li>
+        <li><h3>Um advogado lê o caso</h3><p>Em dois dias úteis diz-lhe se há um prazo a correr e o que fazer já.</p></li>
+        <li><h3>Primeira consulta</h3><p>Uma hora, com os seus documentos, e nenhuma surpresa na conta.</p></li>
         <li><h3>Decidimos juntos</h3><p>Negociar, reclamar ou ir a tribunal. A decisão é sempre sua.</p></li>
       </ol>
     </div>
   </section>
 
-  <section class="band band-white" aria-labelledby="caso">
+  <section class="band" aria-labelledby="caso-t" id="caso">
     <div class="wrap form-grid">
       <div class="form-aside">
-        <h2 id="caso">Conte-nos o seu caso</h2>
+        <h2 id="caso-t">Conte-nos o seu caso</h2>
         <p>Não precisa de saber o nome jurídico do problema. Diga-nos o que aconteceu e quando.</p>
-        <p class="confid">O que nos escrever fica entre si e o escritório. Não partilhamos dados com a sua entidade patronal.</p>
+        <p class="confid" id="confidencial">O que nos escrever fica entre si e o escritório. Não partilhamos dados com a sua entidade patronal.</p>
       </div>
-      <form action="#" method="post" novalidate aria-describedby="preview-note">
-        <div class="err-summary" role="alert" tabindex="-1">
-          <h3><svg class="icon" aria-hidden="true"><use href="#i-warning-circle"/></svg>Falta uma coisa antes de enviar</h3>
-          <ul><li><a href="#f-what">Escreva o que aconteceu, mesmo em poucas palavras</a></li></ul>
-        </div>
+      <form data-endpoint="" method="post" novalidate aria-describedby="form-help">
         <div class="row2">
-          <div class="field">
+          <div class="field" data-field>
             <label for="f-name">Nome</label>
-            <input id="f-name" name="name" autocomplete="name" value="Ana Ribeiro">
+            <input id="f-name" name="name" autocomplete="name" required data-error="Escreva o seu nome, ou só o primeiro">
           </div>
-          <div class="field is-ok">
-            <label for="f-phone">Telefone</label>
-            <input id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" value="912 345 678" aria-describedby="f-phone-ok">
-            <p class="msg ok" id="f-phone-ok"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Número válido</p>
+          <div class="field" data-field>
+            <label for="f-contact">Telefone ou email</label>
+            <input id="f-contact" name="contact" autocomplete="tel" inputmode="text" required data-error="Deixe um telefone ou um email para lhe respondermos">
           </div>
         </div>
-        <div class="field is-error">
+        <div class="field" data-field>
           <label for="f-what">O que aconteceu?</label>
           <span class="hint" id="f-what-hint">Datas, nomes e documentos ajudam, mas não são obrigatórios.</span>
-          <p class="msg err" id="f-what-err"><svg class="icon" aria-hidden="true"><use href="#i-warning-circle"/></svg><span><span class="skip">Erro: </span>Escreva o que aconteceu, mesmo em poucas palavras</span></p>
-          <textarea id="f-what" name="what" aria-invalid="true" aria-describedby="f-what-err f-what-hint"></textarea>
+          <textarea id="f-what" name="what" required aria-describedby="f-what-hint" data-error="Escreva o que aconteceu, mesmo em poucas palavras"></textarea>
         </div>
-        <button type="submit">Enviar o meu caso</button>
-        <p class="preview-note" id="preview-note">Pré-visualização: o formulário mostra o estado de erro.</p>
+        <div class="form-foot">
+          <button class="btn" type="submit">Enviar o meu caso</button>
+          <p class="form-help" id="form-help" aria-live="polite">Respondemos em 2 dias úteis.</p>
+        </div>
       </form>
     </div>
   </section>
@@ -336,18 +405,58 @@ button:hover{background:var(--accent-ink)}
 <footer class="site-foot">
   <div class="wrap foot-grid">
     <div>
-      <a class="wordmark" href="#">Moreira &amp; Vaz</a>
-      <address><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg><span>Baixa, Lisboa<br>Morada por confirmar</span></address>
+      <a class="wordmark" href="#conteudo">Moreira &amp; Vaz</a>
+      <address><svg class="icon" aria-hidden="true"><use href="#i-map-pin"/></svg><span>Baixa, Lisboa<br><span class="fill" data-fill="morada">morada por confirmar</span></span></address>
+      <p class="tel"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg><span class="fill" data-fill="telefone">telefone por confirmar</span></p>
     </div>
     <div>
-      <p>Sociedade de advogados registada na Ordem dos Advogados</p>
-      <p class="oa">Registo n.º [por preencher]</p>
+      <p>Sociedade de advogados inscrita na Ordem dos Advogados.</p>
     </div>
     <ul>
-      <li><a href="#">Política de privacidade</a></li>
-      <li><a class="ext" href="https://www.livroreclamacoes.pt" rel="external">Livro de Reclamações<svg class="icon" aria-hidden="true"><use href="#i-arrow-square-out"/></svg><span class="skip"> (abre o site oficial)</span></a></li>
+      <li><a href="#confidencial">Confidencialidade</a></li>
+      <li><a class="ext" href="https://www.livroreclamacoes.pt" rel="external">Livro de Reclamações<svg class="icon" aria-hidden="true"><use href="#i-arrow-square-out"/></svg><span class="vh"> (abre o site oficial)</span></a></li>
     </ul>
   </div>
 </footer>
+
+<script>
+// A form that posts nowhere yet (patterns.md): validates, never prints success, says plainly that nothing was sent.
+// The error summary and the inline errors are built by the script, so nothing on the page is hidden at rest.
+document.querySelectorAll('form[data-endpoint]').forEach((form) => {
+  const help = form.querySelector('[aria-live]');
+  const icon = '<svg class="icon" aria-hidden="true"><use href="#i-warning-circle"/></svg>';
+  const fields = [...form.querySelectorAll('[data-field]')].map((box) => ({ box, input: box.querySelector('input, textarea'), err: null }));
+  let summary = null, list = null;
+  const show = (f, bad) => {
+    f.box.classList.toggle('is-error', bad);
+    f.input.toggleAttribute('aria-invalid', bad);
+    if (bad && !f.err) {
+      f.err = document.createElement('p'); f.err.className = 'msg err'; f.err.id = f.input.id + '-err';
+      f.err.innerHTML = icon + '<span><span class="vh">Erro: </span>' + f.input.dataset.error + '</span>';
+      f.input.before(f.err);
+    } else if (!bad && f.err) { f.err.remove(); f.err = null; }
+    const ids = [f.input.id + '-hint', bad ? f.err.id : ''].filter((id) => id && document.getElementById(id));
+    if (ids.length) f.input.setAttribute('aria-describedby', ids.join(' ')); else f.input.removeAttribute('aria-describedby');
+  };
+  fields.forEach((f) => f.input.addEventListener('input', () => { if (f.box.classList.contains('is-error') && f.input.value.trim()) { show(f, false); if (summary) summary.remove(); summary = null; } }));
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const bad = fields.filter((f) => !f.input.value.trim());
+    fields.forEach((f) => show(f, bad.includes(f)));
+    if (summary) summary.remove(); summary = null;
+    if (bad.length) {
+      summary = document.createElement('div'); summary.className = 'err-summary'; summary.setAttribute('role', 'alert'); summary.tabIndex = -1;
+      summary.innerHTML = '<h3>' + icon + 'Falta uma coisa antes de enviar</h3><ul></ul>';
+      list = summary.querySelector('ul');
+      bad.forEach((f) => { const li = document.createElement('li'), a = document.createElement('a'); a.href = '#' + f.input.id; a.textContent = f.input.dataset.error; li.appendChild(a); list.appendChild(li); });
+      form.prepend(summary); summary.focus(); return;
+    }
+    if (!form.dataset.endpoint) { help.textContent = 'Nada foi enviado: este formulário ainda não está ligado ao escritório. Guarde o que escreveu e telefone-nos.'; return; }
+    fetch(form.dataset.endpoint, { method: 'POST', body: new FormData(form) })
+      .then((r) => { help.textContent = r.ok ? 'Recebemos o seu caso. Respondemos em 2 dias úteis.' : 'Não chegou. Tente outra vez daqui a um minuto.'; })
+      .catch(() => { help.textContent = 'Não chegou. Tente outra vez daqui a um minuto.'; });
+  });
+});
+</script>
 </body>
 </html>

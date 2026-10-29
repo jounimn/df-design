@@ -1,13 +1,11 @@
 <!doctype html>
-<!-- df-design · waive eyebrow · "Folha do dia" is the duplicated sheet's masthead line, the device the identity is built on -->
-<!-- df-design · waive tracked-caps · the routed-gothic lettering and the violet stamp are the stencil's own letterforms, tracked as the tool cuts them -->
-<!-- df-design · waive one-face · a single typed family is the duplicator identity; the roles are filled by size, weight and the stamp -->
+<!-- df-design · waive tracked-caps · the lettering-guide caps and the violet stamp are the stencil's own letterforms, tracked as the tool cuts them; the stamp names a change of state -->
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>O Boletim do Miolo</title>
-<meta name="description" content="Miolo, padaria de fermento natural no Porto. O pão de amanhã encomenda-se hoje, até às 18h00.">
+<meta name="description" content="Miolo, padaria de fermento natural no Porto. O pão de amanhã encomenda-se hoje, até às 18h00, e levanta-se a partir das 7h30.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -16,6 +14,7 @@
   Display face: Routed Gothic by Darren Embry, SIL OFL 1.1 (Reserved Font Name "Routed Gothic"), shipped unmodified in ./fonts/.
   Text face: Courier Prime (Google Fonts, SIL OFL 1.1).
   Photographs: Burst (Shopify), Burst photo licence, no attribution required. See assets.md.
+  Sample values (sheet number, date, counts, prices, order number, street) are placeholders for the author to replace.
 -->
 <style>
 @font-face {
@@ -28,43 +27,55 @@
 
 :root {
   --paper: #E5E8D5;     /* duplicator paper, page ground */
-  --slip: #F5F5EC;      /* raised slip: the day's sheet, the bread band */
+  --slip: #F5F5EC;      /* raised slip: the day's sheet, the bread band, the form fields */
   --ink: #22211C;       /* typed ink */
   --muted: #4A4B40;     /* second impression */
   --line: rgb(34 33 28 / .28);
+  --line-soft: rgb(34 33 28 / .14);
   --shadow: rgb(34 33 28 / .08);   /* the slip's offset shadow */
   --stamp: #4B2E83;     /* violet stamp: ONLY where a fact changes state */
 
-  --lettering: "Routed Gothic", "Courier Prime", monospace;
-  --typed: "Courier Prime", "Courier New", monospace;
+  --font-display: "Routed Gothic", "Courier Prime", monospace;
+  --font-body: "Courier Prime", "Courier New", monospace;
 
   --gutter: clamp(16px, 4vw, 56px);
   --measure: 64ch;
+  --radius: 2px;
+  --dur: 120ms;
+  --ease: cubic-bezier(.2, .7, .2, 1);
   color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; overflow-x: clip; scroll-behavior: smooth; }
 body {
   margin: 0;
+  overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--typed);
+  font-family: var(--font-body);
   font-size: 1.0625rem;
   line-height: 1.6;
   overflow-wrap: break-word;
 }
 p { margin: 0; text-wrap: pretty; }
-h1, h2, h3 { margin: 0; font-weight: 400; }
+h1, h2, h3 { margin: 0; font-weight: 400; overflow-wrap: break-word; min-width: 0; }
+h1, h2 { font-family: var(--font-display); }
 a { color: inherit; }
 img { max-width: 100%; height: auto; display: block; }
+::selection { background: var(--ink); color: var(--slip); }
+:root { caret-color: var(--ink); }
 
 /* One owner for horizontal spacing */
 .wrap { max-width: 1320px; margin-inline: auto; padding-inline: var(--gutter); }
 
+/* A way past the masthead */
+.skip { position: absolute; left: var(--gutter); top: -80px; z-index: 10; padding: 8px 14px; background: var(--ink); color: var(--slip); }
+.skip:focus-visible { top: 12px; outline: 2px solid var(--stamp); outline-offset: 2px; }
+
 /* Lettering-guide caps: monoline, even, slightly open like a Leroy stencil */
 .lettering {
-  font-family: var(--lettering);
+  font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: .04em;
   font-weight: 400;
@@ -72,7 +83,10 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* Typed rule: a line of hyphens struck on the machine, not a CSS hairline */
 .typed-rule {
-  font-family: var(--typed);
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  font-family: var(--font-body);
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -82,13 +96,41 @@ img { max-width: 100%; height: auto; display: block; }
 .typed-rule::before { content: "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"; }
 .typed-rule.double::before { content: "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="; }
 
-/* Icons: Phosphor Light, currentColor, sized to cap height of the text beside them */
+/* Icons: Phosphor Light, currentColor, sized to the cap height of the word beside them */
 .ic {
   width: .82em; height: .82em;
   flex: none;
   fill: currentColor;
   vertical-align: -.08em;
 }
+
+/* ---------- Controls, all eight states ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 22px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--slip);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.btn .ic { width: 1em; height: 1em; }
+.btn:hover { background: var(--slip); color: var(--ink); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--stamp); outline-offset: 3px; }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; transform: none; }
+.btn[aria-busy="true"] { cursor: progress; }
+.btn--quiet { background: transparent; color: var(--ink); border-color: var(--line); font-weight: 400; }
+.btn--quiet:hover { background: var(--slip); }
 
 /* ---------- Masthead ---------- */
 .masthead { padding-block: 28px 0; }
@@ -109,42 +151,23 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--muted);
   font-size: .9375rem;
 }
-.lang {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: .9375rem;
-}
-.lang .ic { color: var(--muted); margin-right: 4px; }
-.lang button {
-  font: inherit;
-  color: var(--muted);
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  padding: 4px 8px;
-  cursor: pointer;
-  min-height: 32px;
-}
-.lang button[aria-pressed="true"] { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
-.lang button:hover { border-color: var(--line); color: var(--ink); }
-.lang button:focus-visible, .order:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
-.lang .sep { color: var(--line); }
+.nav-order { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 2px; font-weight: 700; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+.nav-order:hover { color: var(--muted); }
+.nav-order:focus-visible { outline: 2px solid var(--stamp); outline-offset: 3px; }
 .masthead .typed-rule { margin-top: 18px; }
 
 /* ---------- Hero: Folha do dia ---------- */
 .folha { padding-block: clamp(40px, 6vw, 88px) clamp(56px, 7vw, 104px); }
 .folha-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
   gap: clamp(32px, 5vw, 80px);
-  align-items: start;
+  align-items: stretch;
 }
-.kicker { color: var(--muted); font-size: .9375rem; margin-bottom: 20px; }
 .nw { white-space: nowrap; }
 @media (max-width: 360px) { .nw { white-space: normal; } } /* the headline's kept word wraps on the narrowest phones */
 .headline {
-  font-size: clamp(2.375rem, 5.6vw, 5rem);
+  font-size: clamp(2.375rem, 4.6vw, 4.25rem);
   line-height: 1.04;
   letter-spacing: .02em;
   text-wrap: balance;
@@ -154,27 +177,7 @@ img { max-width: 100%; height: auto; display: block; }
   max-width: var(--measure);
   font-size: 1.1875rem;
 }
-.cutoff .ic { margin-right: 6px; }
-.order {
-  margin-top: 32px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--typed);
-  font-weight: 700;
-  font-size: 1.0625rem;
-  color: var(--slip);
-  background: var(--ink);
-  border: 1px solid var(--ink);
-  border-radius: 2px;
-  padding: 14px 22px;
-  min-height: 48px;
-  text-decoration: none;
-  cursor: pointer;
-}
-.order .ic { width: 1em; height: 1em; }
-.order:hover { background: var(--slip); color: var(--ink); }
-.order:active { transform: translateY(1px); }
+.folha .btn { margin-top: 32px; }
 
 /* The day's sheet: a typed slip laid on the bulletin */
 .slip {
@@ -183,18 +186,21 @@ img { max-width: 100%; height: auto; display: block; }
   padding: clamp(20px, 3vw, 36px);
   box-shadow: 3px 3px 0 var(--shadow);
 }
-.slip h2 { font-size: 1.25rem; line-height: 1.2; }
+.slip h2 { font-size: clamp(1.25rem, 1.8vw, 1.5rem); line-height: 1.2; }
 .slip .sub { color: var(--muted); font-size: .9375rem; margin-top: 6px; }
 .slip .typed-rule { margin-block: 18px 6px; }
 .loaves { list-style: none; margin: 0; padding: 0; }
-.loaf { padding-block: 16px; border-bottom: 1px dotted var(--line); }
-.loaf:last-child { border-bottom: 0; padding-bottom: 0; }
+.loaf { padding-block: 20px 18px; }
+.loaf:first-child { padding-top: 12px; }
+.loaf:last-child { padding-bottom: 4px; }
+.loaf + .loaf { position: relative; }
+.loaf + .loaf::before { content: "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"; position: absolute; top: -.5em; left: 0; right: 0; overflow: hidden; white-space: nowrap; color: var(--muted); line-height: 1; font-size: .9375rem; }
 .loaf-line { display: flex; align-items: baseline; gap: 8px; }
-.loaf-name { font-weight: 700; }
+.loaf-name { font-weight: 700; min-width: 0; }
 .loaf-name small { font-weight: 400; color: var(--muted); font-size: inherit; }
 .leader {
   flex: 1;
-  min-width: 2ch;
+  min-width: 5ch;
   overflow: hidden;
   white-space: nowrap;
   color: var(--muted);
@@ -214,7 +220,7 @@ img { max-width: 100%; height: auto; display: block; }
   border: 1.5px solid var(--stamp);
   border-radius: 3px;
   padding: 1px 8px 0;
-  font-family: var(--lettering);
+  font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: .08em;
   font-size: .875rem;
@@ -226,11 +232,13 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ---------- Bands ---------- */
 .band { padding-block: clamp(56px, 7vw, 112px); }
-.band-pao { background: var(--slip); border-block: 1px solid var(--line); }
+.band-slip { background: var(--slip); border-block: 1px solid var(--line); }
 .band-head { display: flex; align-items: baseline; gap: 20px; }
 .band-head h2 { font-size: clamp(2rem, 3.6vw, 3.25rem); line-height: 1.05; }
 .band-head .typed-rule { flex: 1; }
+.band-lede { margin-top: 18px; max-width: var(--measure); color: var(--muted); }
 
+/* O pão */
 .pao-grid {
   margin-top: clamp(28px, 4vw, 48px);
   display: grid;
@@ -243,7 +251,7 @@ img { max-width: 100%; height: auto; display: block; }
 .breads dt { font-weight: 700; }
 .breads dd { margin: 2px 0 0; color: var(--muted); }
 
-/* Photographs: one treatment for all, a duotone in ink and paper (recipes-motion §15) */
+/* Photographs: one treatment for all, a duotone in ink and paper (images.md §4) */
 .plates {
   margin-top: clamp(40px, 5vw, 64px);
   display: grid;
@@ -256,7 +264,7 @@ img { max-width: 100%; height: auto; display: block; }
   isolation: isolate;
   background: var(--paper);
   aspect-ratio: 4 / 5;
-  overflow: hidden;
+  overflow: clip;
 }
 .img-duotone img {
   width: 100%; height: 100%;
@@ -274,6 +282,18 @@ img { max-width: 100%; height: auto; display: block; }
 .plates figcaption { margin-top: 12px; font-size: .9375rem; color: var(--muted); max-width: 40ch; }
 .plates figcaption b { color: var(--ink); }
 
+/* A semana: which loaf bakes on which day, a typed table */
+.week-wrap { margin-top: clamp(28px, 4vw, 48px); overflow-x: auto; }
+.week { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.week th, .week td { padding: 12px 10px; text-align: center; }
+.week th { font-weight: 400; color: var(--muted); font-size: .9375rem; }
+.week th[scope="row"] { text-align: left; font-weight: 700; color: var(--ink); font-size: 1.0625rem; }
+.week .trule td { position: relative; height: 18px; padding: 0; }
+.week .trule .typed-rule { position: absolute; inset: 0 0 4px; }
+.week td { font-size: 1.25rem; }
+.week abbr[title] { text-decoration: none; }
+.week-note { margin-top: 18px; color: var(--muted); font-size: .9375rem; max-width: var(--measure); }
+
 /* How to order: a real sequence, so numbered */
 .steps {
   list-style: none;
@@ -283,13 +303,84 @@ img { max-width: 100%; height: auto; display: block; }
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(24px, 3vw, 40px);
 }
-.step { border-top: 1px solid var(--ink); padding-top: 18px; }
-.step-n { font-family: var(--lettering); font-size: clamp(2.5rem, 4vw, 3.5rem); line-height: 1; }
+.step { position: relative; padding-top: 22px; }
+.step::before { content: "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="; position: absolute; top: 0; left: 0; right: 0; overflow: hidden; white-space: nowrap; color: var(--ink); line-height: 1; font-size: .9375rem; }
+.step-n { font-family: var(--font-display); font-size: clamp(2.5rem, 4vw, 3.5rem); line-height: 1; }
 .step h3 { margin-top: 14px; font-weight: 700; font-size: 1.125rem; line-height: 1.35; display: flex; gap: 8px; align-items: baseline; }
-.step h3 .ic { position: relative; top: .08em; }
 .step p { margin-top: 8px; color: var(--muted); max-width: 34ch; }
 .step .ticket { margin-top: 14px; display: inline-flex; align-items: center; gap: 10px; font-size: .9375rem; }
 .ticket-n { border: 1px dashed var(--muted); padding: 2px 10px; font-weight: 700; letter-spacing: .06em; }
+
+/* ---------- The order form: a typed slip, posts nowhere yet ---------- */
+.order-grid {
+  margin-top: clamp(28px, 4vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+.form-slip { background: var(--slip); border: 1px solid var(--line); box-shadow: 3px 3px 0 var(--shadow); padding: clamp(20px, 3vw, 36px); }
+.form-slip h3 { font-size: 1.25rem; line-height: 1.2; }
+.form-slip .sub { color: var(--muted); font-size: .9375rem; margin-top: 6px; }
+.form-slip .typed-rule { margin-block: 18px 6px; }
+.qty-list { list-style: none; margin: 0; padding: 0; }
+.qty { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding-block: 14px; border-bottom: 1px dotted var(--line); }
+.qty:last-child { border-bottom: 0; }
+.qty label { font-weight: 700; display: block; }
+.qty .meta { color: var(--muted); font-size: .9375rem; }
+.qty-ctl { display: inline-flex; align-items: center; gap: 10px; }
+.qty-ctl .unit { color: var(--muted); font-size: .9375rem; }
+.qty.out label, .qty.out .meta { color: var(--muted); }
+.qty.out .qty-ctl { gap: 12px; }
+
+.field { margin-top: 18px; }
+.field label, .fieldset legend { display: block; font-weight: 700; margin-bottom: 6px; }
+.field .hint { display: block; font-weight: 400; color: var(--muted); font-size: .9375rem; margin-top: 2px; }
+.fields-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; }
+input[type="text"], input[type="tel"], input[type="number"], textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--slip);
+  color: var(--ink);
+  font: inherit;
+  outline: 2px solid transparent;
+  outline-offset: -3px;
+}
+input[type="number"] { width: 6.5ch; text-align: center; font-variant-numeric: tabular-nums; padding-inline: 8px; }
+textarea { min-height: 96px; resize: vertical; }
+input:hover:not(:disabled), textarea:hover:not(:disabled) { border-color: var(--ink); }
+input:focus-visible, textarea:focus-visible { outline-color: var(--stamp); }
+input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--stamp); border-style: dashed; }
+input:disabled, textarea:disabled { opacity: .5; cursor: not-allowed; background: var(--paper); }
+
+.fieldset { border: 0; padding: 0; margin: 18px 0 0; min-width: 0; }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.seg label { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; }
+.seg label:hover { border-color: var(--ink); }
+.seg input:checked + label { background: var(--ink); color: var(--slip); border-color: var(--ink); }
+.seg input:focus-visible + label { outline: 2px solid var(--stamp); outline-offset: 2px; }
+
+.total-line { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; font-weight: 700; }
+.form-slip .typed-rule.total-rule { margin-block: 24px 6px; }
+.total-line .price { font-size: 1.1875rem; }
+.form-foot { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+.form-help { display: flex; gap: 8px; align-items: baseline; min-height: 1lh; margin-top: 14px; font-size: .9375rem; color: var(--muted); max-width: var(--measure); }
+.form-help .ic { position: relative; top: .1em; color: var(--stamp); }
+.form-help:empty { display: block; }
+.form-help:not(.is-error) .ic { display: none; }
+.fill { padding: 0 .25em; border: 1px dashed var(--muted); border-radius: 3px; color: var(--muted); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* Collection and payment, plain facts beside the form */
+.facts { display: grid; gap: 26px; min-width: 0; position: sticky; top: 24px; background: var(--slip); border: 1px solid var(--line); box-shadow: 3px 3px 0 var(--shadow); padding: clamp(20px, 3vw, 36px); }
+.facts > div { min-width: 0; }
+.facts h3 { font-size: 1.125rem; line-height: 1.3; }
+.facts p { margin-top: 6px; color: var(--muted); }
+.facts p .ic { margin-right: 6px; color: var(--ink); }
+.facts .typed-rule { margin-top: 6px; }
 
 /* ---------- Colophon ---------- */
 .colophon { padding-block: 0 48px; font-size: .9375rem; color: var(--muted); }
@@ -304,7 +395,7 @@ img { max-width: 100%; height: auto; display: block; }
   .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 860px) {
-  .folha-grid, .pao-grid { grid-template-columns: minmax(0, 1fr); }
+  .folha-grid, .pao-grid, .order-grid { grid-template-columns: minmax(0, 1fr); }
   .colo-grid { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 620px) {
@@ -315,25 +406,35 @@ img { max-width: 100%; height: auto; display: block; }
   .loaf-line { flex-wrap: wrap; }
   .loaf-name { flex: 1 1 100%; }
   .cutoff { font-size: 1.0625rem; }
-  .order { width: 100%; justify-content: center; }
+  .folha .btn { width: 100%; justify-content: center; }
+  .fields-2 { grid-template-columns: minmax(0, 1fr); }
+  .qty { grid-template-columns: minmax(0, 1fr); }
+  .week th, .week td { padding: 10px 4px; }
+  .week th[scope="row"] { font-size: .9375rem; }
+  .facts { position: static; }
+  .form-foot .btn { width: 100%; justify-content: center; }
 }
 
-/* Static page: nothing animates, the only transitions are interaction states */
+/* Static page: nothing animates; the only transitions are interaction states */
 @media (prefers-reduced-motion: reduce) {
-  .order:active { transform: none; }
+  html { scroll-behavior: auto; }
+  .btn { transition: background-color var(--dur) linear, color var(--dur) linear; }
+  .btn:active { transform: none; }
 }
 </style>
 </head>
 <body>
 
+<a class="skip" href="#folha">Saltar para a folha do dia</a>
+
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
-    <symbol id="i-globe" viewBox="0 0 256 256"><path d="M128,26A102,102,0,1,0,230,128,102.12,102.12,0,0,0,128,26Zm81.57,64H169.19a132.58,132.58,0,0,0-25.73-50.67A90.29,90.29,0,0,1,209.57,90ZM218,128a89.7,89.7,0,0,1-3.83,26H171.81a155.43,155.43,0,0,0,0-52h42.36A89.7,89.7,0,0,1,218,128Zm-90,87.83a110,110,0,0,1-15.19-19.45A124.24,124.24,0,0,1,99.35,166h57.3a124.24,124.24,0,0,1-13.46,30.38A110,110,0,0,1,128,215.83ZM96.45,154a139.18,139.18,0,0,1,0-52h63.1a139.18,139.18,0,0,1,0,52ZM38,128a89.7,89.7,0,0,1,3.83-26H84.19a155.43,155.43,0,0,0,0,52H41.83A89.7,89.7,0,0,1,38,128Zm90-87.83a110,110,0,0,1,15.19,19.45A124.24,124.24,0,0,1,156.65,90H99.35a124.24,124.24,0,0,1,13.46-30.38A110,110,0,0,1,128,40.17Zm-15.46-.84A132.58,132.58,0,0,0,86.81,90H46.43A90.29,90.29,0,0,1,112.54,39.33ZM46.43,166H86.81a132.58,132.58,0,0,0,25.73,50.67A90.29,90.29,0,0,1,46.43,166Zm97,50.67A132.58,132.58,0,0,0,169.19,166h40.38A90.29,90.29,0,0,1,143.46,216.67Z"/></symbol>
     <symbol id="i-basket" viewBox="0 0 256 256"><path d="M134,120v56a6,6,0,0,1-12,0V120a6,6,0,0,1,12,0Zm40.83-.6-5.6,56A6,6,0,0,0,174.6,182l.61,0a6,6,0,0,0,6-5.4l5.6-56a6,6,0,0,0-11.94-1.2Zm-93.66,0a6,6,0,0,0-11.94,1.2l5.6,56a6,6,0,0,0,6,5.4l.61,0a6,6,0,0,0,5.37-6.57ZM238,88.79,222.87,201.85A14,14,0,0,1,209,214H47a14,14,0,0,1-13.87-12.15L18.05,88.79A6,6,0,0,1,24,82H69.28l54.2-61.95a6,6,0,0,1,9,0l54.2,62H232A6,6,0,0,1,238,88.79ZM85.22,82h85.56L128,33.11ZM225.15,94H30.85L45,200.26A2,2,0,0,0,47,202H209a2,2,0,0,0,2-1.74Z"/></symbol>
     <symbol id="i-check" viewBox="0 0 256 256"><path d="M172.24,99.76a6,6,0,0,1,0,8.48l-56,56a6,6,0,0,1-8.48,0l-24-24a6,6,0,0,1,8.48-8.48L112,151.51l51.76-51.75A6,6,0,0,1,172.24,99.76ZM230,128A102,102,0,1,1,128,26,102.12,102.12,0,0,1,230,128Zm-12,0a90,90,0,1,0-90,90A90.1,90.1,0,0,0,218,128Z"/></symbol>
     <symbol id="i-x" viewBox="0 0 256 256"><path d="M164.24,100.24,136.48,128l27.76,27.76a6,6,0,1,1-8.48,8.48L128,136.48l-27.76,27.76a6,6,0,0,1-8.48-8.48L119.52,128,91.76,100.24a6,6,0,0,1,8.48-8.48L128,119.52l27.76-27.76a6,6,0,0,1,8.48,8.48ZM230,128A102,102,0,1,1,128,26,102.12,102.12,0,0,1,230,128Zm-12,0a90,90,0,1,0-90,90A90.1,90.1,0,0,0,218,128Z"/></symbol>
     <symbol id="i-clock" viewBox="0 0 256 256"><path d="M128,26A102,102,0,1,0,230,128,102.12,102.12,0,0,0,128,26Zm0,192a90,90,0,1,1,90-90A90.1,90.1,0,0,1,128,218Zm62-90a6,6,0,0,1-6,6H128a6,6,0,0,1-6-6V72a6,6,0,0,1,12,0v50h50A6,6,0,0,1,190,128Z"/></symbol>
     <symbol id="i-pin" viewBox="0 0 256 256"><path d="M128,66a38,38,0,1,0,38,38A38,38,0,0,0,128,66Zm0,64a26,26,0,1,1,26-26A26,26,0,0,1,128,130Zm0-112a86.1,86.1,0,0,0-86,86c0,30.91,14.34,63.74,41.47,94.94a252.32,252.32,0,0,0,41.09,38,6,6,0,0,0,6.88,0,252.32,252.32,0,0,0,41.09-38c27.13-31.2,41.47-64,41.47-94.94A86.1,86.1,0,0,0,128,18Zm0,206.51C113,212.93,54,163.62,54,104a74,74,0,0,1,148,0C202,163.62,143,212.93,128,224.51Z"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 256 256"><path d="M128,26A102,102,0,1,0,230,128,102.12,102.12,0,0,0,128,26Zm0,192a90,90,0,1,1,90-90A90.1,90.1,0,0,1,128,218Zm-6-82V80a6,6,0,0,1,12,0v56a6,6,0,0,1-12,0Zm16,36a10,10,0,1,1-10-10A10,10,0,0,1,138,172Z"/></symbol>
   </defs>
 </svg>
 
@@ -343,24 +444,20 @@ img { max-width: 100%; height: auto; display: block; }
       <p class="nameplate lettering">O Boletim do Miolo</p>
       <p class="issue">Folha n.º 214. Padaria de fermento natural, Porto. Segunda-feira, 5 de outubro de 2026.</p>
     </div>
-    <div class="lang" role="group" aria-label="Língua / Language">
-      <svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg>
-      <button type="button" aria-pressed="true" lang="pt">PT</button>
-      <span class="sep" aria-hidden="true">|</span>
-      <button type="button" aria-pressed="false" lang="en">EN</button>
-    </div>
+    <nav aria-label="Encomendas">
+      <a class="nav-order" href="#encomendar">Encomendar</a>
+    </nav>
   </div>
   <div class="typed-rule double" aria-hidden="true"></div>
 </header>
 
-<main>
-  <section class="folha wrap" aria-labelledby="folha-titulo">
+<main id="main">
+  <section id="folha" class="folha wrap" aria-labelledby="folha-titulo">
     <div class="folha-grid">
       <div>
-        <p class="kicker">Folha do dia</p>
         <h1 id="folha-titulo" class="headline lettering">O pão de amanhã <span class="nw">encomenda-se</span> hoje.</h1>
-        <p class="cutoff"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Até às 18h00. Levanta-se a partir das 7h30 e paga-se ao balcão.</p>
-        <a class="order" href="#encomendar"><svg class="ic" aria-hidden="true"><use href="#i-basket"/></svg>Encomendar para amanhã</a>
+        <p class="cutoff">Até às 18h00. Levanta-se a partir das 7h30 e paga-se ao balcão.</p>
+        <a class="btn" href="#encomendar"><svg class="ic" aria-hidden="true"><use href="#i-basket"/></svg>Encomendar para amanhã</a>
       </div>
 
       <div class="slip" aria-labelledby="slip-titulo">
@@ -397,15 +494,15 @@ img { max-width: 100%; height: auto; display: block; }
     </div>
   </section>
 
-  <section class="band band-pao" aria-labelledby="pao-titulo">
+  <section class="band band-slip" aria-labelledby="pao-titulo">
     <div class="wrap">
       <div class="band-head">
-        <h2 id="pao-titulo" class="lettering">O pão</h2>
+        <h2 id="pao-titulo" class="lettering">Três pães, mais nenhum</h2>
         <div class="typed-rule" aria-hidden="true"></div>
       </div>
       <div class="pao-grid">
         <div class="prose">
-          <p>Fazemos três pães e mais nenhum. A massa leva farinha, água, sal e o fermento que alimentamos todos os dias desde 2019. Não leva fermento de pacote nem melhorantes.</p>
+          <p>A massa leva farinha, água, sal e o fermento que alimentamos todos os dias desde 2019. Não leva fermento de pacote nem melhorantes.</p>
           <p>Fermenta devagar, de um dia para o outro, e coze de madrugada no forno de lastro. Por isso se encomenda na véspera: amassamos só o que vai ser levantado.</p>
         </div>
         <dl class="breads">
@@ -440,7 +537,49 @@ img { max-width: 100%; height: auto; display: block; }
     </div>
   </section>
 
-  <section id="encomendar" class="band" aria-labelledby="como-titulo">
+  <section class="band" aria-labelledby="semana-titulo">
+    <div class="wrap">
+      <div class="band-head">
+        <h2 id="semana-titulo" class="lettering">A semana da fornada</h2>
+        <div class="typed-rule" aria-hidden="true"></div>
+      </div>
+      <p class="band-lede">O trigo e o centeio cozem todos os dias de forno; a broa só às terças e quintas, porque o milho se escalda na véspera.</p>
+      <div class="week-wrap">
+        <table class="week">
+          <caption class="visually-hidden" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Que pão coze em que dia da semana</caption>
+          <thead>
+            <tr>
+              <th scope="col"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Pão</span></th>
+              <th scope="col"><abbr title="terça-feira">Ter</abbr></th>
+              <th scope="col"><abbr title="quarta-feira">Qua</abbr></th>
+              <th scope="col"><abbr title="quinta-feira">Qui</abbr></th>
+              <th scope="col"><abbr title="sexta-feira">Sex</abbr></th>
+              <th scope="col"><abbr title="sábado">Sáb</abbr></th>
+              <th scope="col"><abbr title="domingo">Dom</abbr></th>
+            </tr>
+            <tr class="trule" aria-hidden="true"><td colspan="7"><div class="typed-rule"></div></td></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Trigo com fermento natural</th>
+              <td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Broa de milho</th>
+              <td><span aria-label="coze">x</span></td><td><span aria-label="não coze">.</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="não coze">.</span></td><td><span aria-label="não coze">.</span></td><td><span aria-label="não coze">.</span></td>
+            </tr>
+            <tr>
+              <th scope="row">Centeio</th>
+              <td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td><td><span aria-label="coze">x</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="week-note">x: coze nesse dia. À segunda-feira o forno não acende, por isso a fornada de terça encomenda-se ao domingo.</p>
+    </div>
+  </section>
+
+  <section class="band band-slip" aria-labelledby="como-titulo">
     <div class="wrap">
       <div class="band-head">
         <h2 id="como-titulo" class="lettering">Como se encomenda</h2>
@@ -449,8 +588,8 @@ img { max-width: 100%; height: auto; display: block; }
       <ol class="steps">
         <li class="step">
           <span class="step-n" aria-hidden="true">1</span>
-          <h3><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Escolha até às 18h00</h3>
-          <p>Diga que pães quer e quantos. Depois das 18h00 a fornada de amanhã fecha.</p>
+          <h3>Escolha até às 18h00</h3>
+          <p>Diga que pães quer e quantos. Depois dessa hora a fornada de amanhã fecha.</p>
         </li>
         <li class="step">
           <span class="step-n" aria-hidden="true">2</span>
@@ -472,6 +611,107 @@ img { max-width: 100%; height: auto; display: block; }
       </ol>
     </div>
   </section>
+
+  <section id="encomendar" class="band" aria-labelledby="enc-titulo">
+    <div class="wrap">
+      <div class="band-head">
+        <h2 id="enc-titulo" class="lettering">Encomendar para amanhã</h2>
+        <div class="typed-rule" aria-hidden="true"></div>
+      </div>
+      <div class="order-grid">
+        <form class="form-slip" data-endpoint="" novalidate aria-labelledby="form-titulo">
+          <h3 id="form-titulo" class="lettering">Fornada de terça, 6 de outubro</h3>
+          <p class="sub">Escreva quantos pães quer. A encomenda fecha às 18h00 de hoje.</p>
+          <div class="typed-rule" aria-hidden="true"></div>
+
+          <ul class="qty-list">
+            <li class="qty">
+              <div>
+                <label for="q-trigo">Trigo com fermento natural</label>
+                <span class="meta">800 g. 3,80 € cada. Restam 12.</span>
+              </div>
+              <div class="qty-ctl">
+                <input id="q-trigo" name="trigo" type="number" inputmode="numeric" min="0" max="12" step="1" value="0" data-price="3.80">
+                <span class="unit">pães</span>
+              </div>
+            </li>
+            <li class="qty out">
+              <div>
+                <label for="q-broa">Broa de milho</label>
+                <span class="meta">4,20 € cada. Volta na fornada de quinta.</span>
+              </div>
+              <div class="qty-ctl">
+                <input id="q-broa" name="broa" type="number" inputmode="numeric" min="0" max="0" step="1" value="0" data-price="4.20" disabled aria-describedby="broa-state">
+                <span class="stamp tilt-r" id="broa-state"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Esgotada</span>
+              </div>
+            </li>
+            <li class="qty">
+              <div>
+                <label for="q-centeio">Centeio</label>
+                <span class="meta">4,50 € cada. Restam 7.</span>
+              </div>
+              <div class="qty-ctl">
+                <input id="q-centeio" name="centeio" type="number" inputmode="numeric" min="0" max="7" step="1" value="0" data-price="4.50">
+                <span class="unit">pães</span>
+              </div>
+            </li>
+          </ul>
+
+          <div class="fields-2">
+            <div class="field">
+              <label for="nome">Nome <span class="hint">É por ele que separamos o pão.</span></label>
+              <input id="nome" name="nome" type="text" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="telefone">Telefone <span class="hint">Só se a fornada falhar.</span></label>
+              <input id="telefone" name="telefone" type="tel" autocomplete="tel" inputmode="tel" required>
+            </div>
+          </div>
+
+          <fieldset class="fieldset">
+            <legend>A que horas levanta</legend>
+            <div class="seg">
+              <input type="radio" name="hora" id="h1" value="7h30-9h00" checked><label for="h1">7h30 às 9h00</label>
+              <input type="radio" name="hora" id="h2" value="9h00-11h00"><label for="h2">9h00 às 11h00</label>
+              <input type="radio" name="hora" id="h3" value="11h00-14h00"><label for="h3">11h00 às 14h00</label>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="nota">Recado para o padeiro <span class="hint">Opcional: cortado, bem cozido, para oferecer.</span></label>
+            <textarea id="nota" name="nota" rows="3"></textarea>
+          </div>
+
+          <div class="typed-rule total-rule" aria-hidden="true"></div>
+          <p class="total-line"><span>Total a pagar ao balcão</span><span class="leader" aria-hidden="true"></span><span class="price" data-total aria-live="polite">0,00 €</span></p>
+
+          <div class="form-foot">
+            <button class="btn" type="submit"><svg class="ic" aria-hidden="true"><use href="#i-basket"/></svg>Guardar a encomenda</button>
+            <span class="sub">Paga-se ao levantar, nunca aqui.</span>
+          </div>
+          <p class="form-help" id="form-help" aria-live="polite"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg><span></span></p>
+        </form>
+
+        <div class="facts">
+          <div>
+            <h3 class="lettering">Levantar</h3>
+            <div class="typed-rule" aria-hidden="true"></div>
+            <p><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>De terça a domingo, das 7h30 às 14h00. O pão fica guardado em seu nome até ao fecho; depois disso vai para o balcão.</p>
+          </div>
+          <div>
+            <h3 class="lettering">Pagar</h3>
+            <div class="typed-rule" aria-hidden="true"></div>
+            <p>Ao balcão, quando levanta. Aceitamos <span class="fill" data-fill="pagamento">formas de pagamento a confirmar</span>. Não se paga nada ao encomendar.</p>
+          </div>
+          <div>
+            <h3 class="lettering">Falar connosco</h3>
+            <div class="typed-rule" aria-hidden="true"></div>
+            <p><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Rua de Cedofeita, Porto. Telefone <span class="fill" data-fill="telefone">número a confirmar</span>, nas horas de balcão.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <footer class="colophon wrap">
@@ -484,7 +724,7 @@ img { max-width: 100%; height: auto; display: block; }
     <div>
       <h2 class="lettering">Onde</h2>
       <p><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Rua de Cedofeita, Porto</p>
-      <p>De terça a domingo, das 7h30 às 14h00.</p>
+      <p>Os horários estão na folha de encomenda, acima.</p>
     </div>
     <div>
       <h2 class="lettering">Colofão</h2>
@@ -492,6 +732,43 @@ img { max-width: 100%; height: auto; display: block; }
     </div>
   </div>
 </footer>
+
+<script>
+(function () {
+  var form = document.querySelector('form[data-endpoint]');
+  if (!form) return;
+  var help = form.querySelector('#form-help');
+  var helpText = help.querySelector('span');
+  var total = form.querySelector('[data-total]');
+  var qtys = Array.prototype.slice.call(form.querySelectorAll('input[type="number"][data-price]'));
+  var euro = function (n) { return n.toFixed(2).replace('.', ',') + ' €'; };
+  var say = function (text, isError) { helpText.textContent = text; help.classList.toggle('is-error', !!isError); };
+  var sum = function () {
+    var t = 0;
+    qtys.forEach(function (q) { if (!q.disabled) t += (parseInt(q.value, 10) || 0) * parseFloat(q.dataset.price); });
+    total.textContent = euro(t);
+  };
+  qtys.forEach(function (q) { q.addEventListener('input', sum); q.addEventListener('change', sum); });
+  sum();
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var loaves = qtys.reduce(function (n, q) { return n + (q.disabled ? 0 : (parseInt(q.value, 10) || 0)); }, 0);
+    var fields = Array.prototype.slice.call(form.querySelectorAll('[required]'));
+    var bad = fields.filter(function (f) { f.removeAttribute('aria-invalid'); return !f.checkValidity(); });
+    if (loaves === 0) { say('Escolha pelo menos um pão antes de guardar a encomenda.', true); qtys[0].focus(); return; }
+    if (bad.length) {
+      bad.forEach(function (f) { f.setAttribute('aria-invalid', 'true'); f.setAttribute('aria-describedby', 'form-help'); });
+      say(bad[0].id === 'nome' ? 'Falta o nome: escreva-o como quer que fique no talão.' : 'Falta o telefone: escreva-o com os nove algarismos.', true);
+      bad[0].focus();
+      return;
+    }
+    if (!form.dataset.endpoint) { say('Nada foi enviado: este formulário ainda não está ligado ao balcão.', false); return; }
+    fetch(form.dataset.endpoint, { method: 'POST', body: new FormData(form) })
+      .then(function (r) { say(r.ok ? 'Encomenda guardada. Leve o número que lhe vamos dar quando levantar.' : 'Não chegou ao balcão. Tente outra vez daqui a um minuto.', !r.ok); })
+      .catch(function () { say('Não chegou ao balcão. Tente outra vez daqui a um minuto.', true); });
+  });
+})();
+</script>
 
 </body>
 </html>

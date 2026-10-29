@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 120" width="640" height="120" role="img" aria-label="Proposta B, Margem: a marca Moreira e Vaz atrás de uma régua vertical, com a linha de referência por baixo">
+  <title>Proposta B: Margem</title>
+  <desc>Type only: the handbook's opening rule turned vertical, the wordmark in Source Serif 4 semibold beside it, and under it a one-line descriptor in Atkinson Hyperlegible, as a margin reference sits beside an entry.</desc>
+  <style>@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600&amp;family=Atkinson+Hyperlegible+Next:wght@400&amp;display=swap");</style>
+  <rect x="16" y="14" width="5" height="92" fill="#1D2420"/>
+  <text x="42" y="70" font-family="'Source Serif 4', Georgia, serif" font-weight="600" font-size="62" letter-spacing="-0.9" fill="#1D2420">Moreira &amp; Vaz</text>
+  <text x="44" y="100" font-family="'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', system-ui, sans-serif" font-size="19" fill="#55605A">Advogados do trabalho, Lisboa</text>
+</svg>
