@@ -219,6 +219,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Seen at:** https://www.awwwards.com/sites/punk-me-1 (Punk Me — web documentary on punk 1976–today; Awwwards HM 2014); print: Jamie Reid's Sex Pistols artwork (1976–77).
 - **Search:** trends.daisyui.com/trend/punk-zine/; aesthetics.fandom.com/wiki/Punk; "Jamie Reid ransom note"; Awwwards inspiration_search "punk"; "xerox zine web design".
 
+### Rubber hose (1930s cartoon)
+- **Grammar:** Fleischer-era characters with boneless limbs, pie-cut eyes, white gloves and round heads, hand-inked with flat fills. Either a cream paper ground (Cuphead's #FFF9E6) with one saturated accent, or sepia and black film with one yellow. A period display face for titles (Cuphead Vogue; a gold condensed serif at Bendy) over a plain modern sans for reading. Title-card framing: ruled panels, banner lines ("The All-Cartoon Magical Wondergame"), Roman-numeral copyright seals, film grain and vignette. Motion is bouncy, looped and on the beat.
+- **Says:** jazz-age mischief, hand-drawn craft, cheerful menace.
+- **Fits:** games (run-and-gun, platformers, cartoon horror), animation studios, toys and merch, swing and jazz events, retro sweets and sodas. **Misfits:** finance, health, serious services, editorial, any brand that cannot pay for real drawing.
+- **Trap:** the style lives in its characters: clip-art "vintage cartoon" mascots read as a T-shirt print, and Mickey look-alikes are a rights problem (the 1928 design is public domain in the US; the trademarks are not). Grain and flicker over body text hurt reading. Cheerful (Cuphead) and uncanny ink-horror (Bendy) share the drawing but not the tone: pick one.
+- **Load:** medium (illustration and sprite loops; trailers make it high).
+- **Seen at:** cupheadgame.com: Studio MDHR's Cuphead, cream title-card pages, hand-inked boss art, the Cuphead Vogue face over GT Standard, "Copyright MCMXXX" seals; joeydrewstudios.com: Bendy's Nightmare Run, rubber-hose ink characters in sepia and black with a single yellow, gold serif headings; fumigames.com: MOUSE: P.I. for Hire, a monochrome rubber-hose noir with grey film-grain scenery.
+- **Search:** "rubber hose animation"; Fleischer Studios; "Cuphead art style"; Fonts In Use "Cuphead"; Are.na "rubber hose".
+
 ### Space Age / 60s retro-futurism
 - **Grammar:** white, silver, orange and space-black; rounded "pod" shapes, capsule cards, circular windows; extended or rounded futurist sans (Eurostile, Microgramma, Countdown, Space Mono for data); NASA-era mission graphics, planet gradients. Slow orbital motion, countdown sequences.
 - **Says:** exploration, optimism about technology, the future as it was imagined.

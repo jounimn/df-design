@@ -278,6 +278,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Seen at:** https://www.parkerpalmsprings.com (Jonathan Adler-designed resort, saturated Regency pattern); https://poolsuite.net (retro-Mac desktop UI playing summer playlists, nostalgia as interface).
 - **Search:** "breeze block pattern"; Aesthetics Wiki "Palm Springs" / "Miami"; land-book "hotel retro"; Are.na "poolsuite".
 
+### Paperback chic (Chobanicore)
+- **Grammar:** a soft, low-contrast retro serif for display (Chobani Serif; Recoleta and Cooper at Fishwife; a light condensed Garamond at Graza) over a plain sans or typewriter body. A pale ground (off-white, peach, butter) broken by full-width blocks of saturated colour: forest green, navy, egg-yolk yellow, chartreuse. Flat hand-drawn or cut-paper illustration of the product's own ingredients as the ornament (flowers and fruit, a dripping olive, painted fish). Product photography on saturated seamless backdrops with props, and the cup, tin or bottle as the hero. Pill buttons; little motion beyond carousels.
+- **Says:** friendly provenance, food you can trust, a design-literate grocery shelf.
+- **Fits:** DTC food and drink, pantry brands, yoghurt and dairy, tinned fish, olive oil and condiments, recipe sites and cookbooks, grocery challengers. **Misfits:** B2B, finance, developer tools, luxury fashion, anything with no physical product to draw.
+- **Trap:** it sits on the anti-slop cluster of warm paper, a serif display and a food-colour accent (`recipes-design.md` §7, the `named-look` gate in `gates.md`), and without its owned illustration and packaging it *is* that cluster. The probed sites each move an axis the gate measures: Chobani's ground is a neutral #FAFAFA, Graza's peach #F6E6D9 and Fishwife's #FFFCF3 fall below the gate's cream hue band, and none of them uses terracotta (forest green, chartreuse, yolk yellow instead). Move the accent first; when the gate still fires, waive it on the record with the brief's reason, never by default.
+- **Load:** medium (product and packaging photography; the illustration is cheap SVG).
+- **Seen at:** chobani.com: Chobani Serif headings, flat cut-paper flowers on forest-green and navy bands, cups shot on yellow; graza.co: peach ground, condensed light serif, drawn olive characters, chartreuse pill buttons, a giant soft-slab wordmark in the footer; eatfishwife.com: Recoleta and Cooper over a pale ground, illustrated tins as the product, yellow pills and painted spot illustrations.
+- **Search:** cari.institute/aesthetics ("Paperback Chic"); "Chobani rebrand 2017"; Fonts In Use "Chobani"; The Dieline "tinned fish packaging" / "olive oil packaging"; Are.na "paperback chic".
+
 ### Skate culture
 - **Grammar:** VHS and camcorder footage, lo-fi photo grids, hand-drawn or Xeroxed graphics, crude collage, deliberate bad taste (Palace's Tri-Ferg, Comic Sans irony). Loud colour or no colour at all. Product shown as flat lays. Jokey copy and GIF loops.
 - **Says:** irreverence, crew loyalty, DIY, authenticity over polish.

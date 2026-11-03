@@ -72,7 +72,7 @@ them as free-text searches, not curated lists.
 
 ## Index
 
-### Historical movements — `identities/historical.md` (31)
+### Historical movements — `identities/historical.md` (32)
 
 | Identity | Says | Fits | Load |
 |---|---|---|---|
@@ -99,6 +99,7 @@ them as free-text searches, not curated lists.
 | Pop Art | fun, mass culture, irony, consumer bravado | snacks, drinks, entertainment, retail, events, comics | fast |
 | Psychedelic 60s | altered state, counterculture, joy, music festival | gigs, festivals, records, cannabis/psychedelic therapy, craft beer, fashion drops | medium |
 | Punk xerox / ransom note | DIY, anger, independence, anti-establishment | bands, gigs, activism, streetwear, independent zines, skate | medium |
+| Rubber hose (1930s cartoon) | jazz-age mischief, hand-drawn craft, cheerful menace | games, animation studios, toys and merch, swing and jazz events, retro sweets and sodas | medium |
 | Space Age / 60s retro-futurism | exploration, optimism about technology, the future as it was imagined | aerospace, science museums, audio hardware, fashion, sci-fi media, launches | fast |
 | Streamline Moderne | speed, optimism, machine-age travel | rail/travel, automotive, diners, appliances, retro tech, hospitality | fast |
 | Surrealism | imagination, a twist, brand as idea | creative agencies, travel, fashion campaigns, launches | medium |
@@ -108,7 +109,7 @@ them as free-text searches, not curated lists.
 | Victorian | heritage, theatre, opulence, the antique | typography and art courses, museums, tea, theatre, heritage brands | medium |
 | Vienna Secession / Wiener Werkstätte | cultured, architectural, Viennese rigour with ornament | galleries, architecture firms, coffee houses, design shops, classical music | fast |
 
-### Digital and UI-native — `identities/digital.md` (48)
+### Digital and UI-native — `identities/digital.md` (50)
 
 | Identity | Says | Fits | Load |
 |---|---|---|---|
@@ -119,17 +120,17 @@ them as free-text searches, not curated lists.
 | Aurora / mesh gradients | modern fintech/SaaS optimism, energy, premium-but-friendly | fintech, AI, SaaS launch pages, conferences | medium |
 | Bento grid | "many capabilities, organised" | product feature overviews, portfolios, personal sites | fast |
 | Blob / fluid organic shapes | calm, friendly, human, soft tech | wellness, mental health, education, consumer apps, children, community | fast |
-| Claymorphism | friendly, touchable, low-stakes | consumer apps, onboarding, kids and education, playful fintech | fast |
+| Claymorphism | friendly, touchable, low-stakes | consumer apps, onboarding, kids and education, playful fintech, glossy inflatable 3D (Neo 3D) launches | fast |
 | Corporate Memphis (and its backlash) | inclusive, friendly, big-tech approachability — now also generic, inauthentic | deliberate retro/ironic use, internal tools, quick explainers where budget is low | fast |
 | Cybercore | online-native nostalgia, dreamy tech, fan and fashion culture | fashion and edit accounts, music, fan sites, youth events | fast to medium |
-| Cyberpunk | high-tech, dystopian, gaming | games, esports, security, hardware | fast |
+| Cyberpunk | high-tech, dystopian, gaming | games, esports, security, hardware, film-UI and sci-fi interface work (FUI / HUD) | fast |
 | Dark mode neon dashboard | real-time, operational, powerful, tech-savvy | observability, trading, analytics, security ops, gaming stats | fast |
 | Data-viz-as-hero | evidence, rigour, curiosity, explanation | journalism, research, NGOs, climate, public data, analytics products | medium |
 | Dithered / 1-bit low-tech | frugal, sustainable, honest, retro-Mac/Game Boy charm | sustainability, low-tech/solar projects, indie games, zines, handheld hardware | fast |
 | Ethereal | wonder, aspiration, the intangible | wellness, travel, spiritual, fragrance, music | fast |
 | Flat design | clear, honest, functional, public-service plainness or friendly product simplicity | government and civic services, onboarding-heavy consumer apps, education, utilities, documentation | fast |
 | Fluent / Metro | Windows, enterprise, productivity, Microsoft 365 | Windows apps, enterprise SaaS, Teams/Office add-ins, admin consoles | fast |
-| Frutiger Aero | optimistic mid-2000s tech utopia, clean nature-meets-technology, nostalgia | nostalgia campaigns, music, wellness-with-irony, eco tech, Gen-Z fashion drops, game sites | medium |
+| Frutiger Aero | optimistic mid-2000s tech utopia, clean nature-meets-technology, nostalgia | nostalgia campaigns, music, wellness-with-irony, eco tech, Gen-Z fashion drops, game sites, Web 2.0 gloss and Aqua-era software nostalgia | medium |
 | Generative / creative-coding | inventive, technical-artistic, alive, systems thinking | creative studios, generative artists, AI/ML, conferences, data/science brands | high |
 | Glassmorphism | modern, light, layered, OS-native | dashboards over imagery, wellness and health, OS-like product shells | fast |
 | Glitch art | disruption, digital decay, edgy tech, music energy | electronic music, games, cybersecurity events, fashion drops, film trailers | medium |
@@ -141,7 +142,7 @@ them as free-text searches, not curated lists.
 | Isometric illustration | systems, infrastructure, orderly complexity explained | cloud/infra SaaS, logistics, fintech explainers, games | fast |
 | Kinetic typography | energy, confidence, voice, motion craft | motion designers, type foundries, agencies, music, sport, campaigns | medium |
 | Liquid Glass (Apple 2025) | Apple-platform native, 2025-current, fluid, premium | iOS/macOS app marketing, Apple-ecosystem products, music/media players | medium |
-| Low-poly | playful, game-like, handcrafted 3D, approachable | games, creative-developer portfolios, kids/edu, interactive storytelling | high |
+| Low-poly | playful, game-like, handcrafted 3D, approachable | games, creative-developer portfolios, kids/edu, interactive storytelling, PS1 and Dreamcast-era retro games, horror jams | high |
 | Material Design / Material You (M3) | Android-native, systematic, friendly-engineered, Google ecosystem | Android apps and companion sites, productivity tools, Google-adjacent developer products, internal tools wanting a ready system | fast |
 | Monochrome mono-type dev sites | precise, unhyped, typographically literate engineering | fonts, dev tools, open-source projects, technical writers, studios of one | fast |
 | Neo-brutalism | honest, energetic, indie, unpolished on purpose | creative tools, developer tools for indie audiences, Gen-Z products, component libraries | fast |
@@ -149,17 +150,19 @@ them as free-text searches, not curated lists.
 | Notion-style doodle minimal | thoughtful, calm, creative-productive, human but tidy | productivity, writing tools, knowledge bases, edtech, startups wanting warmth | fast |
 | Pixel art | playful, gaming, retro-computing, craft | games, developer tools with humour, indie brands, indie launches, game jams | fast |
 | Raw brutalist web (unstyled HTML) | honest, fast, indifferent to trends, information over persuasion | investor relations of contrarian firms, link aggregators, classifieds, manifesto sites, documentation, essays | fast |
-| Retro CRT phosphor (amber / green) | 1980s mainframe, hacker fiction, Fallout/Alien-style retro-future | games, ARGs, sci-fi films, CTF/security events, retro hardware | fast |
+| Retro CRT phosphor (amber / green) | 1980s mainframe, hacker fiction, Fallout/Alien-style retro-future | games, ARGs, sci-fi films, CTF/security events, retro hardware, cassette-futurism props and sci-fi hardware | fast |
 | Retro OS desktop (Windows 95 / classic Mac / XP) | playful nostalgia, "the site is a computer", explorable | product sites with personality, music/radio, portfolios, games, internet-culture brands | medium |
 | Skeuomorphism | tactile, crafted, hardware-honest, playful nostalgia for objects | hardware, audio/music tools, synths, cameras, games, collectible gadgets | medium |
 | Spatial / visionOS | immersive, next-platform, calm future computing | XR products, 3D tools, immersive media, Apple Vision Pro apps | high |
+| Sports-game UI (player cards) | collect, compare, compete; sporting knowledge as a squad | fantasy sports, sports games and companion databases, card and collectible platforms, squad builders, esports rosters | medium |
 | Synthwave | retro-future nostalgia | music, retro games, events | fast |
 | Terminal / CLI | built by engineers for engineers; speed, control, keyboard-first | dev tools, CLIs, terminals, infra, security, hackathons, developer portfolios | fast |
 | Vaporwave | ironic consumer-capitalism nostalgia, dreamy, internet-art | music releases, art, streetwear, game jams, nostalgia events | medium |
+| Vectorheart (Y2K tech-industrial) | engineered futurism circa 2000, the studio as an instrument | creative-technology and interactive studios, motion design, electronic music, racing and sci-fi games, Flash-era archives | medium |
 | Web 1.0 / GeoCities | amateur, personal, sincere, 1990s internet | nostalgia projects, fan sites, music/zine side projects, retro films, art projects | fast |
 | Webcore | internet nostalgia as art; irony; archival love of the old web | artist portfolios, music releases, galleries, festival microsites | medium |
 | Weirdcore / Dreamcore | unease, nostalgia turned uncanny, dream logic, liminality | ARGs, horror games, experimental music, art projects | fast |
-| Y2K aesthetic | nostalgic, playful, internet-native | youth brands, events, creative schools, music | medium |
+| Y2K aesthetic | nostalgic, playful, internet-native | youth brands, events, creative schools, music, chrome-type and liquid-metal drops | medium |
 
 ### Print, type and craft — `identities/print-craft.md` (38)
 
@@ -204,7 +207,7 @@ them as free-text searches, not curated lists.
 | Vintage packaging / label | heritage-with-a-wink, quality ingredients, giftable | DTC food and drink, pantry goods, cosmetics, candles, cider, perry, harvest produce | medium |
 | Woodcut / linocut | earthy, handmade, rooted, a little folkloric | breweries, coffee roasters, farms, bakeries, folk music, outdoor brands | fast |
 
-### Cultural and lifestyle — `identities/cultural.md` (38)
+### Cultural and lifestyle — `identities/cultural.md` (39)
 
 | Identity | Says | Fits | Load |
 |---|---|---|---|
@@ -238,6 +241,7 @@ them as free-text searches, not curated lists.
 | Nordic soft minimal | democratic good taste, calm domesticity, things built to last | furniture, homeware, lighting, design-led D2C, architecture studios, hotels | fast to medium |
 | Old money and prep (Ivy) | inherited ease, understated status, tradition | menswear, tennis and country apparel, private members' clubs, estates, spirits | medium |
 | Palm Springs poolside (retro resort) | leisure, glamour, irony-tinged nostalgia, summer | hotels, swimwear, cocktails, playlists, summer pop-ups | medium |
+| Paperback chic (Chobanicore) | friendly provenance, food you can trust, a design-literate grocery shelf | DTC food and drink, pantry brands, yoghurt and dairy, tinned fish, olive oil and condiments, recipe sites | medium |
 | Skate culture | irreverence, crew loyalty, DIY, authenticity over polish | skate brands, independent apparel, music labels, youth media | medium to high |
 | Solarpunk and low-tech web | hopeful sustainability, commons, degrowth, care | climate organisations, co-ops, permaculture, civic tech, community energy, sustainable publishing | fast |
 | South Asian heritage craft (block-print, khadi) | heirloom craft, provenance, festive luxury, slow fashion | textiles, homeware, Ayurveda/wellness, wedding, craft marketplaces | medium |
@@ -295,7 +299,7 @@ them as free-text searches, not curated lists.
 | Record label / musician | curation, catalogue, scene | labels, artists, radio, music shops, DJ tools, podcasts, comedy | medium |
 | Restaurant / hospitality | atmosphere, taste, the night out | restaurants, bars, cafés, food halls | medium |
 | Sleep and sound | the hour before sleep, handled quietly; sound you can set | sleep and soundscape apps, white-noise and sunrise devices, meditation, sleep headphones | fast to medium |
-| Sports & performance | effort, speed, identity through performance | athletic apparel, fitness apps, wearables, clubs, events, leagues and race results, ski resorts | high |
+| Sports & performance | effort, speed, identity through performance | athletic apparel, fitness apps, wearables, clubs, events, leagues and race results, ski resorts, football kits and fan culture (Sportsbrut) | high |
 | Telehealth / DTC wellness | discreet, modern self-care; prescription made consumer-grade | telehealth, supplements, diagnostics subscriptions, sexual health, hair loss | medium |
 | Transit / wayfinding | you are on the network; the line, the platform, the minute | transit agencies, rail and metro operators, airports and stations, wayfinding studios, live-departure products | fast |
 
