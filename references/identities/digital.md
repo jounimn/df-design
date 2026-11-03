@@ -80,8 +80,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
   large outer drop, plus two inner shadows: lighter top-left, darker
   bottom-right), pastel fills, rounded sans, 3D clay renders as hero art.
 - **Says:** friendly, touchable, low-stakes.
-- **Fits:** consumer apps, onboarding, kids and education, playful fintech. **Misfits:** dense data, legal, luxury.
-- **Trap:** every element puffed up, so nothing leads; pastel-on-pastel text fails contrast.
+- **Fits:** consumer apps, onboarding, kids and education, playful fintech, glossy inflatable 3D (Neo 3D) launches. **Misfits:** dense data, legal, luxury.
+- **Trap:** every element puffed up, so nothing leads; pastel-on-pastel text fails contrast. Clay is matte: glossy "Neo 3D" renders under matte clay shadows read as two kits pasted together, so the shadow stack follows the material of the hero art.
 - **Load:** fast (CSS shadows). The clay renders are images: budget them.
 - **Seen at:** bankwest.com.au: Australian bank, cited as building interface elements on claymorphism principles; unorthodocss.com/examples/claymorph/: a CSS reference build, listed as the clay example on the enlighten-media showcase.
 - **Search:** hype4.academy "claymorphism in user interfaces" (the source article); awwwards.com/websites/claymorphism/; trends.daisyui.com/trend/claymorphism/; design-styles.enlighten-media.net/pages/claymorphism/; Dribbble "claymorphism 3D icons".
@@ -116,7 +116,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Says:** high-tech, dystopian, gaming.
 - **Fits:** games, esports, security, hardware. **Misfits:** gentle consumer subjects.
 - **Trap:** neon on black at low weight fails contrast; glow on every
-  element is noise.
+  element is noise. When the HUD frames are the whole interface rather
+  than dressing, it is FUI / HUD (film interface), not this entry.
 - **Load:** fast (CSS clip-path frames) to high (WebGL scenes).
 - **Seen at:** cyberpunk.net: CD Projekt's Cyberpunk 2077 site, yellow/cyan HUD frames and glitch; theghostintheshell.jp/en: listed on the enlighten-media cyberpunk page; augmented-ui.com: CSS library for cut-corner HUD frames, styled in its own idiom.
 - **Search:** design-styles.enlighten-media.net/pages/cyberpunk/; trends.daisyui.com/trend/cyberpunk/ and /trend/fui-hud/; awwwards.com/websites/cyberpunk/; HUDS+GUIS (hudsandguis.com) for FUI references.
@@ -179,11 +180,20 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Frutiger Aero
 - **Grammar:** humanist sans (Frutiger, Segoe UI, Myriad); sky-blue/aqua/lime gradients, glossy "gel" buttons with top highlight, glass and water, bubbles, lens flares, aurora, grass macro, fish; rounded everything; Windows Vista/7, Wii, early iPod era.
 - **Says:** optimistic mid-2000s tech utopia, clean nature-meets-technology, nostalgia.
-- **Fits:** nostalgia campaigns, music, wellness-with-irony, eco tech, Gen-Z fashion drops, game sites. **Misfits:** serious finance, B2B SaaS, editorial.
-- **Trap:** gloss and stock-photo collage reads as clip-art pastiche; white text on light aqua fails contrast; raster heavy.
+- **Fits:** nostalgia campaigns, music, wellness-with-irony, eco tech, Gen-Z fashion drops, game sites, Web 2.0 gloss and Aqua-era software nostalgia. **Misfits:** serious finance, B2B SaaS, editorial.
+- **Trap:** gloss and stock-photo collage reads as clip-art pastiche; white text on light aqua fails contrast; raster heavy. Web 2.0 gloss (reflected logos, "beta" starbursts, glossy pill tabs) is the same years without the nature: quote one of the two, or it reads as a template pack from both.
 - **Load:** medium (gradients/gloss in CSS fine, but photo bubbles/backgrounds heavy).
 - **Seen at:** https://frutigeraeroarchive.org — archive site styled in Aero gloss, wallpapers and media; https://cari.institute/aesthetics/frutiger-aero — CARI reference board with dated examples.
 - **Search:** Aesthetics Wiki "Frutiger Aero"; CARI "Frutiger Aero"; Are.na "frutiger aero"; "Windows Vista Aero glass UI"; "Frutiger Eco".
+
+### FUI / HUD (film interface)
+- **Grammar:** the interface drawn as a sci-fi instrument panel. A near-black teal ground (#02070B at CMDb) under a faint grid. Every block sits in a thin cyan line frame with bracket corners, notched or cut edges and a short contrasting tick (orange at CMDb) on one edge. A wide geometric display face (Orbitron, Electrolize) in caps, system labels in code syntax ("// ARCHIVE", "SCAN ARCHIVE"), inputs and tabs as bracketed frames, a glowing rule under the header. Zero radius. Arwes, the framework behind these sites, also animates frames drawing in and adds sound.
+- **Says:** you are operating a machine from the future; precision, mission, telemetry.
+- **Fits:** sci-fi games and their companion sites, film-UI and motion studios, space and defence-flavoured hackathons, stream overlays, dashboards with a fiction. **Misfits:** gentle consumer subjects, long reading, health, anything that must look ordinary to be trusted.
+- **Trap:** frames around content that does not change are costume: FUI reads as instruments only where something is measured, scanned or live. Thin cyan lines and small wide caps on near-black fail contrast first. Framing every element in brackets leaves nothing to lead. Next to Cyberpunk it is clean and institutional (no neon grime, no glitch); next to Vectorheart it is the screen, not the studio.
+- **Load:** medium (SVG or canvas frames and backgrounds; sound and draw-in animation add weight).
+- **Seen at:** cmdb.wrick17.com: Cyber Movie Database, built with Arwes on TMDb data, bracket-cornered cyan frames, Orbitron caps, "// ARCHIVE" labels, a bracketed search field; darkgalaxies.io: a space-strategy game whose navigation, sign-up field and buttons sit in thin cyan HUD frames over nebula key art.
+- **Search:** github.com/arwes/arwes (README community showcase); hudsandguis.com; trends.daisyui.com/trend/fui-hud/; "FUI design" on Behance; "Territory Studio screen graphics"; augmented-ui.com for cut-corner frames.
 
 ### Generative / creative-coding
 - **Grammar:** algorithmic visuals (flow fields, particles, noise, shaders, cellular patterns) as the identity, often unique per visit; restrained type (mono or grotesk) so the system leads; canvas/WebGL heroes.
@@ -292,8 +302,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Low-poly
 - **Grammar:** faceted flat-shaded 3D meshes, limited palettes per scene, toy-like miniature worlds, orthographic or soft perspective camera, chunky sans or pixel UI.
 - **Says:** playful, game-like, handcrafted 3D, approachable.
-- **Fits:** games, creative-developer portfolios, kids/edu, interactive storytelling. **Misfits:** corporate, finance, text-heavy.
-- **Trap:** WebGL load and battery; no fallback; navigation hidden in a game; 2014 polygon-wallpaper pastiche when used as static background.
+- **Fits:** games, creative-developer portfolios, kids/edu, interactive storytelling, PS1 and Dreamcast-era retro games, horror jams. **Misfits:** corporate, finance, text-heavy.
+- **Trap:** WebGL load and battery; no fallback; navigation hidden in a game; 2014 polygon-wallpaper pastiche when used as static background. The PS1 / Dreamcast reading is a degradation, not a polycount: clean modern shading on a few polygons reads as low-budget, not as 1998.
 - **Load:** high.
 - **Seen at:** https://bruno-simon.com — drivable low-poly 3D portfolio; https://messenger.abeto.co — Abeto's Messenger, a walkable low-poly planet in the browser.
 - **Search:** Awwwards "3D websites"; "low poly three.js"; Godly "3D"; Aesthetics Wiki "Low Poly"; Spline community low poly.
@@ -373,8 +383,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Retro CRT phosphor (amber / green)
 - **Grammar:** VT323, IBM Plex Mono, Glass TTY, "Perfect DOS VGA"; single-hue phosphor (P1 green #33ff33, P3 amber #ffb000) on near-black; text-shadow glow, scanlines, barrel distortion, flicker, vignette.
 - **Says:** 1980s mainframe, hacker fiction, Fallout/Alien-style retro-future.
-- **Fits:** games, ARGs, sci-fi films, CTF/security events, retro hardware. **Misfits:** long-form reading, accessibility-critical services.
-- **Trap:** glow and scanlines kill legibility; flicker triggers photosensitivity; monochrome removes hierarchy; animated overlays repaint every frame.
+- **Fits:** games, ARGs, sci-fi films, CTF/security events, retro hardware, cassette-futurism props and sci-fi hardware. **Misfits:** long-form reading, accessibility-critical services.
+- **Trap:** glow and scanlines kill legibility; flicker triggers photosensitivity; monochrome removes hierarchy; animated overlays repaint every frame. This entry is the screen only: cassette futurism needs the hardware around it (plastic housings, keycaps, colour-coded bars), or it is a terminal theme with a sci-fi name.
 - **Load:** fast (medium if WebGL CRT shader).
 - **Seen at:** https://github.com/Swordfish90/cool-retro-term — reference CRT terminal emulator look; https://kombai.com/gallery/inspirations/okafor/ — phosphor-green portfolio template with scanline glow.
 - **Search:** "CRT effect CSS"; "phosphor terminal UI"; "Fallout pip-boy UI"; "retro terminal website"; Codrops "CRT".
@@ -406,6 +416,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Seen at:** https://www.apple.com/apple-vision-pro/ — spatial UI showcased with video and layered glass windows.
 - **Search:** "visionOS UI design"; HIG "Designing for visionOS"; Dribbble "spatial UI"; "spatial computing website"; Godly "3D".
 
+### Sports-game UI (player cards)
+- **Grammar:** the collectible card is the layout unit: a cut-out player portrait in a foil or illustrated frame, the rating large in the top corner over the position code, a row of six stats in condensed numerals, nation flag and club crest. Cards ranked in grids, dropped onto a drawn pitch as a lineup, or fanned as a pack. Rarity told by frame colour (gold, purple, holographic promo). Near-black or navy ground, a condensed heavy sans from the game's own world (Cruyff Sans at FUT.GG, Pressio at Sorare), score badges coloured by performance, countdown timers and live-event chips.
+- **Says:** collect, compare, compete; what you know about the sport, as a squad.
+- **Fits:** fantasy sports, sports games and their companion databases, card and collectible platforms, squad and team builders, esports rosters, fan-facing league stats. **Misfits:** governing bodies and safeguarding, health, sports journalism, anything where real people should not be rated.
+- **Trap:** a page of identical cards is the SaaS card kit in a football shirt: the card earns its place only when its numbers are real and comparable, so sort, filter and compare have to exist. Foil and rarity colour on every tile flatten into noise. Ratings on real players need the league and players' licences before the look can be used at all, and pack-opening sits next to gambling rules.
+- **Load:** medium (dozens of portrait images; foil as CSS gradients or short video).
+- **Seen at:** sorare.com: licensed player cards dropped onto a drawn purple pitch as a lineup, hexagon score badges in green and cyan, packs to open, a giant manager counter; fut.gg: EA FC Ultimate Team database, grids of gold and promo cards with rating, position and the six-stat row, countdown tiles for live events.
+- **Search:** "FUT card design"; "Ultimate Team card template"; Behance "player card UI"; Dribbble "fantasy football app"; "trading card UI" on Mobbin.
+
 ### Synthwave
 - **Grammar:** an 80s sunset gradient, perspective grid floor, chrome
   script, palms, magenta, cyan and purple, VHS grain.
@@ -433,6 +452,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Load:** medium.
 - **Seen at:** https://windows96.net — vaporwave-flavoured browser OS; https://cari.institute/aesthetics/vaporwave — CARI dated reference board; https://trends.daisyui.com/trend/vaporwave/ — vaporwave UI theme demo.
 - **Search:** Aesthetics Wiki "Vaporwave"; CARI "Vaporwave"; "Ａｅｓｔｈｅｔｉｃ web design"; Webflow "made-in-webflow/vaporwave"; Are.na "vaporwave".
+
+### Vectorheart (Y2K tech-industrial)
+- **Grammar:** the Flash-era studio site as a machine. Slate-navy to black gradients, dot-matrix margins and fine grid overlays, architecture or hardware photography under the grid. A chrome or brushed-metal emblem as the logo. Small wide sans caps tracked far apart ("RE:TURN", "V3.EXPANSIONS"), bracketed metadata ("[CIRCA 2001]", "EST. 1999"), dotted rules, version numbers as navigation. Rectangular outlined buttons in cyan with a chevron, cyan as the one light, a fixed-width centred stage. Motion as a boot sequence: type-on cursors, loading bars, scanning reveals.
+- **Says:** engineered futurism circa 2000; the studio as an instrument; speed and precision.
+- **Fits:** creative-technology and interactive studios, motion design, electronic music, racing and sci-fi games, hardware with a retro angle, Flash-era archives. **Misfits:** food, health, kids, warm consumer brands, long reading.
+- **Trap:** the micro-labels that carry the look are small, grey on navy and wide-tracked, so they fail contrast and reading first. A dark-blue page with one cyan outline button is now the generic dark product hero: the identity is in the metal emblem, the grid and the versioned, bracketed labelling, not in the colour. A splash page with an Enter button is a wall, not an intro.
+- **Load:** medium (gradients and grids in CSS, the emblem as an image; Rive or video sequences make it high).
+- **Seen at:** 2advanced.com: the studio (est. 1999) relaunched, a chrome circular emblem over a dot grid, wide-tracked caps, cyan outlined buttons into its Flash-era versions; v3.2advanced.com: the 2001 V3 "Expansions" site rebuilt in Rive, a slate-navy stage, architecture photography under a fine grid, bracketed "[CIRCA 2001]" metadata and dotted rules.
+- **Search:** cari.institute/aesthetics ("Vectorheart"); webdesignmuseum.org "2Advanced Studios"; thefwa.com/cases/2advanced-studios-prophecy; The Designers Republic and its Wipeout graphics; Aesthetics Wiki "Y2K Futurism".
 
 ### Web 1.0 / GeoCities
 - **Grammar:** Times New Roman, Comic Sans, Arial, default blue underlined links; tiled backgrounds, tables, `<marquee>`, animated GIFs, under-construction signs, hit counters, webrings, 88x31 buttons; 8–16 colour palettes on black or tiled bg; fixed 640–800px widths.
@@ -466,9 +494,11 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
   cursors, grids, spray gradients, early-web UI chrome, bright pink, cyan and
   yellow.
 - **Says:** nostalgic, playful, internet-native.
-- **Fits:** youth brands, events, creative schools, music. **Misfits:** B2B trust, finance.
+- **Fits:** youth brands, events, creative schools, music, chrome-type and liquid-metal drops. **Misfits:** B2B trust, finance.
 - **Trap:** a sticker pile with no hierarchy; it dates fast. Decide what
-  it is ironic *about*.
+  it is ironic *about*. Chrome as the whole system (liquid-metal type,
+  every surface environment-mapped) leaves nothing flat to read against:
+  keep the metal for one display moment.
 - **Load:** medium (3D renders as images). High only if the blobs are live
   WebGL.
 - **Seen at:** workos.com/launch-week/spring-2026: chrome gradients, iridescence and bubble type on a launch-week microsite (enlighten-media Y2K page); spacehey.com: a working MySpace-style social network, early-2000s UI chrome.

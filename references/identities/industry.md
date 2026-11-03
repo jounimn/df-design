@@ -408,8 +408,8 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 ### Sports & performance
 - **Grammar:** condensed heavy grotesk (Nike Futura Condensed Extra Bold, Helvetica Now Display Black), all-caps slogans, full-bleed athlete photography and video, black/white plus volt or brand orange (Strava), data overlays (pace, heart rate), punchy cuts.
 - **Says:** effort, speed, identity through performance.
-- **Fits:** athletic apparel, fitness apps, wearables, clubs, events; leagues and race results, ski resorts, trail events. **Misfits:** contemplative, luxury quiet, B2B.
-- **Trap:** sweaty stock athlete + motivational quote. Best escape with owned data (Strava's maps/segments, Whoop's strain charts) and real athlete storytelling.
+- **Fits:** athletic apparel, fitness apps, wearables, clubs, events; leagues and race results, ski resorts, trail events, football kits and fan culture (Sportsbrut). **Misfits:** contemplative, luxury quiet, B2B.
+- **Trap:** sweaty stock athlete + motivational quote. Best escape with owned data (Strava's maps/segments, Whoop's strain charts) and real athlete storytelling. Sportsbrut (coarse grids, grunge texture, sticker-bombed broadcast type) escapes only when it comes from the club's own terrace and kit history; as a texture pack over stock athletes it is the same default with dirt on it.
 - **Load:** high (video).
 - **Seen at:** nike.com — condensed caps over campaign film; strava.com — orange + route maps and social proof via activity; whoop.com — dark performance data UI as hero.
 - **Search:** awwwards sports; godly.website sport; "running brand website"; land-book.com fitness.
