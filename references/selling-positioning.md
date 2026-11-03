@@ -211,6 +211,12 @@ gets kraft paper and a street front, not a phone on marble.
 - The export crops each mockup to its **computed size**.
 - **Device frames.** A laptop or phone drawn in CSS around a capture is
   allowed. It is not a photograph, so it needs no row in `assets.md`.
+- **A cutout on the ground.** When no blank-surface photo passes, the
+  product itself (packaging, a bottle, a shoe) can be cut out of a passing
+  photo with `scripts/cutout.mjs` and set on the identity's ground with the
+  one accent beside it (`images.md` §6). The cutout is still a photograph:
+  it is a local file with its own row in `assets.md`, carrying the
+  original's source and licence.
 - An application with no passing photo is **dropped** from the presentation,
   and the reason is reported. A failing mockup is never used "just this
   once".
