@@ -414,6 +414,7 @@ is an acceptable sentence. "Done" without having looked is not.
 | "One direction is obviously right; skip the alternatives" | Three candidates, one from the subject's own world, one the author would not have reached. |
 | "The audition should be production-ready" | An audition answers "is this the identity?" Small, same content in each, no backend. |
 | "The admin and 404 are just utility pages" | Same product, same identity, adapted density. A stock admin panel is a different product. |
+| "The palette already looks good" | Looking good is the base pair. Name the design hint, its feeling and its places, or write `Hint: none` with the reason. `recipes-design.md` §2. |
 | "Three.js will make it feel premium" | Cheapest viable tier first. Masks and blends are CSS. |
 | "Fast tier obviously fits; I'll just use it" | Recommending is yours, choosing is the author's. Send the tier message. |
 | "Every candidate is fast, so there is nothing to ask" | The question is asked every run, with the candidates. Fast is the recommendation, not the answer. The message says what medium and high would add, or that they add nothing. |
