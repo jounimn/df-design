@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { launchBrowser } from '../scripts/lib/browser.mjs';
-import { CHECK_NAMES, UsageError, evaluateMotion, loadCeilings, parseMotionArgs, runMotionChecks } from '../scripts/lib/motion-checks.mjs';
+import { CHECK_NAMES, UsageError, evaluateMotion, loadCeilings, parseMotionArgs, runMotionChecks, sequenceFrames } from '../scripts/lib/motion-checks.mjs';
 import { motionFixture } from './helpers/motion-fixture.mjs';
 import { startFixtureServer } from './helpers/fixture-server.mjs';
 import { recordFilm } from './helpers/film.mjs';
@@ -32,7 +32,7 @@ const failedNames = (result) => result.checks.filter((c) => c.status === 'fail')
 
 // ---- The matrix: every fixture fails only its own check ----------------------------------------------------
 
-const PAGE_EXPECTED = { 'works without JS': 'na', 'video honours reduced motion': 'na', 'no audio before a gesture': 'pass', 'page weight by type': 'report' };
+const PAGE_EXPECTED = { 'built at the chosen tier': 'na', 'works without JS': 'na', 'video honours reduced motion': 'na', 'no audio before a gesture': 'pass', 'page weight by type': 'report' };
 const MATRIX = [
   ['healthy', []],
   ['frozen', ['canvas is alive']],
@@ -322,8 +322,8 @@ test('works without JS: text in the DOM under an opaque loader counts as covered
 });
 
 // Sound and weight need a network: a file:// page fetches nothing the browser reports. These run over http.
-async function checkServed(kind, { tier, files = {} } = {}) {
-  const fx = motionFixture(kind, { files });
+async function checkServed(kind, { tier, files = {}, beforeScene = '' } = {}) {
+  const fx = motionFixture(kind, { files, beforeScene });
   const server = await startFixtureServer(fx.dir);
   try {
     return await runMotionChecks(`${server.url}/page.html`, { tier, browser, ceilings: CEILINGS });
@@ -375,6 +375,51 @@ test('video honours reduced motion: a film that plays under reduced motion fails
   const honours = await checkServed('videoHonoursReducedMotion', { tier: 'yolo', files: { 'film.webm': film } });
   assert.equal(byName(honours)['video honours reduced motion'].status, 'pass', byName(honours)['video honours reduced motion'].detail);
   assert.equal(honours.ok, true);
+});
+
+// ---- The ambition floor: a yolo page built below the tier is reported, never failed ---------------------------
+
+const AMBITION = 'built at the chosen tier';
+
+test('sequenceFrames: the largest set of numbered stills sharing one name', () => {
+  const e = (url) => ({ url, type: 'Image', bytes: 10 });
+  assert.equal(sequenceFrames([e('a/f_001.png'), e('a/f_002.png'), e('a/f_003.webp?v=1'), e('logo.png'), e('b/x-10.jpg')]), 3);
+  assert.equal(sequenceFrames([]), 0);
+});
+
+test('ambition: a plain CSS page called yolo is reported as built below the chosen tier, and never fails', async () => {
+  const result = await check('cssOnly', { tier: 'yolo' });
+  const c = byName(result)[AMBITION];
+  assert.equal(c.status, 'report', c.detail);
+  assert.match(c.detail, /^built below the chosen tier: none of the yolo techniques/);
+  assert.match(c.detail, /re-send the tier message/);
+  assert.equal(failedNames(result).includes(AMBITION), false);
+});
+
+test('ambition: one WebGL scene at a few KB is still below the tier: under the High ceiling', async () => {
+  const c = byName(await check('healthy', { tier: 'yolo' }))[AMBITION];
+  assert.equal(c.status, 'report');
+  assert.match(c.detail, /under the 195 KB High ceiling/);
+  assert.match(c.detail, /Seen: a real-time 3D scene \(1 WebGL canvas\)/);
+});
+
+test('ambition: a WebGL scene over the High ceiling is built at the chosen tier', async () => {
+  const c = byName(await checkServed('healthy', { tier: 'yolo', beforeScene: "<script>fetch('scene.bin')</script>", files: { 'scene.bin': Buffer.alloc(400000, 9) } }))[AMBITION];
+  assert.equal(c.status, 'pass', c.detail);
+  assert.match(c.detail, /^built at the chosen tier: a real-time 3D scene/);
+});
+
+test('ambition: an image sequence and layered parallax are seen', async () => {
+  const frames = Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`f_${String(i + 1).padStart(3, '0')}.png`, Buffer.alloc(10000, i)]));
+  const seq = byName(await checkServed('imageSequence', { tier: 'yolo', files: frames }))[AMBITION];
+  assert.equal(seq.status, 'pass', seq.detail);
+  assert.match(seq.detail, /an image sequence \(40 numbered frames\)/);
+  const layers = byName(await check('parallaxPlanes', { tier: 'yolo' }))[AMBITION];
+  assert.match(layers.detail, /layered parallax \(4 planes\)/);
+});
+
+test('ambition: the other tiers set no ambition floor', async () => {
+  assert.equal(byName(await check('cssOnly', { tier: 'high' }))[AMBITION].status, 'na');
 });
 
 test('the CLI accepts --tier yolo and exits 1 when the Floor fails', () => {

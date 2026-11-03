@@ -14,11 +14,13 @@ export const KINDS = [
   'eightCanvases', 'eightOneRogue', 'shadowCanvas', 'fixedCanvas', 'offscreenWorker', 'opacityZero', 'resizing',
   'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty',
   'loaderCover', 'audioOnLoad', 'audioOnClick', 'videoIgnoresReducedMotion', 'videoHonoursReducedMotion',
+  'parallaxPlanes', 'imageSequence',
 ];
 
 const NO_SPACER = new Set([
   'noCanvas', 'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty',
   'loaderCover', 'audioOnLoad', 'audioOnClick', 'videoIgnoresReducedMotion', 'videoHonoursReducedMotion',
+  'parallaxPlanes', 'imageSequence',
 ]);
 export const PAD_BYTES = 300000;
 
@@ -169,6 +171,21 @@ function build(kind) {
       call: kind === 'videoIgnoresReducedMotion'
         ? "document.getElementById('film').play().catch(() => {});"
         : "if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.getElementById('film').play().catch(() => {});",
+    };
+    // The ambition floor of the yolo tier. parallaxPlanes: three layers that a scroll listener moves at 0.8, 0.5 and
+    // 0.2 of the scroll, over one in the page's own flow (4 planes). imageSequence: 40 numbered stills (f_001.png...,
+    // written by the test) loaded as a sequence is.
+    case 'parallaxPlanes': return {
+      body: `<h1>Layers</h1><p>Three drawn planes over the page.</p><div style="position:relative;height:3000px">
+        <div class="layer" data-k="0.2" style="position:absolute;top:100px;left:0;width:300px;height:200px;background:#c33"></div>
+        <div class="layer" data-k="0.5" style="position:absolute;top:150px;left:320px;width:300px;height:200px;background:#3c3"></div>
+        <div class="layer" data-k="0.8" style="position:absolute;top:200px;left:640px;width:300px;height:200px;background:#33c"></div>
+        <div class="layer" style="position:absolute;top:250px;left:960px;width:300px;height:200px;background:#999"></div></div>`,
+      call: "addEventListener('scroll', () => document.querySelectorAll('.layer[data-k]').forEach((el) => { el.style.transform = 'translateY(' + scrollY * el.dataset.k + 'px)'; }));",
+    };
+    case 'imageSequence': return {
+      body: '<h1>A turning jar</h1><p>Forty stills played by the scroll bar.</p>',
+      call: "window.frames40 = Array.from({ length: 40 }, (_, i) => { const im = new Image(); im.src = 'f_' + String(i + 1).padStart(3, '0') + '.png'; return im; });",
     };
     case 'noCanvas': return { body: '<h1>No canvas here</h1>', call: '' };
     case 'hiddenCanvas': return {

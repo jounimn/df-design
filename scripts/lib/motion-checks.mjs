@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { newPage, settle } from './browser.mjs';
 import { installCanvasTrace, runCanvasTrace } from './canvas-trace.mjs';
-import { formatTransfer, kindOf, watchTransfer } from './transfer.mjs';
+import { formatBytes, formatTransfer, kindOf, watchTransfer } from './transfer.mjs';
 
 export class UsageError extends Error {}
 
@@ -28,6 +28,7 @@ export const CHECK_NAMES = [
   'video honours reduced motion',
   'no audio before a gesture',
   'page weight by type',
+  'built at the chosen tier',
 ];
 
 const CEILINGS_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'motion-ceilings.json');
@@ -166,9 +167,84 @@ export function evaluateMotion(trace, { tier, ceilings, content = null, includeW
     checks.push(videoCheck(page?.videos ?? null, tier));
     checks.push(audioCheck(page?.audio ?? null, tier));
     checks.push(weightCheck(page?.transfer ?? null, page?.url ?? '', tier));
+    checks.push(ambitionCheck(trace, page, tier, ceilings));
   }
 
   return { checks, ok: checks.every((c) => c.status !== 'fail') };
+}
+
+// ---- The ambition floor of the yolo tier ---------------------------------------------------------------------
+
+// The High ceiling when the ceilings file names none: 340 KB, the p75 of motion JS (benchmarks.md).
+const HIGH_CEILING_FALLBACK = 348376;
+const SEQUENCE_FRAMES_MIN = 30; // numbered stills sharing one name before it counts as an image sequence
+const PARALLAX_PLANES_MIN = 3; // the page's own flow plus at least two layers moving at other speeds
+const FILM_BYTES_MIN = 1048576; // 1 MB of video: a film, not an icon loop
+
+// Numbered stills by their shared name (frame_0001.webp, frame_0002.webp, ...): the largest such set.
+export function sequenceFrames(entries) {
+  const sets = new Map();
+  for (const e of entries) {
+    if (kindOf(e) !== 'images') continue;
+    const m = e.url.split(/[?#]/)[0].toLowerCase().match(/^(.*?)[-_]?(\d{2,5})\.(jpe?g|png|webp|avif)$/);
+    if (m) sets.set(m[1], (sets.get(m[1]) ?? 0) + 1);
+  }
+  return Math.max(0, ...sets.values());
+}
+
+// Choosing yolo commits the build to at least one yolo technique at flagship scale. Never a Floor fail: the author
+// chose the tier, and a page built below it is reported so the tier message can be re-sent or the build finished.
+// signals (page.ambition): { sequenceFrames, videoBytes, audio, planes }; WebGL comes from the canvas trace.
+function ambitionCheck(trace, page, tier, ceilings) {
+  const name = CHECK_NAMES[9];
+  if (tier !== 'yolo') return { name, status: 'na', detail: 'only the yolo tier sets an ambition floor' };
+  const a = page?.ambition;
+  if (!a) return { name, status: 'na', detail: 'the page was not weighed' };
+  const found = [];
+  const webgl = trace.canvases.filter((c) => /webgl/.test(`${c.requested ?? ''} ${c.context ?? ''}`));
+  if (webgl.length) found.push(`a real-time 3D scene (${webgl.length} WebGL ${webgl.length === 1 ? 'canvas' : 'canvases'})`);
+  if (a.sequenceFrames >= SEQUENCE_FRAMES_MIN) found.push(`an image sequence (${a.sequenceFrames} numbered frames)`);
+  if (a.videoBytes >= FILM_BYTES_MIN) found.push(`a film (${formatBytes(a.videoBytes)} of video)`);
+  if (a.planes >= PARALLAX_PLANES_MIN) found.push(`layered parallax (${a.planes} planes)`);
+  if (a.audio) found.push('sound');
+  const high = ceilings?.high ?? HIGH_CEILING_FALLBACK;
+  const total = a.total ?? 0;
+  const light = total < high;
+  const local = a.local ? ' (measured on a file:// page, which reports only the document and its scripts: serve it over http(s))' : '';
+  const problems = [];
+  if (!found.length) problems.push('none of the yolo techniques this check can see (a WebGL scene, an image sequence, a film, layered parallax, sound)');
+  if (light) problems.push(`${formatBytes(total)} in all, under the ${kb(high)} High ceiling${local}`);
+  if (problems.length) {
+    return { name, status: 'report', detail: `built below the chosen tier: ${problems.join('; ')}${found.length ? `. Seen: ${found.join(', ')}` : ''}. That is a high build with a yolo label: build the yolo techniques at flagship scale (techniques/yolo.md), or re-send the tier message.` };
+  }
+  return { name, status: 'pass', detail: `built at the chosen tier: ${found.join(', ')}; ${formatBytes(total)} in all` };
+}
+
+// Runs in the page: how many planes move at different speeds when the page scrolls. Pictures, drawings and layers
+// with a background image are sampled at two scroll positions; each distinct speed is a plane, the page's own flow
+// (speed 1) included. A fixed layer (speed 0) is not a plane.
+async function parallaxPlanes(page) {
+  const sample = () => page.evaluate(() => {
+    const els = [...document.querySelectorAll('img,svg,picture,canvas,video,[style*="background"],[class*="layer" i],[data-speed],[data-parallax]')].slice(0, 400);
+    window.__dfPlanes = els;
+    return els.map((el) => el.getBoundingClientRect().top);
+  });
+  try {
+    const before = await sample();
+    const moved = await page.evaluate(() => { const y0 = window.scrollY; window.scrollBy(0, 400); return window.scrollY - y0; });
+    await page.waitForTimeout(400);
+    if (!moved) return 0;
+    const after = await page.evaluate(() => window.__dfPlanes.map((el) => el.getBoundingClientRect().top));
+    await page.evaluate(() => { window.scrollTo(0, 0); delete window.__dfPlanes; });
+    const speeds = new Set();
+    before.forEach((t, i) => {
+      const speed = Math.round(((t - after[i]) / moved) * 10) / 10;
+      if (speed !== 0) speeds.add(speed);
+    });
+    return speeds.size;
+  } catch {
+    return 0;
+  }
 }
 
 // ---- The Floor of the page: video, sound, weight ----------------------------------------------------------------
@@ -379,17 +455,27 @@ export async function runMotionChecks(target, { tier, browser, ceilings = loadCe
     const trace = await runCanvasTrace(page);
     const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
     if (!includeWithoutJs) return evaluateMotion(trace, { tier, ceilings, includeWithoutJs });
+    const planes = tier === 'yolo' ? await parallaxPlanes(page) : 0;
     const withJs = await contentWithJs(page);
     const full = transfer.snapshot();
     const audio = transfer.entries().filter((e) => kindOf(e) === 'audio').map((e) => e.url);
     const videoCount = await page.evaluate(() => document.querySelectorAll('video').length);
+    const audioElements = await page.evaluate(() => document.querySelectorAll('audio').length);
+    const ambition = {
+      sequenceFrames: sequenceFrames(transfer.entries()),
+      videoBytes: full.byKind.video,
+      audio: audio.length > 0 || audioElements > 0,
+      planes,
+      total: full.total,
+      local: /^file:/i.test(url),
+    };
     const videos = videoCount ? await videosUnderReducedMotion(browser, url, viewport) : { count: 0, playing: [] };
     const withoutJs = await contentWithoutJs(browser, url, viewport);
     return evaluateMotion(trace, {
       tier,
       ceilings,
       content: { withJs, withoutJs },
-      page: { url, videos, audio, transfer: { firstView, full } },
+      page: { url, videos, audio, transfer: { firstView, full }, ambition },
     });
   } finally {
     await context.close();

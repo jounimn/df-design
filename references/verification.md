@@ -145,7 +145,10 @@ the price the tier message names. It fails the Floor: a canvas or a video
 that moves under reduced motion, a blank canvas without WebGL, less than
 40 % of the headings and paragraphs readable without JavaScript (text under
 an opaque loader counts as missing), and any sound file fetched before the
-visitor clicked.
+visitor clicked. It also reports, without failing, a page built below the
+chosen tier: none of the yolo techniques it can see, or less in all than
+the High ceiling. Tell the author; build the techniques or re-send the tier
+message.
 
 For a presentation, `check-presentation --tier <tier>` runs the same canvas
 checks, named `motion: ...`, once for each slide that has a canvas. It only

@@ -292,6 +292,15 @@ nothing this identity needs, say so in its line. If the author chooses it,
 the Floor fallback named in the line is part of the build, and
 `check-motion --tier yolo` checks it.
 
+YOLO also sets an ambition floor. Choosing it commits the build to at least
+one of the `techniques/yolo.md` techniques built at flagship scale:
+authored media (a pre-rendered film, an image sequence, an illustrated
+story in layers) or a real-time 3D scene. One WebGL panel on a page under
+the High ceiling is a high build with a yolo label: either build the yolo
+techniques or re-send the tier message. `check-motion --tier yolo` reports
+such a page as "built below the chosen tier"; it is a report, not a Floor
+failure.
+
 Only when the author declines the recommendation, offer the last choice
 explicitly:
 

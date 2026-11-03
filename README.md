@@ -206,7 +206,7 @@ flowchart LR
     subgraph Rig["Measurement rig"]
         PRB["scripts/probe.mjs"]
         LIBS["scripts/lib/<br/>static pass · motion inventory<br/>property and scroll trace<br/>archetype · validate · bundle"]
-        TST["test/<br/>416 tests in 25 files, local fixtures"]
+        TST["test/<br/>422 tests in 25 files, local fixtures"]
     end
     subgraph Gates["Gate checks"]
         CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
@@ -448,7 +448,7 @@ of it. This keeps the aggregates honest — a 112px hero on a WebGL stage is
 not evidence about typographic heroes.
 
 ```
-npm test        # 416 tests, node:test, no network — a local fixture server
+npm test        # 422 tests, node:test, no network — a local fixture server
 ```
 
 ---
@@ -480,12 +480,12 @@ npm test        # 416 tests, node:test, no network — a local fixture server
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. |
 | `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle. |
-| `test/` | 416 tests in 25 files, and the HTML fixtures they run against. |
+| `test/` | 422 tests in 25 files, and the HTML fixtures they run against. |
 | `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs. Exit 1 on a FAIL or an open REFLEX. |
 | `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
 | `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle; the slop gates (static and render) and the page record. |
-| `test/` | 416 tests in 25 files, and the HTML fixtures they run against. |
+| `test/` | 422 tests in 25 files, and the HTML fixtures they run against. |
 | `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT). |
 
 Claude reads the mode's recipe file and works from it; `benchmarks.md` and

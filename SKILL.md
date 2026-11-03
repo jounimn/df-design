@@ -239,7 +239,10 @@ The rules that govern every stage:
   path for a visitor who cannot run the experience, the content readable
   without it, and honest loading (no sound before the visitor asks, the
   first-view weight stated). `check-motion --tier yolo` reports the weight
-  and fails the Floor.
+  and fails the Floor. Choosing YOLO also commits the build to at least one
+  `techniques/yolo.md` technique built at flagship scale (authored media or
+  a real-time 3D scene); a page under the High ceiling is a high build, and
+  `check-motion` reports it as built below the chosen tier.
 - **Icons always; stock images only with the author's yes.** Every image
   must be free for commercial use, need no credit line, and carry no
   watermark in the file that ships. In `motion` and `both`, icons and
@@ -429,6 +432,7 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Every candidate is fast, so there is nothing to ask" | The question is asked every run, with the candidates. Fast is the recommendation, not the answer. The message says what medium and high would add, or that they add nothing. |
 | "The index page says 'tier fast' next to each audition" | A label is not the tier message. The author answers the tier message, priced for this project, sent in the same message as the auditions. |
 | "They combined A's type with B's canvas; I'll take the heavier tier" | Re-send the tier message with every technique listed, each with its own tier and cost. The author keeps or drops each one; the project tier follows what they keep. |
+| "YOLO chosen, built at high weight" | That is a high build with a yolo label: either build the yolo techniques or re-send the tier message. |
 | "The client is big, so YOLO" | The author chooses; the tier message prices it. YOLO is offered with its weight in MB and never recommended by default. |
 | "It's YOLO, so reduced motion and no-JS don't matter" | YOLO removes the ceiling, never the Floor. Reduced motion, a lighter path, readable content without the experience and honest loading are still owed; `check-motion --tier yolo` fails them. |
 | "The text is in the DOM, so it reads without JS" | Not under an opaque loader. Readable is judged on what can be seen; `check-motion` counts covered text as missing. |
