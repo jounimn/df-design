@@ -114,10 +114,10 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Grammar:** a dark ground, neon (cyan and magenta), HUD frames, angled
   cut corners, scanlines, monospace readouts, technical diagrams.
 - **Says:** high-tech, dystopian, gaming.
-- **Fits:** games, esports, security, hardware, film-UI and sci-fi interface work (FUI / HUD). **Misfits:** gentle consumer subjects.
+- **Fits:** games, esports, security, hardware. **Misfits:** gentle consumer subjects.
 - **Trap:** neon on black at low weight fails contrast; glow on every
-  element is noise. FUI rings, brackets and coordinate readouts are
-  instruments: when they frame nothing that changes, they are dressing.
+  element is noise. When the HUD frames are the whole interface rather
+  than dressing, it is FUI / HUD (film interface), not this entry.
 - **Load:** fast (CSS clip-path frames) to high (WebGL scenes).
 - **Seen at:** cyberpunk.net: CD Projekt's Cyberpunk 2077 site, yellow/cyan HUD frames and glitch; theghostintheshell.jp/en: listed on the enlighten-media cyberpunk page; augmented-ui.com: CSS library for cut-corner HUD frames, styled in its own idiom.
 - **Search:** design-styles.enlighten-media.net/pages/cyberpunk/; trends.daisyui.com/trend/cyberpunk/ and /trend/fui-hud/; awwwards.com/websites/cyberpunk/; HUDS+GUIS (hudsandguis.com) for FUI references.
@@ -185,6 +185,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Load:** medium (gradients/gloss in CSS fine, but photo bubbles/backgrounds heavy).
 - **Seen at:** https://frutigeraeroarchive.org — archive site styled in Aero gloss, wallpapers and media; https://cari.institute/aesthetics/frutiger-aero — CARI reference board with dated examples.
 - **Search:** Aesthetics Wiki "Frutiger Aero"; CARI "Frutiger Aero"; Are.na "frutiger aero"; "Windows Vista Aero glass UI"; "Frutiger Eco".
+
+### FUI / HUD (film interface)
+- **Grammar:** the interface drawn as a sci-fi instrument panel. A near-black teal ground (#02070B at CMDb) under a faint grid. Every block sits in a thin cyan line frame with bracket corners, notched or cut edges and a short contrasting tick (orange at CMDb) on one edge. A wide geometric display face (Orbitron, Electrolize) in caps, system labels in code syntax ("// ARCHIVE", "SCAN ARCHIVE"), inputs and tabs as bracketed frames, a glowing rule under the header. Zero radius. Arwes, the framework behind these sites, also animates frames drawing in and adds sound.
+- **Says:** you are operating a machine from the future; precision, mission, telemetry.
+- **Fits:** sci-fi games and their companion sites, film-UI and motion studios, space and defence-flavoured hackathons, stream overlays, dashboards with a fiction. **Misfits:** gentle consumer subjects, long reading, health, anything that must look ordinary to be trusted.
+- **Trap:** frames around content that does not change are costume: FUI reads as instruments only where something is measured, scanned or live. Thin cyan lines and small wide caps on near-black fail contrast first. Framing every element in brackets leaves nothing to lead. Next to Cyberpunk it is clean and institutional (no neon grime, no glitch); next to Vectorheart it is the screen, not the studio.
+- **Load:** medium (SVG or canvas frames and backgrounds; sound and draw-in animation add weight).
+- **Seen at:** cmdb.wrick17.com: Cyber Movie Database, built with Arwes on TMDb data, bracket-cornered cyan frames, Orbitron caps, "// ARCHIVE" labels, a bracketed search field; darkgalaxies.io: a space-strategy game whose navigation, sign-up field and buttons sit in thin cyan HUD frames over nebula key art.
+- **Search:** github.com/arwes/arwes (README community showcase); hudsandguis.com; trends.daisyui.com/trend/fui-hud/; "FUI design" on Behance; "Territory Studio screen graphics"; augmented-ui.com for cut-corner frames.
 
 ### Generative / creative-coding
 - **Grammar:** algorithmic visuals (flow fields, particles, noise, shaders, cellular patterns) as the identity, often unique per visit; restrained type (mono or grotesk) so the system leads; canvas/WebGL heroes.

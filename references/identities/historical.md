@@ -246,6 +246,15 @@ Entry format and how to use it: `../identity-library.md`. URLs were checked live
 - **Seen at:** no strong live site found — documented print: Henry Dreyfuss's 20th Century Limited (1938) and 1933–34 Chicago World's Fair graphics; web demo at https://trends.daisyui.com/trend/streamline-moderne/.
 - **Search:** trends.daisyui.com/trend/streamline-moderne/; aesthetics.fandom.com/wiki/Streamline_Moderne; "streamline moderne graphic design"; Fonts In Use "Kabel" or "Bank Gothic"; "1930s travel poster speed lines".
 
+### Superflat (Murakami)
+- **Grammar:** Takashi Murakami's smiling flower as the repeating unit: one character, rainbow or pink-and-white petals, a grinning face, flat saturated fills with a black outline and no shading. It is tiled in grids where every tile is a variant, and shown as collectible editions. At Murakami.Flowers the flowers are redrawn as 8-bit pixel art and glow on a black screen, with pixel-type figures and a primary-colour pie chart, condensed sans headings (Barlow Condensed) and black pill buttons. Commerce sits openly next to the art: price, edition counts, "Reveal now".
+- **Says:** cute as commodity; pop and fine art flattened into one surface; collect them all.
+- **Fits:** artist editions and drops, collectibles and digital editions, toy and merch collaborations, fashion collabs, gallery pop programmes. **Misfits:** sober services, health, finance outside collectibles, editorial.
+- **Trap:** the flower is Murakami's own mark. Copying it is infringement, not homage: the borrowable grammar is the flat outlined character, the tiled variants and the open commerce. Without a character of your own it collapses into Kawaii (cultural) with a gallery price tag. On black, pixel glow and long grey paragraphs fight for the same eye.
+- **Load:** medium (looping video and many tile images).
+- **Seen at:** murakamiflowers.kaikaikiki.com: Murakami.Flowers, pixel-art smiling flowers on a black screen, grids of flower variants on mint tiles, edition counts and sale prices beside the art.
+- **Search:** "Superflat" Murakami 2000 exhibition; Kaikai Kiki (kaikaikiki.co.jp); Are.na "superflat"; Aesthetics Wiki "Superflat"; "Murakami flower" collaborations.
+
 ### Surrealism
 - **Grammar:** impossible photo composites (objects floating, scale
   violated), a dreamlike sky, clean type that lets the image do the work.

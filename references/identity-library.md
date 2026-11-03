@@ -72,7 +72,7 @@ them as free-text searches, not curated lists.
 
 ## Index
 
-### Historical movements — `identities/historical.md` (32)
+### Historical movements — `identities/historical.md` (33)
 
 | Identity | Says | Fits | Load |
 |---|---|---|---|
@@ -102,6 +102,7 @@ them as free-text searches, not curated lists.
 | Rubber hose (1930s cartoon) | jazz-age mischief, hand-drawn craft, cheerful menace | games, animation studios, toys and merch, swing and jazz events, retro sweets and sodas | medium |
 | Space Age / 60s retro-futurism | exploration, optimism about technology, the future as it was imagined | aerospace, science museums, audio hardware, fashion, sci-fi media, launches | fast |
 | Streamline Moderne | speed, optimism, machine-age travel | rail/travel, automotive, diners, appliances, retro tech, hospitality | fast |
+| Superflat (Murakami) | cute as commodity, pop and fine art on one flat surface | artist editions and drops, collectibles, toy and merch collaborations, fashion collabs, gallery pop programmes | medium |
 | Surrealism | imagination, a twist, brand as idea | creative agencies, travel, fashion campaigns, launches | medium |
 | Swiss design | clarity, rigour, nothing superfluous | design studios, architecture, institutions, B2B tools with something to state | fast |
 | Swiss Punk / New Wave typography | educated rebellion, typographic experimentation within rigour | design schools, type foundries, architecture, cultural programmes, music | fast |
@@ -109,7 +110,7 @@ them as free-text searches, not curated lists.
 | Victorian | heritage, theatre, opulence, the antique | typography and art courses, museums, tea, theatre, heritage brands | medium |
 | Vienna Secession / Wiener Werkstätte | cultured, architectural, Viennese rigour with ornament | galleries, architecture firms, coffee houses, design shops, classical music | fast |
 
-### Digital and UI-native — `identities/digital.md` (50)
+### Digital and UI-native — `identities/digital.md` (51)
 
 | Identity | Says | Fits | Load |
 |---|---|---|---|
@@ -123,7 +124,7 @@ them as free-text searches, not curated lists.
 | Claymorphism | friendly, touchable, low-stakes | consumer apps, onboarding, kids and education, playful fintech, glossy inflatable 3D (Neo 3D) launches | fast |
 | Corporate Memphis (and its backlash) | inclusive, friendly, big-tech approachability — now also generic, inauthentic | deliberate retro/ironic use, internal tools, quick explainers where budget is low | fast |
 | Cybercore | online-native nostalgia, dreamy tech, fan and fashion culture | fashion and edit accounts, music, fan sites, youth events | fast to medium |
-| Cyberpunk | high-tech, dystopian, gaming | games, esports, security, hardware, film-UI and sci-fi interface work (FUI / HUD) | fast |
+| Cyberpunk | high-tech, dystopian, gaming | games, esports, security, hardware | fast |
 | Dark mode neon dashboard | real-time, operational, powerful, tech-savvy | observability, trading, analytics, security ops, gaming stats | fast |
 | Data-viz-as-hero | evidence, rigour, curiosity, explanation | journalism, research, NGOs, climate, public data, analytics products | medium |
 | Dithered / 1-bit low-tech | frugal, sustainable, honest, retro-Mac/Game Boy charm | sustainability, low-tech/solar projects, indie games, zines, handheld hardware | fast |
@@ -131,6 +132,7 @@ them as free-text searches, not curated lists.
 | Flat design | clear, honest, functional, public-service plainness or friendly product simplicity | government and civic services, onboarding-heavy consumer apps, education, utilities, documentation | fast |
 | Fluent / Metro | Windows, enterprise, productivity, Microsoft 365 | Windows apps, enterprise SaaS, Teams/Office add-ins, admin consoles | fast |
 | Frutiger Aero | optimistic mid-2000s tech utopia, clean nature-meets-technology, nostalgia | nostalgia campaigns, music, wellness-with-irony, eco tech, Gen-Z fashion drops, game sites, Web 2.0 gloss and Aqua-era software nostalgia | medium |
+| FUI / HUD (film interface) | operating a machine from the future; precision, mission, telemetry | sci-fi games and companion sites, film-UI and motion studios, space hackathons, stream overlays, dashboards with a fiction | medium |
 | Generative / creative-coding | inventive, technical-artistic, alive, systems thinking | creative studios, generative artists, AI/ML, conferences, data/science brands | high |
 | Glassmorphism | modern, light, layered, OS-native | dashboards over imagery, wellness and health, OS-like product shells | fast |
 | Glitch art | disruption, digital decay, edgy tech, music energy | electronic music, games, cybersecurity events, fashion drops, film trailers | medium |
