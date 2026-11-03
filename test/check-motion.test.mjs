@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { launchBrowser } from '../scripts/lib/browser.mjs';
 import { CHECK_NAMES, UsageError, loadCeilings, parseMotionArgs, runMotionChecks } from '../scripts/lib/motion-checks.mjs';
 import { motionFixture } from './helpers/motion-fixture.mjs';
+import { startFixtureServer } from './helpers/fixture-server.mjs';
+import { recordFilm } from './helpers/film.mjs';
 
 const CLI = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'scripts', 'check-motion.mjs');
 // The overweight fixture carries about 300 KB of script; the healthy ones a few KB.
@@ -30,6 +32,7 @@ const failedNames = (result) => result.checks.filter((c) => c.status === 'fail')
 
 // ---- The matrix: every fixture fails only its own check ----------------------------------------------------
 
+const PAGE_EXPECTED = { 'works without JS': 'na', 'video honours reduced motion': 'na', 'no audio before a gesture': 'pass', 'page weight by type': 'report' };
 const MATRIX = [
   ['healthy', []],
   ['frozen', ['canvas is alive']],
@@ -49,8 +52,8 @@ for (const [kind, failing] of MATRIX) {
       // The frozen and blank fixtures are 2D canvases that never move: there is no WebGL fallback to compare, and a
       // canvas that does not animate has nothing to hold still under reduced motion or to pause off-screen (n/a).
       const inert = ['frozen', 'blank'].includes(kind) && c.name !== 'canvas is alive' && c.name !== 'motion weight within tier';
-      // The canvas fixtures carry no headings, text or images, so there is no content to compare without JS.
-      const expected = inert || c.name === 'works without JS' ? 'na' : 'pass';
+      // The canvas fixtures carry no headings, text, images, video or sound, and the weight is always reported.
+      const expected = PAGE_EXPECTED[c.name] ?? (inert ? 'na' : 'pass');
       if (!failing.includes(c.name)) assert.equal(c.status, expected, `${kind}: ${c.name} is ${c.status} (${c.detail})`);
     }
   });
@@ -232,6 +235,129 @@ test('the CLI exits 0 on a healthy page and 1 on a frozen one', () => {
   } finally {
     healthy.cleanup();
     frozen.cleanup();
+  }
+});
+
+// ---- The yolo tier: no ceiling, the Floor still applies --------------------------------------------------------
+
+test('parseMotionArgs accepts the yolo tier', () => {
+  assert.deepEqual(parseMotionArgs(['page.html', '--tier', 'yolo']), { target: 'page.html', tier: 'yolo' });
+});
+
+test('yolo: the weight is reported and never judged, even when the ceilings name a yolo ceiling', async () => {
+  for (const ceilings of [CEILINGS, { ...CEILINGS, yolo: 1000 }, {}]) {
+    const result = await check('overweight', { tier: 'yolo', ceilings });
+    const c = byName(result)['motion weight within tier'];
+    assert.equal(c.status, 'report', c.detail);
+    assert.match(c.detail, /yolo tier has no ceiling/);
+    assert.equal(result.ok, true);
+  }
+});
+
+test('the shipped ceilings have no yolo key, and a yolo key in a ceilings file is dropped', () => {
+  assert.equal('yolo' in loadCeilings(), false);
+  const raw = JSON.parse(fs.readFileSync(path.join(path.dirname(CLI), 'lib', 'motion-ceilings.json'), 'utf8'));
+  assert.equal('yolo' in raw, false, 'motion-ceilings.json must not carry a yolo ceiling');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tetos yolo '));
+  try {
+    const file = path.join(dir, 'c.json');
+    fs.writeFileSync(file, '{ "high": 340000, "yolo": 14000000 }');
+    assert.deepEqual(loadCeilings(file), { high: 340000 });
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('yolo: the canvas Floor fails as on every tier (reduced motion, fallback without WebGL)', async () => {
+  assert.deepEqual(failedNames(await check('ignoresReducedMotion', { tier: 'yolo' })), ['canvas honours reduced motion']);
+  assert.deepEqual(failedNames(await check('noFallback', { tier: 'yolo' })), ['fallback without WebGL']);
+});
+
+test('yolo: content that needs JavaScript to be seen fails, as on the fast tier', async () => {
+  const result = await check('revealOnScroll', { tier: 'yolo' });
+  assert.deepEqual(failedNames(result), ['works without JS']);
+  assert.match(byName(result)['works without JS'].detail, /yolo tier owes the Floor/);
+});
+
+test('works without JS: text in the DOM under an opaque loader counts as covered, not seen', async () => {
+  const yolo = await check('loaderCover', { tier: 'yolo' });
+  assert.deepEqual(failedNames(yolo), ['works without JS']);
+  assert.match(byName(yolo)['works without JS'].detail, /\(covered\)/);
+  const fast = await check('loaderCover', { tier: 'fast' });
+  assert.deepEqual(failedNames(fast), ['works without JS']);
+  const high = await check('loaderCover', { tier: 'high' });
+  assert.equal(byName(high)['works without JS'].status, 'report');
+  assert.equal(high.ok, true);
+  // The same text without the loader passes: covering is what fails, not the layout.
+  assert.equal(byName(await check('cssOnly', { tier: 'yolo' }))['works without JS'].status, 'pass');
+});
+
+// Sound and weight need a network: a file:// page fetches nothing the browser reports. These run over http.
+async function checkServed(kind, { tier, files = {} } = {}) {
+  const fx = motionFixture(kind, { files });
+  const server = await startFixtureServer(fx.dir);
+  try {
+    return await runMotionChecks(`${server.url}/page.html`, { tier, browser, ceilings: CEILINGS });
+  } finally {
+    await server.close();
+    fx.cleanup();
+  }
+}
+const TONE = Buffer.alloc(40000, 7);
+
+test('no audio before a gesture: a sound fetched as the page opens fails yolo and is reported on other tiers', async () => {
+  const yolo = await checkServed('audioOnLoad', { tier: 'yolo', files: { 'tone.mp3': TONE } });
+  assert.deepEqual(failedNames(yolo), ['no audio before a gesture']);
+  assert.match(byName(yolo)['no audio before a gesture'].detail, /tone\.mp3/);
+  const high = await checkServed('audioOnLoad', { tier: 'high', files: { 'tone.mp3': TONE } });
+  assert.equal(byName(high)['no audio before a gesture'].status, 'report');
+  assert.equal(high.ok, true);
+});
+
+test('no audio before a gesture: a sound fetched only on a click passes', async () => {
+  const result = await checkServed('audioOnClick', { tier: 'yolo', files: { 'tone.mp3': TONE } });
+  assert.equal(byName(result)['no audio before a gesture'].status, 'pass');
+  assert.equal(result.ok, true);
+});
+
+test('page weight by type: reported with the first view and the full scroll, the sound counted as audio', async () => {
+  const result = await checkServed('audioOnLoad', { tier: 'yolo', files: { 'tone.mp3': TONE } });
+  const c = byName(result)['page weight by type'];
+  assert.equal(c.status, 'report');
+  assert.match(c.detail, /^first view \d+ KB \(.*audio 39 KB/);
+  assert.match(c.detail, /after a full scroll/);
+  assert.match(c.detail, /price for the tier message/);
+});
+
+test('page weight by type: a file:// page says it cannot be weighed in full', async () => {
+  const result = await check('cssOnly', { tier: 'high' });
+  const c = byName(result)['page weight by type'];
+  assert.equal(c.status, 'report');
+  assert.match(c.detail, /serve it over http/);
+});
+
+test('video honours reduced motion: a film that plays under reduced motion fails yolo, is reported elsewhere; a paused one passes', async () => {
+  const film = await recordFilm(browser);
+  const ignores = await checkServed('videoIgnoresReducedMotion', { tier: 'yolo', files: { 'film.webm': film } });
+  assert.deepEqual(failedNames(ignores), ['video honours reduced motion']);
+  assert.match(byName(ignores)['video honours reduced motion'].detail, /video#film/);
+  const high = await checkServed('videoIgnoresReducedMotion', { tier: 'high', files: { 'film.webm': film } });
+  assert.equal(byName(high)['video honours reduced motion'].status, 'report');
+  const honours = await checkServed('videoHonoursReducedMotion', { tier: 'yolo', files: { 'film.webm': film } });
+  assert.equal(byName(honours)['video honours reduced motion'].status, 'pass', byName(honours)['video honours reduced motion'].detail);
+  assert.equal(honours.ok, true);
+});
+
+test('the CLI accepts --tier yolo and exits 1 when the Floor fails', () => {
+  const reveal = motionFixture('revealOnScroll');
+  try {
+    const r = cli(reveal.file, '--tier', 'yolo');
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stdout, /FAIL +works without JS/);
+    assert.match(r.stdout, /REPORT +page weight by type/);
+    assert.match(r.stdout, /\(tier: yolo\)/);
+  } finally {
+    reveal.cleanup();
   }
 });
 

@@ -13,9 +13,13 @@ export const KINDS = [
   'hiddenUnderReduce', 'removedUnderReduce', 'swapsCanvasForFallback', 'threeLoops', 'lateTwoD',
   'eightCanvases', 'eightOneRogue', 'shadowCanvas', 'fixedCanvas', 'offscreenWorker', 'opacityZero', 'resizing',
   'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty',
+  'loaderCover', 'audioOnLoad', 'audioOnClick', 'videoIgnoresReducedMotion', 'videoHonoursReducedMotion',
 ];
 
-const NO_SPACER = new Set(['noCanvas', 'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty']);
+const NO_SPACER = new Set([
+  'noCanvas', 'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty',
+  'loaderCover', 'audioOnLoad', 'audioOnClick', 'videoIgnoresReducedMotion', 'videoHonoursReducedMotion',
+]);
 export const PAD_BYTES = 300000;
 
 // Every scene function takes the canvas id and a set of switches. `pauses` wires an IntersectionObserver,
@@ -146,6 +150,26 @@ function build(kind) {
     };
     case 'revealOneOfTwenty': return { head: REVEAL_CSS, body: twentyItems(1), call: REVEAL_JS };
     case 'revealTwoOfTwenty': return { head: REVEAL_CSS, body: twentyItems(2), call: REVEAL_JS };
+    // The Floor of the yolo tier. loaderCover: the text is in the HTML, but an opaque loader lies over it until the
+    // script removes it, so without JS it is there and cannot be read. audioOn*: a sound file fetched as the page
+    // opens, or only after a click (the checks never click). video*: a looping film (film.webm, written by the test)
+    // that plays under reduced motion, or is paused there.
+    case 'loaderCover': return {
+      body: `<div id="loader" style="position:fixed;inset:0;z-index:10;background:#000;color:#fff">000</div>${contentBlocks(3, () => '')}`,
+      call: "document.getElementById('loader').remove();",
+    };
+    case 'audioOnLoad': return { body: '<h1>Sound on load</h1><p>The page fetches its sound at once.</p>', call: "fetch('tone.mp3');" };
+    case 'audioOnClick': return {
+      body: '<h1>Sound on request</h1><p>The page fetches its sound only when asked.</p><button id="sound">Sound on</button>',
+      call: "document.getElementById('sound').addEventListener('click', () => fetch('tone.mp3'));",
+    };
+    case 'videoIgnoresReducedMotion':
+    case 'videoHonoursReducedMotion': return {
+      body: '<h1>A film</h1><video id="film" src="film.webm" muted playsinline loop style="width:320px;height:180px"></video>',
+      call: kind === 'videoIgnoresReducedMotion'
+        ? "document.getElementById('film').play().catch(() => {});"
+        : "if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.getElementById('film').play().catch(() => {});",
+    };
     case 'noCanvas': return { body: '<h1>No canvas here</h1>', call: '' };
     case 'hiddenCanvas': return {
       body: `${canvasTag('h1', 'display:none')}<canvas id="h2" width="0" height="0"></canvas><section hidden>${canvasTag('h3')}</section>`,
@@ -159,11 +183,13 @@ function build(kind) {
   }
 }
 
-export function motionFixture(kind, { beforeScene = '', spacer = true, inline = false } = {}) {
+// files: extra files written next to the page, { name: Buffer | string } (a sound, a film).
+export function motionFixture(kind, { beforeScene = '', spacer = true, inline = false, files = {} } = {}) {
   const { body, call, pad, head = '' } = build(kind);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'movimento teste '));
   const dir = path.join(root, 'página');
   fs.mkdirSync(dir);
+  for (const [name, data] of Object.entries(files)) fs.writeFileSync(path.join(dir, name), data);
   const scene = `${LIB}\n${pad ? `/*${'x'.repeat(PAD_BYTES)}*/\n` : ''}${call}\n`;
   fs.writeFileSync(path.join(dir, 'scene.js'), scene);
   fs.writeFileSync(path.join(dir, 'page.html'), `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${kind}</title>

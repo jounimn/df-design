@@ -462,7 +462,9 @@ test('a loop-based page passes every check-motion check (by construction)', asyn
   try {
     const result = await runMotionChecks(fx.file, { tier: 'high', browser, ceilings: { high: 200000 } });
     assert.deepEqual(result.checks.filter((c) => c.status === 'fail'), []);
-    for (const c of result.checks) assert.equal(c.status, 'pass', `${c.name}: ${c.detail}`);
+    // The page has no video to hold still, and its weight is reported, never judged: every other check passes.
+    const notJudged = { 'video honours reduced motion': 'na', 'page weight by type': 'report' };
+    for (const c of result.checks) assert.equal(c.status, notJudged[c.name] ?? 'pass', `${c.name}: ${c.detail}`);
     assert.equal(result.ok, true);
   } finally { fx.cleanup(); }
 });

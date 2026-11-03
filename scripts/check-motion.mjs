@@ -1,12 +1,14 @@
 // Checks that the canvas of a page is alive, honours reduced motion, pauses off-screen, falls back without WebGL,
-// that the page's motion JS is within the ceiling of its tier, and (tier fast) that it works without JavaScript.
-// Usage: node scripts/check-motion.mjs <page.html|url> --tier <fast|medium|high|custom>
+// that the page's motion JS is within the ceiling of its tier, and (tiers fast and yolo) that it works without
+// JavaScript. It also reports what the page downloads by type, and whether a video plays under reduced motion or a
+// sound is fetched before the visitor does anything; the yolo tier, which has no ceiling, fails on those instead.
+// Usage: node scripts/check-motion.mjs <page.html|url> --tier <fast|medium|high|yolo|custom>
 // Exit code 0 = no check failed (n/a and report lines do not fail); 1 = a check failed or the page would not open;
 // 2 = bad command line.
 import { launchBrowser } from './lib/browser.mjs';
 import { UsageError, parseMotionArgs, resolveTarget, runMotionChecks } from './lib/motion-checks.mjs';
 
-const USAGE = 'Usage: node scripts/check-motion.mjs <page.html|url> --tier <fast|medium|high|custom>';
+const USAGE = 'Usage: node scripts/check-motion.mjs <page.html|url> --tier <fast|medium|high|yolo|custom>';
 
 let options;
 try {
