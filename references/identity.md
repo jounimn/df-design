@@ -240,7 +240,7 @@ Origin:        <the references kept from the research log, with their class>
 Never:         <the drifts this identity forbids, e.g. "generic SaaS card grid">
 Icons:         <the one set, its stroke and size logic, and why it fits (icons-and-assets.md §0)>
 Images:        <author's answer on stock images; if yes: sources, treatment, which pages; asset record path (images.md §5)>
-Loading tier:  <fast / medium / high / custom, as chosen by the author (audition.md §4), and what justifies it>
+Loading tier:  <fast / medium / high / yolo / custom, as chosen by the author (audition.md §4), and what justifies it; for yolo, also the measured weight in MB and the Floor fallback>
 Surfaces:      <every surface in scope: landing, app, admin, docs, 404...; name out-of-scope surfaces as untouched>
 Brand:         <only when a real brand is named: docs/brand-spec.md, the values fetched or probed, never recalled (brand-truth.md)>
 Redesign:      <only when the target exists: the depth, then the Before, Keeps and Files lines (redesign.md §4)>

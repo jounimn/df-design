@@ -181,7 +181,7 @@ export function parseCheckArgs(argv) {
       if (!TIERS.includes(value)) throw new Error(`--tier needs one of ${TIERS.join(', ')} (got ${value === undefined ? 'nothing' : `"${value}"`})`);
       out.tier = value;
     } else if (a.startsWith('-')) {
-      throw new Error(`unknown option ${a} (known: ${[...FLAGS, '--watermark <spec|none>', '--tier <fast|medium|high|custom>'].join(', ')})`);
+      throw new Error(`unknown option ${a} (known: ${[...FLAGS, '--watermark <spec|none>', '--tier <fast|medium|high|yolo|custom>'].join(', ')})`);
     } else if (out.dir === undefined) out.dir = a;
     else throw new Error(`unexpected extra argument: ${a}`);
   }

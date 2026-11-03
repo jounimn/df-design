@@ -56,7 +56,7 @@ export function auditStore(root, { today = new Date() } = {}) {
         for (const f of REQUIRED_FIELDS) if (!(f in e.fields)) add('error', 'identities', `${fam.file} › ${e.name}: no ${f} line`);
         if (e.fields.Fits && !/misfits/i.test(e.fields.Fits)) add('warn', 'identities', `${fam.file} › ${e.name}: Fits names no Misfits`);
         if ('Seen at' in e.fields && !DOMAIN.test(e.fields['Seen at'])) add('error', 'identities', `${fam.file} › ${e.name}: Seen at names no site`);
-        if (e.fields.Load && !/fast|medium|high/i.test(e.fields.Load)) add('warn', 'identities', `${fam.file} › ${e.name}: Load is "${e.fields.Load.slice(0, 30)}", not a tier`);
+        if (e.fields.Load && !/fast|medium|high|yolo/i.test(e.fields.Load)) add('warn', 'identities', `${fam.file} › ${e.name}: Load is "${e.fields.Load.slice(0, 30)}", not a tier`);
       }
     }
     for (const f of fs.existsSync(path.join(refs, 'identities')) ? fs.readdirSync(path.join(refs, 'identities')).filter((x) => x.endsWith('.md')) : []) {

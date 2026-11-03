@@ -1,4 +1,4 @@
-// Lint for the technique cards in references/techniques/{fast,medium,high}.md. Pure text: no browser.
+// Lint for the technique cards in references/techniques/{fast,medium,high,yolo}.md. Pure text: no browser.
 //
 // root is a repository root: it holds references/techniques/*.md and references/recipes-motion.md.
 // Card format (the good fixture in test/fixtures/techniques/good is the template):
@@ -8,13 +8,17 @@
 //   ### Where it comes from                 optional; if present it carries a source link (no source, no claim)
 //   ### Suits
 //   ### What it costs the visitor           a measured number with its unit, or "not measured" (and then no number)
-//   ### Lighter version                     Medium and High only: a link to the card one tier down
+//   ### Lighter version                     above Fast: a link to the card one tier down, or "No lighter version:"
+//                                           and the reason. A YOLO card may link any card of a lower tier, since
+//                                           most YOLO techniques have no card of the same name below them.
 //   ### For the builder
 //   #### Where the cost was measured        followed by the fixed line (MEASURED_LINE)
 import fs from 'node:fs';
 import path from 'node:path';
 
-export const TIERS = ['fast', 'medium', 'high'];
+export const TIERS = ['fast', 'medium', 'high', 'yolo'];
+// Tiers whose lighter version may be another technique of a lower tier, not only the same one.
+const ANY_LOWER_CARD = new Set(['yolo']);
 export const MEASURED_TITLE = 'Where the cost was measured';
 export const MEASURED_LINE = "Fixed measurement examples; the project's references come from research (`identity.md` §6).";
 
@@ -142,13 +146,15 @@ export function lintTechniques(root) {
       // "No lighter version:" is allowed only with a reason, so a missing fallback is a decision someone wrote down.
       if (below && lighter && !/^No lighter version:\s*\S.{9,}/.test(lighter.text.trim())) {
         const target = linksIn(lighter.text).find((l) => !/^(https?:|mailto:)/i.test(l));
-        if (!target) at('lighter-resolves', `"${L.lighter}" needs a link to the same technique in a lower tier (${lower.map((x) => `${x}.md`).join(' or ')})`);
+        if (!target) at('lighter-resolves', `"${L.lighter}" needs a link to ${ANY_LOWER_CARD.has(tier) ? 'a card' : 'the same technique'} in a lower tier (${lower.map((x) => `${x}.md`).join(' or ')}), or "No lighter version:" and the reason`);
         else {
           const [p, anchor] = target.split('#');
           const resolved = path.resolve(path.dirname(f.file), p);
           const lowerTier = lower.find((x) => resolved === path.join(techniquesDir, `${x}.md`));
           if (!lowerTier) at('lighter-resolves', `"${L.lighter}" must link to ${lower.map((x) => `${x}.md`).join(' or ')}, a tier below ${tier} (found ${target})`);
-          else if (anchor !== card.slug) at('lighter-resolves', `"${L.lighter}" must be the same technique in a lower tier (card "${card.name}"), not "${anchor ?? ''}"`);
+          else if (ANY_LOWER_CARD.has(tier)) {
+            if (!files[lowerTier]?.cards.some((c) => c.slug === anchor)) at('lighter-resolves', `"${L.lighter}" must link to a card of ${lowerTier}.md (found ${target}, which is not a card)`);
+          } else if (anchor !== card.slug) at('lighter-resolves', `"${L.lighter}" must be the same technique in a lower tier (card "${card.name}"), not "${anchor ?? ''}"`);
           else if (!files[lowerTier]?.cards.some((c) => c.slug === anchor)) at('lighter-resolves', `${lowerTier}.md has no card "${card.name}"`);
           else {
             // One tier down means the nearest lower tier that has this technique.

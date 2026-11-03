@@ -258,7 +258,7 @@ function readContent({ selector, cover }) {
 
 // With scripts on, scroll the page once from top to bottom, so content a script reveals as it is reached is out, then
 // read what can be seen. Anything seen here is what a visitor with JavaScript gets.
-async function contentWithJs(page) {
+export async function contentWithJs(page) {
   const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   for (let y = 0, steps = 0; y < height && steps < 60; y += Math.round(viewport.height * 0.8), steps += 1) {
@@ -272,7 +272,7 @@ async function contentWithJs(page) {
 }
 
 // The same page in a context with JavaScript off: what exists there, and what can be seen (and is not covered).
-async function contentWithoutJs(browser, url, viewport) {
+export async function contentWithoutJs(browser, url, viewport) {
   const context = await browser.newContext({ viewport, javaScriptEnabled: false, reducedMotion: 'no-preference' });
   try {
     const page = await context.newPage();
@@ -288,6 +288,10 @@ async function contentWithoutJs(browser, url, viewport) {
 function withoutJsCheck(content, tier) {
   const name = CHECK_NAMES[5];
   if (!content) return { name, status: 'na', detail: 'the page was not opened without JavaScript' };
+  if (tier === 'yolo' && !content.withJs.some((i) => READING.test(i.tag))) {
+    // A page whose words are all drawn (in a canvas, a film, a picture) has nothing to read without the experience.
+    return { name, status: 'fail', detail: 'the page has no headings or paragraphs in its HTML, even with JavaScript: the yolo tier owes the Floor, and the content must be readable without the experience. Put the words in the HTML beside the scene.' };
+  }
   if (!content.withJs.length) return { name, status: 'na', detail: 'no headings, text, images or links to compare' };
   const available = new Map(); // key -> how many of that item exist, can be seen, and are covered, without JS
   for (const i of content.withoutJs) {
@@ -317,10 +321,28 @@ function withoutJsCheck(content, tier) {
   if (!missing.length) return { name, status: 'pass', detail: `all ${plural(total, 'content item')} show without JavaScript` };
   const detail = `${summary}: ${examples.join(', ')}${more}.`;
   if (!NO_JS_FAILS.has(tier)) return { name, status: 'report', detail: `${detail} (only the fast and yolo tiers fail on this)` };
-  const rule = tier === 'fast' ? 'The fast tier must work without JavaScript.' : 'The yolo tier owes the Floor: the content must be readable without the experience.';
+  if (tier === 'yolo') return yoloReadable(content.withJs, missing, detail);
   return share > MISSING_SHARE_MAX
-    ? { name, status: 'fail', detail: `${detail} ${rule}` }
+    ? { name, status: 'fail', detail: `${detail} The fast tier must work without JavaScript.` }
     : { name, status: 'pass', detail: `${summary} (within the ${Math.round(MISSING_SHARE_MAX * 100)} % allowed): ${examples.join(', ')}${more}.` };
+}
+
+// The yolo Floor asks that the content be readable without the experience, not that the page work without scripts:
+// menus, cookie dialogs and buttons a script builds are not the content. So it is judged on the reading text (headings,
+// paragraphs, quotes, by characters, up to 100 per element) that can be seen without JavaScript. The 40 % is set on
+// the cohort of 2026-11-03 (benchmarks.md, "YOLO, measured"): the pages read as readable by eye showed 47 to 91 % of
+// their text; the blank pages and those under a loader showed 0 %.
+const READING = /^(h[1-6]|p|blockquote)$/;
+const YOLO_TEXT_SHARE_MIN = 0.4;
+function yoloReadable(withJs, missing, detail) {
+  const name = CHECK_NAMES[5];
+  const chars = (items) => items.filter((i) => READING.test(i.tag)).reduce((n, i) => n + i.label.length, 0);
+  const total = chars(withJs);
+  const share = 1 - chars(missing) / total;
+  const shown = `${Math.round(share * 100)} % of the reading text (headings and paragraphs) shows without JavaScript`;
+  return share < YOLO_TEXT_SHARE_MIN
+    ? { name, status: 'fail', detail: `${shown}, under the ${Math.round(YOLO_TEXT_SHARE_MIN * 100)} % the yolo tier needs. ${detail} The yolo tier owes the Floor: the content must be readable without the experience.` }
+    : { name, status: 'pass', detail: `${shown} (the yolo tier needs ${Math.round(YOLO_TEXT_SHARE_MIN * 100)} %); ${detail}` };
 }
 
 // Runs in the page: how many videos there are, and which of them are playing (not paused, not ended) and visible.

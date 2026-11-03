@@ -103,7 +103,7 @@ and what each depth keeps: `references/redesign.md`.
 Once path and mode are known (and the watermark answered or defaulted to
 none), record them as one status line:
 
-`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> load=<fast|medium|high|custom> selling=<now|end|skip> tier=<fast|medium|high> redesign=<audit|polish|restyle|full> — <conditions from step 0, one line>`
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> load=<fast|medium|high|yolo|custom> selling=<now|end|skip> tier=<fast|medium|high|yolo> redesign=<audit|polish|restyle|full> — <conditions from step 0, one line>`
 
 `redesign=` appears only when the target exists (question 4).
 
@@ -162,7 +162,7 @@ Step 0 conditions  →  Author intent  →  Identity definition  →  Reference 
 ```
 
 `selling-positioning` is not a third path. It is an optional detour,
-recorded as `selling=<now|end|skip> tier=<fast|medium|high>`. It has no
+recorded as `selling=<now|end|skip> tier=<fast|medium|high|yolo>`. It has no
 market research: positioning comes from the identity and the author's
 intent. In the `audition` path the offer
 follows Author selection. In the `design` path it follows the approval of
@@ -223,13 +223,23 @@ The rules that govern every stage:
   Expression adapts per surface. The identity does not.
 - **The author picks the loading tier.** Recommend the cheapest tier that
   fully delivers the identity, then send the tier message
-  (`audition.md` §4): fast, medium and high expensive loading, each costed
-  for this project, with custom offered if the author declines. It is sent
+  (`audition.md` §4): fast, medium and high expensive loading, and YOLO,
+  each costed for this project, with custom offered if the author declines.
+  It is sent
   with the candidates, every run, even when every candidate is fast, and
   confirmed after Assets. When the author combines candidates or
   techniques across tiers, each technique is listed with its own tier and
   cost, the author keeps or drops each one, and the project tier is the
   heaviest technique kept. Heavy libraries need a reason in the brief.
+- **YOLO removes the ceiling, never the Floor.** YOLO is the no-savings
+  tier for a flagship experience (`techniques/yolo.md`): no weight, script
+  or GPU ceiling, priced in MB in the tier message. It is offered, never
+  recommended by default, and chosen only by the author. It still owes the
+  Floor: reduced motion honoured (drawings and films included), a lighter
+  path for a visitor who cannot run the experience, the content readable
+  without it, and honest loading (no sound before the visitor asks, the
+  first-view weight stated). `check-motion --tier yolo` reports the weight
+  and fails the Floor.
 - **Icons always; stock images only with the author's yes.** Every image
   must be free for commercial use, need no credit line, and carry no
   watermark in the file that ships. In `motion` and `both`, icons and
@@ -419,6 +429,10 @@ is an acceptable sentence. "Done" without having looked is not.
 | "Every candidate is fast, so there is nothing to ask" | The question is asked every run, with the candidates. Fast is the recommendation, not the answer. The message says what medium and high would add, or that they add nothing. |
 | "The index page says 'tier fast' next to each audition" | A label is not the tier message. The author answers the tier message, priced for this project, sent in the same message as the auditions. |
 | "They combined A's type with B's canvas; I'll take the heavier tier" | Re-send the tier message with every technique listed, each with its own tier and cost. The author keeps or drops each one; the project tier follows what they keep. |
+| "The client is big, so YOLO" | The author chooses; the tier message prices it. YOLO is offered with its weight in MB and never recommended by default. |
+| "It's YOLO, so reduced motion and no-JS don't matter" | YOLO removes the ceiling, never the Floor. Reduced motion, a lighter path, readable content without the experience and honest loading are still owed; `check-motion --tier yolo` fails them. |
+| "The text is in the DOM, so it reads without JS" | Not under an opaque loader. Readable is judged on what can be seen; `check-motion` counts covered text as missing. |
+| "The sound is part of the experience, so it loads with the page" | No sound is fetched before the visitor asks for it. Silence is the default; the button says it loads sound. |
 | "They said rebrand, so tokens and type" | A rebrand changes structure. Swapping tokens on an unchanged layout is a reskin — name it that, or do the real thing. |
 | "The motion spec says 400ms ease-out, so I'm done" | Parameters are not a design. What *moves*, and why, is the design. |
 | "The plan is obvious, I'll go straight to code" | Write the plan, then ask what you'd have made for a similar brief. Whatever comes out the same is a default. `recipes-design.md` §8. |

@@ -1,6 +1,6 @@
 // Checks that a selling-positioning presentation "landed": markup contract, research counts, licence rows,
 // preview/final split, export sizes, and a clean render.
-// Usage: node scripts/check-presentation.mjs <presentation-dir> [--offline] [--after-gate] [--watermark <spec|none>] [--tier <fast|medium|high|custom>]
+// Usage: node scripts/check-presentation.mjs <presentation-dir> [--offline] [--after-gate] [--watermark <spec|none>] [--tier <fast|medium|high|yolo|custom>]
 // --offline skips the source-URL fetch. --after-gate also fails a site section still marked data-pending.
 // --watermark says what the export was run with (also --watermark=<spec|none>): 'none' fails a leftover preview/,
 // a spec fails a missing one. --tier is the author's tier: needed when a slide has a canvas, which then also gets the
@@ -10,7 +10,7 @@ import { launchBrowser } from './lib/browser.mjs';
 import { parseCheckArgs, runChecks } from './lib/presentation-checks.mjs';
 import { UsageError } from './lib/motion-checks.mjs';
 
-const USAGE = 'Usage: node scripts/check-presentation.mjs <presentation-dir> [--offline] [--after-gate] [--watermark <spec|none>] [--tier <fast|medium|high|custom>]';
+const USAGE = 'Usage: node scripts/check-presentation.mjs <presentation-dir> [--offline] [--after-gate] [--watermark <spec|none>] [--tier <fast|medium|high|yolo|custom>]';
 
 let options;
 try {

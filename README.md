@@ -100,8 +100,12 @@ A few rules run through all of it:
 - **The author picks the loading tier.** Claude recommends the cheapest tier
   that fully delivers the identity, then offers fast, medium and high
   expensive loading, each described and costed for this project, plus a
-  fourth "custom / unrestricted" choice if the author declines the
-  recommendation. The question comes with the candidates, every run, even
+  "custom / unrestricted" choice if the author declines the
+  recommendation. YOLO, the no-savings tier for flagship experiences, is
+  offered in the same message with its weight in MB and never recommended:
+  it has no ceiling, and it still owes the Floor (reduced motion, a lighter
+  path, the content readable without the experience, no sound before the
+  visitor asks), which `check-motion --tier yolo` fails when it is missing. The question comes with the candidates, every run, even
   when every candidate is fast, and is confirmed after the assets are
   priced. When the author combines candidates or techniques from different
   tiers, each technique is listed with its own tier and cost and the author
@@ -396,7 +400,25 @@ media query and animate anyway.
 
 Output lands in `captures/<site>/<date>/` — the validated record, the raw
 capture, the motion traces, the frames, and a `contact.png` thumbnail grid
-rendered by the browser that is already open.
+rendered by the browser that is already open. The record carries a
+`transfer` field: bytes on the wire by type (images, video, models, audio,
+script, other) for the first view, before any click, and for the full page
+after the scroll frames, plus the sound fetched before any click.
+
+For pages that stream forever or sit behind a gate (the YOLO cohort):
+
+| Option | Default | What it is for |
+|---|---|---|
+| `--wait <domcontentloaded\|load\|networkidle>` | `load` | What `goto` waits for. A page that streams media never reaches `load` in time; `domcontentloaded` lets it be measured |
+| `--timeout <ms>` | `30000` | How long `goto` may take (the settle after it still waits at most 15 s) |
+| `--click "<css>"` | none | Clicks to pass a gate (age question, "Begin", sound prompt), in order, after the page settles and again on the reduced-motion pass. Repeat the option, or separate selectors with commas; a comma inside `:is(...)` or `[...]` stays in its selector. A click that fails is kept in `load.clicksFailed`, and the probe goes on |
+
+```
+node scripts/probe.mjs https://santionispirits.com/ --cohort yolo --wait domcontentloaded --timeout 60000 --click "#age-yes"
+```
+
+The canvas trace reopens the page twice (reduced motion, no WebGL) without
+the clicks, so behind a gate its canvas columns may read "not measured".
 
 ### It quarantines rather than deletes
 
@@ -445,7 +467,8 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `docs/examples/` | The four README examples as built pages, each with its identity brief, surface spec, verification record, screenshots, asset record and selling-positioning presentation. |
 | `references/benchmarks.md` | The measurements. Aggregates, per-site data, easing curves and durations actually shipped. |
 | `references/recipes-design.md` | Ten sections: type roles and measure, colour ladders, page structure, chrome vocabulary, subject-derived identity, layout, anti-slop, the plan-and-review pass, words as design, and the checklist. |
-| `references/recipes-motion.md` | The rules every motion technique obeys: the signature curve, the reduced-motion contract, icons and images in motion, and a checklist. The techniques themselves are 34 cards in `references/techniques/` (23 fast, 4 medium, 7 high), 18 of them with a measured cost, and the other 16 say "not measured". |
+| `references/recipes-motion.md` | The rules every motion technique obeys: the signature curve, the reduced-motion contract, icons and images in motion, and a checklist. The techniques themselves are 40 cards in `references/techniques/` (23 fast, 4 medium, 7 high, 6 yolo), 24 of them with a measured cost, and the other 16 say "not measured". |
+| `references/techniques/yolo.md` | The YOLO tier: six techniques of flagship experiences (scroll-scrubbed image sequence, pre-rendered 3D film, real-time 3D world, illustrated scroll story, sound design, physics and drag), each priced in MB from the sites that ship it, with the Floor fallback it still owes. |
 | `references/verification.md` | How to confirm the work is real. Read this one even if you skip the rest. |
 | `references/gates.md` | The one list of what the skill refuses to ship: Floor (never waived), Reflex (waived on the record), Finish (noted). Which a script settles, which a browser measures, which the eye judges; the judged clauses. |
 | `references/anatomy.md` | What a page is built around, by the visitor's job: subscribe, book, visit, attend, buy, try, sign up, hire, join, listen, work in. Where the action lives, the category's own sections, how pages end. |
@@ -582,7 +605,13 @@ fields side by side. Near-total agreement is what makes any disagreement
 diagnostic: when seven of nine fields reproduce to the pixel, the other two
 are defects, not noise, and they are exactly the ones no fixture encoded.
 Where a field legitimately differs, record why beside the row, so the
-comparison stays a live check instead of decaying into noise.
+comparison stays a live check instead of decaying into noise. The prober's
+`--wait`, `--timeout` and `--click` default to the old behaviour (`load`,
+30 s, no click), so a re-probe without them is comparable with the
+published rows; when a row needed them, write them beside it. The
+`check-motion --tier yolo` checks were run this way against the YOLO cohort
+(`benchmarks.md`, "YOLO, measured"), and the table there records where the
+tool and the look disagreed.
 **Adding gates.** A gate is a row in `references/gates.md` §3 with a tier
 and a class, and, when a script can settle it, an entry in `GATES`
 (`scripts/lib/slop-static.mjs`) with its check and a line in the fixtures

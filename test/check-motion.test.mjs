@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { launchBrowser } from '../scripts/lib/browser.mjs';
-import { CHECK_NAMES, UsageError, loadCeilings, parseMotionArgs, runMotionChecks } from '../scripts/lib/motion-checks.mjs';
+import { CHECK_NAMES, UsageError, evaluateMotion, loadCeilings, parseMotionArgs, runMotionChecks } from '../scripts/lib/motion-checks.mjs';
 import { motionFixture } from './helpers/motion-fixture.mjs';
 import { startFixtureServer } from './helpers/fixture-server.mjs';
 import { recordFilm } from './helpers/film.mjs';
@@ -250,8 +250,14 @@ test('yolo: the weight is reported and never judged, even when the ceilings name
     const c = byName(result)['motion weight within tier'];
     assert.equal(c.status, 'report', c.detail);
     assert.match(c.detail, /yolo tier has no ceiling/);
-    assert.equal(result.ok, true);
+    assert.equal(failedNames(result).includes('motion weight within tier'), false);
   }
+});
+
+test('yolo: a page with no headings or paragraphs in its HTML fails readable-without-JS, with a plain reason', async () => {
+  const result = await check('healthy', { tier: 'yolo' });
+  assert.deepEqual(failedNames(result), ['works without JS']);
+  assert.match(byName(result)['works without JS'].detail, /no headings or paragraphs in its HTML/);
 });
 
 test('the shipped ceilings have no yolo key, and a yolo key in a ceilings file is dropped', () => {
@@ -269,14 +275,37 @@ test('the shipped ceilings have no yolo key, and a yolo key in a ceilings file i
 });
 
 test('yolo: the canvas Floor fails as on every tier (reduced motion, fallback without WebGL)', async () => {
-  assert.deepEqual(failedNames(await check('ignoresReducedMotion', { tier: 'yolo' })), ['canvas honours reduced motion']);
-  assert.deepEqual(failedNames(await check('noFallback', { tier: 'yolo' })), ['fallback without WebGL']);
+  // These canvas fixtures carry no text, so they also fail readable-without-JS (tested on its own above).
+  const canvasFailures = (result) => failedNames(result).filter((n) => n !== 'works without JS');
+  assert.deepEqual(canvasFailures(await check('ignoresReducedMotion', { tier: 'yolo' })), ['canvas honours reduced motion']);
+  assert.deepEqual(canvasFailures(await check('noFallback', { tier: 'yolo' })), ['fallback without WebGL']);
 });
 
 test('yolo: content that needs JavaScript to be seen fails, as on the fast tier', async () => {
   const result = await check('revealOnScroll', { tier: 'yolo' });
   assert.deepEqual(failedNames(result), ['works without JS']);
   assert.match(byName(result)['works without JS'].detail, /yolo tier owes the Floor/);
+});
+
+test('yolo: readable without JS is judged on the reading text by characters, and 40 % of it is enough', () => {
+  const item = (tag, label) => ({ key: `${tag}|${label}`, tag, label, seen: true });
+  const text = (n) => 'x'.repeat(n);
+  const withJs = [item('h1', text(20)), item('p', text(80)), item('p', text(100)), item('button', 'Menu'), item('a', 'Cookies')];
+  const run = (seenWithout) => {
+    const r = evaluateMotion({ canvases: [], motionJsBytes: 0 }, { tier: 'yolo', ceilings: {}, content: { withJs, withoutJs: seenWithout } });
+    return byName(r)['works without JS'];
+  };
+  // The heading and the 80-character paragraph show (100 of 200 characters); the menu, the cookie link and the
+  // other paragraph do not: 50 %, a pass, though more than 5 % of the items are missing.
+  assert.equal(run([withJs[0], withJs[1]]).status, 'pass');
+  // Only the heading: 10 % of the text, a fail.
+  const fail = run([withJs[0]]);
+  assert.equal(fail.status, 'fail');
+  assert.match(fail.detail, /10 % of the reading text/);
+  // The controls alone missing never fail yolo; the same content fails fast.
+  assert.equal(run(withJs.slice(0, 3)).status, 'pass');
+  const fast = evaluateMotion({ canvases: [], motionJsBytes: 0 }, { tier: 'fast', ceilings: {}, content: { withJs, withoutJs: withJs.slice(0, 3) } });
+  assert.equal(byName(fast)['works without JS'].status, 'fail');
 });
 
 test('works without JS: text in the DOM under an opaque loader counts as covered, not seen', async () => {
