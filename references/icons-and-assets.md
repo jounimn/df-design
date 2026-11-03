@@ -12,7 +12,8 @@ legal advice — **check the repository's own LICENSE file before you ship**.
 That check costs thirty seconds and is the whole difference between an
 asset you own the right to use and one you do not.
 
-Photographs and illustrations are in `images.md`.
+Photographs and illustrations are in `images.md`. Doodles, annotations and
+icon sets drawn for the project are in `drawn-assets.md`.
 
 ---
 
@@ -39,7 +40,7 @@ habit. A typewritten newsletter wants a thin, plain stroke (Phosphor Light,
 Iconoir); a Bauhaus museum wants geometric solids (Phosphor Bold or Fill);
 a dense developer tool wants Lucide or Tabler at 1.5px. When no set fits a
 strongly historical identity, draw the dozen glyphs the product needs in
-one grid and one stroke, and treat them as the set.
+one grid and one stroke, and treat them as the set (`drawn-assets.md`).
 
 Icons also belong in the motion plan (`recipes-motion.md` §15): they move
 when their meaning changes.
