@@ -56,16 +56,16 @@ Each audition contains, and only contains:
 - navigation
 - a hero
 - representative type: display, text and the instrument/mono role if the identity has one
-- the colour system in use (not a swatch sheet)
+- the colour system in use (not a swatch sheet): the base pair, and the candidate's design hint spent in its places (`recipes-design.md` §2)
 - two or three example components: a button, a card or list row, an input
 - mock content and data
 - imagery: the author's own, or stock images that pass `images.md` **if the author said yes**, treated the identity's way; otherwise honest labelled placeholders
 - icons from the set that fits this candidate, in the nav and the components (icons are mandatory)
-- a hint of the identity's interaction or motion, if it has one
+- a glimpse of the identity's interaction or motion, if it has one
 
 ```
 auditions/
-├── index.html      links or iframes every candidate, with the identity name and one line of intent
+├── index.html      links or iframes every candidate, with the identity name, one line of intent and its design hint
 ├── a-<name>.html
 ├── b-<name>.html
 └── c-<name>.html
