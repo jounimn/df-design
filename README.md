@@ -188,6 +188,7 @@ flowchart LR
             RD["recipes-design.md"]
             RM["recipes-motion.md"]
             IC["icons-and-assets.md"]
+            DRA["drawn-assets.md"]
             IMG["images.md"]
             VER["verification.md"]
             BEN["benchmarks.md"]
@@ -202,14 +203,15 @@ flowchart LR
     subgraph Rig["Measurement rig"]
         PRB["scripts/probe.mjs"]
         LIBS["scripts/lib/<br/>static pass · motion inventory<br/>property and scroll trace<br/>archetype · validate · bundle"]
-        TST["test/<br/>381 tests in 23 files, local fixtures"]
+        TST["test/<br/>398 tests in 25 files, local fixtures"]
     end
     subgraph Gates["Gate checks"]
         CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
         CKP["scripts/check-kept.mjs<br/>record · check"]
         CPT["scripts/capture.mjs"]
+        DRW["scripts/draw.mjs<br/>check · roughen · sheet"]
     end
-    SK --> ID & AUD & LIB & RD & RM & IC & IMG & VER & ANA & GAT & PAT & REV & RED & BRT
+    SK --> ID & AUD & LIB & RD & RM & IC & DRA & IMG & VER & ANA & GAT & PAT & REV & RED & BRT
     LIB --> FAM
     RD & RM --> BEN
     PRB --> LIBS
@@ -441,6 +443,7 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `references/identities/` | The gallery itself, one file per family. |
 | `references/audition.md` | The Playwright decision, HTML auditions, loading-cost tiers. |
 | `references/icons-and-assets.md` | Icons are mandatory: one set per project, chosen to fit the identity. Commercially safe sets, licence traps, sizing icons against type. |
+| `references/drawn-assets.md` | When an identity draws its own doodles, annotations, spot illustrations or icon set: the jobs a drawing may do, the line derived from the brief, construction, and the check before it reaches a page. |
 | `references/images.md` | Stock images, only with the author's yes: sources that are free, commercial, credit-free and watermark-free, the traps inside them, searching for the identity, one treatment, weight, and the asset record. |
 | `docs/examples/` | The four README examples as built pages, each with its identity brief, surface spec, verification record, screenshots, asset record and selling-positioning presentation. |
 | `references/benchmarks.md` | The measurements. Aggregates, per-site data, easing curves and durations actually shipped. |
@@ -456,13 +459,12 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `scripts/probe.mjs` | The prober CLI. |
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. |
 | `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
-| `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle. |
-| `test/` | 36 tests and the HTML fixtures they run against. |
 | `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs. Exit 1 on a FAIL or an open REFLEX. |
 | `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
 | `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
+| `scripts/draw.mjs` | Drawn assets: `check` a set for one line and one palette, `roughen` clean geometry into a seeded hand-drawn line, `sheet` the set on the brief's ground, inverted and at 24px. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle; the slop gates (static and render) and the page record. |
-| `test/` | 381 tests in 23 files, and the HTML fixtures they run against. |
+| `test/` | 398 tests in 25 files, and the HTML fixtures they run against. |
 | `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT). |
 
 Claude reads the mode's recipe file and works from it; `benchmarks.md` and

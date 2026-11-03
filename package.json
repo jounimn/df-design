@@ -9,7 +9,8 @@
     "probe": "node scripts/probe.mjs",
     "check-slop": "node scripts/check-slop.mjs",
     "check-kept": "node scripts/check-kept.mjs",
-    "capture": "node scripts/capture.mjs"
+    "capture": "node scripts/capture.mjs",
+    "draw": "node scripts/draw.mjs"
   },
   "dependencies": {
     "playwright": "^1.48.0"
