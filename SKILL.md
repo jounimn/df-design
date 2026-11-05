@@ -194,6 +194,7 @@ heavier tier, or the images weigh more than the first message assumed.
 | Playwright decision, HTML auditions, the loading-tier message to the author | `references/audition.md` |
 | Building it | `references/recipes-design.md` / `references/recipes-motion.md` (`both`: design first) |
 | Icons (mandatory), illustration, textures | `references/icons-and-assets.md` |
+| Stock photographs: asking, sources, search, treatment, weight; cutting out the subject | `references/images.md` |
 | Drawn assets: doodles, annotations, spot illustrations, a drawn icon set, in the identity's own line | `references/drawn-assets.md` |
 | Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |

@@ -1,0 +1,45 @@
+{
+  "_comment": "The only models scripts/cutout.mjs will run. Weights are downloaded by `setup`, never vendored. Licences read on each model card on 2026-11-03; see licenses/cutout-models.md. Anything not listed here is refused, including rembg's own default (bria-rmbg, CC BY-NC).",
+  "models": {
+    "birefnet-general-lite": {
+      "runner": "rembg", "task": "remove-bg", "group": "base",
+      "source": "ZhengPeng7/BiRefNet_lite", "card": "https://huggingface.co/ZhengPeng7/BiRefNet_lite",
+      "licence": "MIT", "size_mb": 214
+    },
+    "u2net": {
+      "runner": "rembg", "task": "remove-bg", "group": "base",
+      "source": "xuebinqin/U-2-Net (u2net)", "card": "https://github.com/xuebinqin/U-2-Net",
+      "licence": "Apache-2.0", "size_mb": 168
+    },
+    "birefnet-general": {
+      "runner": "rembg", "task": "remove-bg", "group": "high",
+      "source": "ZhengPeng7/BiRefNet", "card": "https://huggingface.co/ZhengPeng7/BiRefNet",
+      "licence": "MIT", "size_mb": 928
+    },
+    "birefnet-portrait": {
+      "runner": "rembg", "task": "remove-bg", "group": "portrait",
+      "source": "ZhengPeng7/BiRefNet-portrait", "card": "https://huggingface.co/ZhengPeng7/BiRefNet-portrait",
+      "licence": "MIT", "size_mb": 928
+    },
+    "rtdetr-v2-r18": {
+      "runner": "hf", "task": "detect", "group": "detect",
+      "source": "PekingU/rtdetr_v2_r18vd", "card": "https://huggingface.co/PekingU/rtdetr_v2_r18vd",
+      "revision": "5650961749fa93567c0d46fc7f43ea4f9e914107",
+      "licence": "Apache-2.0", "size_mb": 78
+    },
+    "owlv2-base": {
+      "runner": "hf", "task": "detect", "group": "detect",
+      "source": "google/owlv2-base-patch16-ensemble", "card": "https://huggingface.co/google/owlv2-base-patch16-ensemble",
+      "revision": "cfd3195ba4ea9592eec887ded089f4c08eff231d",
+      "licence": "Apache-2.0", "size_mb": 592
+    },
+    "sam2.1-hiera-tiny": {
+      "runner": "hf", "task": "mask", "group": "detect",
+      "source": "facebook/sam2.1-hiera-tiny", "card": "https://huggingface.co/facebook/sam2.1-hiera-tiny",
+      "revision": "de431c4043854a71d8101e17995dfe596bf101a5",
+      "licence": "Apache-2.0", "size_mb": 149
+    }
+  },
+  "quality": { "draft": "u2net", "default": "birefnet-general-lite", "high": "birefnet-general" },
+  "subject": { "person": "birefnet-portrait" }
+}
