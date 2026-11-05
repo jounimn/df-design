@@ -207,7 +207,7 @@ flowchart LR
     subgraph Rig["Measurement rig"]
         PRB["scripts/probe.mjs"]
         LIBS["scripts/lib/<br/>static pass · motion inventory<br/>property and scroll trace<br/>archetype · validate · bundle"]
-        TST["test/<br/>409 tests in 27 files, local fixtures"]
+        TST["test/<br/>463 tests in 29 files, local fixtures"]
     end
     subgraph Gates["Gate checks"]
         CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
@@ -473,7 +473,7 @@ of it. This keeps the aggregates honest — a 112px hero on a WebGL stage is
 not evidence about typographic heroes.
 
 ```
-npm test        # 407 tests in 25 files, node:test, no network — a local fixture server
+npm test        # 463 tests in 29 files, node:test, no network — a local fixture server
 ```
 
 ---
@@ -505,7 +505,6 @@ npm test        # 407 tests in 25 files, node:test, no network — a local fixtu
 | `scripts/probe.mjs` | The prober CLI. |
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. Writes each candidate's full page at rest and its motion capture side by side. |
 | `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
-| `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle. |
 | `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs. Exit 1 on a FAIL or an open REFLEX. |
 | `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
 | `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
@@ -514,10 +513,8 @@ npm test        # 407 tests in 25 files, node:test, no network — a local fixtu
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle; the slop gates (static and render) and the page record. |
 | `scripts/cutout.mjs` | Cuts a product or a person out of a photo to sit on a colour ground, lists what is in a photo as labelled boxes, or masks one named object. Local, CPU, offline after `setup`. Only MIT and Apache-2.0 weights from the allow-list in `scripts/py/cutout-models.json`. Prints the `assets.md` row and warns when the subject is a person. |
 | `scripts/py/` | The Python side of the cutout tool, its pinned requirements and the model allow-list. The venv and the weights live in `~/.cache/df-design`, never in the repo. |
-| `test/` | 407 tests in 25 files, and the HTML fixtures they run against. The two that run the cutout models are skipped unless `DF_DESIGN_CUTOUT_TESTS=1`. |
+| `test/` | 463 tests in 29 files, and the HTML fixtures they run against. The two that run the cutout models are skipped unless `DF_DESIGN_CUTOUT_TESTS=1`. |
 | `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT), and the licences of the cutout models, which are downloaded, not vendored (`cutout-models.md`). |
-| `test/` | 398 tests in 25 files, and the HTML fixtures they run against. |
-| `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT). |
 
 Claude reads the mode's recipe file and works from it; `benchmarks.md` and
 `verification.md` are pulled in as needed.
