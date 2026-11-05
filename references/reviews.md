@@ -119,7 +119,9 @@ they fail. **Seen before:** the page, or a section, reads as a template or
 a familiar site; name which and where. **Clean:** something is on the page
 without a job (a device repeated, a decoration, a box around nothing), or a
 screen has nothing worth looking at. **Carried:** the identity lives in the
-hero and stops there.
+hero and stops there. **Hint:** the page is the base pair with nothing loud,
+or the design hint is spread past the places the brief names, or a
+different hint shows up below the fold.
 
 On a redesign the content is fixed: never ask for copy, an action or a
 visual the old page did not have. Add one answer: what did the old page do

@@ -187,11 +187,12 @@ flowchart LR
         subgraph Refs["references/"]
             ID["identity.md"]
             AUD["audition.md"]
-            LIB["identity-library.md<br/>index of 202"]
+            LIB["identity-library.md<br/>index of 208"]
             FAM["identities/<br/>historical · digital · print-craft<br/>cultural · industry"]
             RD["recipes-design.md"]
             RM["recipes-motion.md"]
             IC["icons-and-assets.md"]
+            DRA["drawn-assets.md"]
             IMG["images.md"]
             VER["verification.md"]
             BEN["benchmarks.md"]
@@ -206,14 +207,16 @@ flowchart LR
     subgraph Rig["Measurement rig"]
         PRB["scripts/probe.mjs"]
         LIBS["scripts/lib/<br/>static pass · motion inventory<br/>property and scroll trace<br/>archetype · validate · bundle"]
-        TST["test/<br/>422 tests in 25 files, local fixtures"]
+        TST["test/<br/>398 tests in 25 files, local fixtures"]
     end
     subgraph Gates["Gate checks"]
         CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
         CKP["scripts/check-kept.mjs<br/>record · check"]
         CPT["scripts/capture.mjs"]
+        CUT["scripts/cutout.mjs<br/>remove-bg · detect · mask"]
+        DRW["scripts/draw.mjs<br/>check · roughen · sheet"]
     end
-    SK --> ID & AUD & LIB & RD & RM & IC & IMG & VER & ANA & GAT & PAT & REV & RED & BRT
+    SK --> ID & AUD & LIB & RD & RM & IC & DRA & IMG & VER & ANA & GAT & PAT & REV & RED & BRT
     LIB --> FAM
     RD & RM --> BEN
     PRB --> LIBS
@@ -226,7 +229,7 @@ flowchart LR
     RED -. "the record" .-> CKP
     BRT -. "probe the brand" .-> PRB
     CSL -. "screenshots for" .-> REV
-    TST --> LIBS & CSL & CKP & CPT
+    TST --> LIBS & CSL & CKP & CPT & CUT
 ```
 
 The skill and the rig are separate halves. The skill tells Claude how to
@@ -448,7 +451,7 @@ of it. This keeps the aggregates honest — a 112px hero on a WebGL stage is
 not evidence about typographic heroes.
 
 ```
-npm test        # 422 tests, node:test, no network — a local fixture server
+npm test        # 407 tests in 25 files, node:test, no network — a local fixture server
 ```
 
 ---
@@ -463,6 +466,7 @@ npm test        # 422 tests, node:test, no network — a local fixture server
 | `references/identities/` | The gallery itself, one file per family. |
 | `references/audition.md` | The Playwright decision, HTML auditions, loading-cost tiers. |
 | `references/icons-and-assets.md` | Icons are mandatory: one set per project, chosen to fit the identity. Commercially safe sets, licence traps, sizing icons against type. |
+| `references/drawn-assets.md` | When an identity draws its own doodles, annotations, spot illustrations or icon set: the jobs a drawing may do, the line derived from the brief, construction, and the check before it reaches a page. |
 | `references/images.md` | Stock images, only with the author's yes: sources that are free, commercial, credit-free and watermark-free, the traps inside them, searching for the identity, one treatment, weight, and the asset record. |
 | `docs/examples/` | The four README examples as built pages, each with its identity brief, surface spec, verification record, screenshots, asset record and selling-positioning presentation. |
 | `references/benchmarks.md` | The measurements. Aggregates, per-site data, easing curves and durations actually shipped. |
@@ -480,12 +484,16 @@ npm test        # 422 tests, node:test, no network — a local fixture server
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. |
 | `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle. |
-| `test/` | 422 tests in 25 files, and the HTML fixtures they run against. |
 | `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs. Exit 1 on a FAIL or an open REFLEX. |
 | `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
 | `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
+| `scripts/draw.mjs` | Drawn assets: `check` a set for one line and one palette, `roughen` clean geometry into a seeded hand-drawn line, `sheet` the set on the brief's ground, inverted and at 24px. |
 | `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle; the slop gates (static and render) and the page record. |
-| `test/` | 422 tests in 25 files, and the HTML fixtures they run against. |
+| `scripts/cutout.mjs` | Cuts a product or a person out of a photo to sit on a colour ground, lists what is in a photo as labelled boxes, or masks one named object. Local, CPU, offline after `setup`. Only MIT and Apache-2.0 weights from the allow-list in `scripts/py/cutout-models.json`. Prints the `assets.md` row and warns when the subject is a person. |
+| `scripts/py/` | The Python side of the cutout tool, its pinned requirements and the model allow-list. The venv and the weights live in `~/.cache/df-design`, never in the repo. |
+| `test/` | 407 tests in 25 files, and the HTML fixtures they run against. The two that run the cutout models are skipped unless `DF_DESIGN_CUTOUT_TESTS=1`. |
+| `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT), and the licences of the cutout models, which are downloaded, not vendored (`cutout-models.md`). |
+| `test/` | 398 tests in 25 files, and the HTML fixtures they run against. |
 | `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT). |
 
 Claude reads the mode's recipe file and works from it; `benchmarks.md` and
@@ -605,13 +613,19 @@ fields side by side. Near-total agreement is what makes any disagreement
 diagnostic: when seven of nine fields reproduce to the pixel, the other two
 are defects, not noise, and they are exactly the ones no fixture encoded.
 Where a field legitimately differs, record why beside the row, so the
-comparison stays a live check instead of decaying into noise. The prober's
-`--wait`, `--timeout` and `--click` default to the old behaviour (`load`,
-30 s, no click), so a re-probe without them is comparable with the
-published rows; when a row needed them, write them beside it. The
-`check-motion --tier yolo` checks were run this way against the YOLO cohort
-(`benchmarks.md`, "YOLO, measured"), and the table there records where the
-tool and the look disagreed.
+comparison stays a live check instead of decaying into noise.
+
+**Cutting out images.** The cutout tool keeps its own venv, so nothing changes for the rest of the rig:
+
+```bash
+node scripts/cutout.mjs setup                  # remove-bg: venv + ~0.4 GB of weights, once
+node scripts/cutout.mjs setup --with detect    # detect and mask: torch CPU + ~0.8 GB more
+node scripts/cutout.mjs doctor
+DF_DESIGN_CUTOUT_TESTS=1 node --test test/cutout.test.mjs   # the model tests, minutes on a laptop
+```
+
+A new model goes in `scripts/py/cutout-models.json` only after its **weights** licence has been read on the model card (a code licence is not enough), with a pinned revision, and with a row in `licenses/cutout-models.md`. The test suite refuses any licence other than MIT or Apache-2.0.
+
 **Adding gates.** A gate is a row in `references/gates.md` §3 with a tier
 and a class, and, when a script can settle it, an entry in `GATES`
 (`scripts/lib/slop-static.mjs`) with its check and a line in the fixtures

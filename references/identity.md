@@ -209,7 +209,7 @@ Not `primary colour + font + border radius`. Define, where relevant:
 | Group | Decide |
 |---|---|
 | Type | faces and roles (display / text / instrument), scale, tracking, hierarchy |
-| Colour | ground, ink ladder, accent, semantic colours, contrast, both themes |
+| Colour | ground, ink ladder, base pair and design hint (`recipes-design.md` §2), semantic colours, contrast, both themes |
 | Space | spacing scale, density, rhythm, page length |
 | Geometry | radius, border treatment, rules, grid, shadows or their absence |
 | Surface | texture, noise, paper, glass, image treatment |
@@ -236,9 +236,11 @@ Conditions:    <step 0: scope, constraints and notes from the invocation, verbat
 Intent:        <what the site must communicate, in the author's words>
 Practical:     <facts only: languages and locale, flows (ordering, booking, payment, cut-offs, limits), users and devices per surface; what they mean for a surface's design goes in that surface's spec>
 Grammar:       <type / colour / geometry / surface / motion, one line each>
+Hint:          <base pair → the design hint, its feeling in one word, and the places it is spent (at most three); or "none" with the reason (recipes-design.md §2)>
 Origin:        <the references kept from the research log, with their class>
 Never:         <the drifts this identity forbids, e.g. "generic SaaS card grid">
 Icons:         <the one set, its stroke and size logic, and why it fits (icons-and-assets.md §0)>
+Drawn:         <only when the identity draws its own: what (doodles, annotations, spot illustrations, the icon set), the line (stroke, caps, character, roughen seed and amount), and each drawing's job (drawn-assets.md)>
 Images:        <author's answer on stock images; if yes: sources, treatment, which pages; asset record path (images.md §5)>
 Loading tier:  <fast / medium / high / yolo / custom, as chosen by the author (audition.md §4), and what justifies it; for yolo, also the measured weight in MB and the Floor fallback>
 Surfaces:      <every surface in scope: landing, app, admin, docs, 404...; name out-of-scope surfaces as untouched>
@@ -339,6 +341,7 @@ Run this across **every surface in scope** (step 0), on the rendered pages
 - [ ] **Identity:** still the approved brief, with no drift toward the generic
 - [ ] **Type:** same faces and hierarchy logic on every surface
 - [ ] **Colour:** one token system, semantic colours consistent
+- [ ] **Hint:** the design hint the brief names, spent only in its places, the same hint on every surface
 - [ ] **Components:** buttons, inputs, cards and nav from one vocabulary
 - [ ] **Icons:** one set, one stroke, one size logic, present in every surface's controls, forms and status (`icons-and-assets.md` §0)
 - [ ] **Images:** only if the author said yes; every one free, commercial, no credit, no watermark in the shipped file; one treatment across the set; recorded (`images.md`)

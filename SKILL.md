@@ -194,6 +194,8 @@ heavier tier, or the images weigh more than the first message assumed.
 | Playwright decision, HTML auditions, the loading-tier message to the author | `references/audition.md` |
 | Building it | `references/recipes-design.md` / `references/recipes-motion.md` (`both`: design first) |
 | Icons (mandatory), illustration, textures | `references/icons-and-assets.md` |
+| Stock photographs: asking, sources, search, treatment, weight; cutting out the subject | `references/images.md` |
+| Drawn assets: doodles, annotations, spot illustrations, a drawn icon set, in the identity's own line | `references/drawn-assets.md` |
 | Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |
 | Watermark: question, layer, preview and final | `references/watermark.md` |
@@ -427,6 +429,8 @@ is an acceptable sentence. "Done" without having looked is not.
 | "One direction is obviously right; skip the alternatives" | Three candidates, one from the subject's own world, one the author would not have reached. |
 | "The audition should be production-ready" | An audition answers "is this the identity?" Small, same content in each, no backend. |
 | "The admin and 404 are just utility pages" | Same product, same identity, adapted density. A stock admin panel is a different product. |
+| "The page looks empty, a doodle will help" | Every drawing has a job: annotate, divide, explain, stand in, label or mark. An empty screen needs a photograph, the product or better type. `drawn-assets.md` §1. |
+| "The palette already looks good" | Looking good is the base pair. Name the design hint, its feeling and its places, or write `Hint: none` with the reason. `recipes-design.md` §2. |
 | "Three.js will make it feel premium" | Cheapest viable tier first. Masks and blends are CSS. |
 | "Fast tier obviously fits; I'll just use it" | Recommending is yours, choosing is the author's. Send the tier message. |
 | "Every candidate is fast, so there is nothing to ask" | The question is asked every run, with the candidates. Fast is the recommendation, not the answer. The message says what medium and high would add, or that they add nothing. |

@@ -179,7 +179,72 @@ image. Licences and pages change, and the record is your evidence:
 ```
 
 Summarise it in the identity brief (`identity.md` §8): the sources, the
-treatment, and which pages use stock.
+treatment, and which pages use stock. Drawings made for the project get a
+row too, with "drawn for this project" as the source and the roughen seed
+(`drawn-assets.md` §5).
+
+---
+
+## 6. Cut out the subject
+
+A cutout is one of the treatments in §4, used on a product or an object
+that carries the page by itself. The subject is lifted off its photo and
+set on the identity's own ground. It pairs with the palette of
+`recipes-design.md` §2. The ground and the ink are the **base pair**; the
+cutout sits on the ground; the **one accent** is spent on a single thing
+beside it (a rule, a price, a word), never on a second subject. A sneaker
+on cobalt with one acid-lime stroke is the pattern. A sneaker on cobalt
+with lime, orange and a gradient is three accents and none of them reads.
+
+**The tool.** `scripts/cutout.mjs` runs locally, on the CPU, and is offline
+after one setup. Only models whose weights are MIT or Apache-2.0 can run,
+and the tool refuses any other.
+
+```bash
+node scripts/cutout.mjs setup                      # venv in ~/.cache/df-design, ~0.4 GB of weights
+node scripts/cutout.mjs setup --with detect        # + detect and mask (torch CPU, ~0.8 GB more)
+node scripts/cutout.mjs remove-bg images/shoe.jpg --ground "#1f3fbf" --record docs/assets.md
+node scripts/cutout.mjs detect images/market.jpg --labels person,umbrella --annotate
+node scripts/cutout.mjs mask images/pair.jpg --label shoe --pick 1 --record docs/assets.md
+node scripts/cutout.mjs doctor                     # what is installed, which models are present
+```
+
+- **remove-bg** cuts out the main subject (BiRefNet-lite by default;
+  `--quality draft` is fast but has a soft edge, `--quality high` is slower;
+  `--subject person` for portraits). It writes `<name>.cutout.png`
+  (transparent, trimmed to the subject) and `<name>.on-ground.jpg`, a
+  preview on `--ground`.
+- **detect** lists what is in the photo as labelled boxes in
+  `<name>.detect.json`. It merges duplicate boxes and lists every requested
+  label it did not find.
+- **mask --label** cuts out one named thing (one shoe of a pair, one
+  person in a crowd). When nothing matches, it says so and writes no file.
+  It never cuts out a guess.
+- On a 15 W laptop CPU a cutout takes 30 to 45 seconds, and loading the
+  models takes about a minute. Pass every image in one call so they load
+  once.
+
+**Look at the preview at 100%** before the cutout goes on a page, and at
+least once on the darkest ground and once on the accent. Look at the edge
+(a grey halo, the old floor showing through), the holes (between laces, a
+handle) and stray pieces (a price sticker kept as subject). A cutout with
+a visible fault does not ship. Run it again at `--quality high`, give it
+a `--box`, or choose another photo.
+
+**Record it.** A cutout is a new file, so it needs its own row in the
+asset record (§5). The row carries the **original photo's** source page
+and licence; the model is not the image's licensor, so it goes in
+Treatment. With `--record`, the tool fills the row from the original's
+row and prints it:
+
+```markdown
+| images/shoe.cutout.png | https://commons.wikimedia.org/wiki/File:Ash_and_orange_sneakers.jpg | CC0 | 2026-11-03 | cutout of shoe.jpg: birefnet-general-lite (ZhengPeng7/BiRefNet_lite, MIT), defringed | landing |
+```
+
+**People.** Cutting a recognisable person out and setting them on a
+brand's colour is exactly the marketing use that needs a model release,
+and CC0 is not one (§2, trap 4). The tool warns when it finds a person in
+the cutout. Prefer a product, hands or detail.
 
 ---
 
@@ -194,3 +259,5 @@ treatment, and which pages use stock.
 | "The preview looks fine" | Ship the original file, and check that file for a watermark. |
 | "One great image per section" | Five sources means five lights. Pick a matched set and give it one treatment. |
 | "A person smiling at a laptop" | No release is guaranteed, and it is the stock cliché. Use hands, texture and detail. |
+| "The cutout looks clean in the thumbnail" | Halos and holes show at 100% on the dark ground and on the accent. Look there (§6). |
+| "Any background remover will do" | Several popular weights (BRIA RMBG among them, which is rembg's default) are non-commercial. Use `scripts/cutout.mjs`, which runs only MIT and Apache-2.0 weights. |
