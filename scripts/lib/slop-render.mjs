@@ -6,6 +6,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { launchBrowser, settle } from './browser.mjs';
 import { GATES } from './slop-static.mjs';
+import { captureMotion, movingSignals } from './motion-capture.mjs';
 
 const WIDTHS = [320, 390, 768, 1024, 1440, 1920];
 const FOLD = { width: 1280, height: 800 };
@@ -18,11 +19,12 @@ const rel = (f) => (f && f.startsWith(process.cwd()) ? f.slice(process.cwd().len
 const trunc = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s);
 const slugOf = (target) => target.replace(/^https?:\/\//, '').replace(/\.html?$/i, '').replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '').slice(-60) || 'page';
 
-export async function renderCheck({ pages = [], urls = [], scope = 'page', out = null, browser: given = null } = {}) {
+export async function renderCheck({ pages = [], urls = [], scope = 'page', out = null, browser: given = null, motion = false } = {}) {
   const targets = [...pages.map((p) => ({ url: pathToFileURL(path.resolve(p)).href, label: rel(path.resolve(p)) })), ...urls.map((u) => ({ url: u, label: u }))];
   const findings = [];
   const screenshots = [];
-  if (!targets.length) return { findings, rendered: 0, screenshots };
+  const motions = [];
+  if (!targets.length) return { findings, rendered: 0, screenshots, motion: motions };
   const browser = given || (await launchBrowser());
   try {
     for (const t of targets) {
@@ -34,12 +36,20 @@ export async function renderCheck({ pages = [], urls = [], scope = 'page', out =
         if (scope === 'component' && (gate === 'fold' || gate === 'dead-half' || gate === 'word-budget' || gate === 'container-cap')) return;
         findings.push({ gate, grade, tier: g.tier, file: t.label, line: line || 0, evidence: trunc(evidence, 120), fix: g.fix, render: true });
       };
-      await checkPage(browser, t, dir, report, screenshots);
+      const moving = await checkPage(browser, t, dir, report, screenshots);
+      // A full-page still shows a pinned scene once and a canvas at one moment: on a page that moves, add the run.
+      const why = motion ? ['asked (--motion)', ...(moving || [])] : moving || [];
+      if (why.length) {
+        const cap = await captureMotion(browser, t.url, { out: path.join(dir, 'motion') });
+        const sheets = cap.sheets.map((s) => path.join(cap.dir, s));
+        screenshots.push(...sheets);
+        motions.push({ file: t.label, why, dir: rel(cap.dir), sheets: sheets.map(rel), video: cap.video ? rel(path.join(cap.dir, cap.video)) : null, reachedEnd: cap.reachedEnd, endReason: cap.endReason, movedBy: cap.movedBy, sheetsFrom: cap.sheetsFrom });
+      }
     }
   } finally {
     if (!given) await browser.close();
   }
-  return { findings, rendered: targets.length, screenshots: screenshots.map(rel) };
+  return { findings, rendered: targets.length, screenshots: screenshots.map(rel), motion: motions };
 }
 
 async function open(browser, url, { viewport, js = true, reduced = true } = {}) {
@@ -64,6 +74,7 @@ async function scrollThrough(page) {
 }
 
 async function checkPage(browser, target, dir, report, screenshots) {
+  let moving = [];
   // 1. Horizontal scroll at six widths.
   for (const w of WIDTHS) {
     let opened;
@@ -199,6 +210,7 @@ async function checkPage(browser, target, dir, report, screenshots) {
     for (const k of bare.slice(0, 6)) report('focus-ring', 'FAIL', 0, `no visible focus state on ${k}`);
     if (bare.length > 6) report('focus-ring', 'FAIL', 0, `${bare.length - 6} more focusable elements with no visible focus state`);
 
+    moving = await movingSignals(page);
     const shotFull = path.join(dir, 'full-1440.png');
     await page.screenshot({ path: shotFull, fullPage: true });
     screenshots.push(shotFull);
@@ -244,4 +256,5 @@ async function checkPage(browser, target, dir, report, screenshots) {
     screenshots.push(shot);
     await context.close();
   }
+  return moving;
 }

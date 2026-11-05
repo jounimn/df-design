@@ -203,12 +203,13 @@ flowchart LR
     subgraph Rig["Measurement rig"]
         PRB["scripts/probe.mjs"]
         LIBS["scripts/lib/<br/>static pass · motion inventory<br/>property and scroll trace<br/>archetype · validate · bundle"]
-        TST["test/<br/>398 tests in 25 files, local fixtures"]
+        TST["test/<br/>409 tests in 27 files, local fixtures"]
     end
     subgraph Gates["Gate checks"]
         CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
         CKP["scripts/check-kept.mjs<br/>record · check"]
         CPT["scripts/capture.mjs"]
+        CMO["scripts/capture-motion.mjs<br/>video · contact sheets"]
         DRW["scripts/draw.mjs<br/>check · roughen · sheet"]
     end
     SK --> ID & AUD & LIB & RD & RM & IC & DRA & IMG & VER & ANA & GAT & PAT & REV & RED & BRT
@@ -224,7 +225,9 @@ flowchart LR
     RED -. "the record" .-> CKP
     BRT -. "probe the brand" .-> PRB
     CSL -. "screenshots for" .-> REV
-    TST --> LIBS & CSL & CKP & CPT
+    CSL & PRB -. "a page that moves" .-> CMO
+    CMO -. "contact sheets for" .-> REV
+    TST --> LIBS & CSL & CKP & CPT & CMO
 ```
 
 The skill and the rig are separate halves. The skill tells Claude how to
@@ -234,8 +237,10 @@ checks sit between: `check-slop` names the mechanical tells of a generated
 page (the static tier reads HTML and CSS; `--render` measures the fold,
 horizontal scroll, focus rings, the measure and the page with scripting
 off), `check-kept` records what a page says and does before a redesign and
-fails the redesign when wiring is lost, and `capture` screenshots the real
-product for the page that sells it.
+fails the redesign when wiring is lost, `capture` screenshots the real
+product for the page that sells it, and `capture-motion` records a page
+driven by real input to its end and turns the video into contact sheets,
+for the motion no still can show.
 
 ---
 
@@ -400,6 +405,26 @@ Output lands in `captures/<site>/<date>/` — the validated record, the raw
 capture, the motion traces, the frames, and a `contact.png` thumbnail grid
 rendered by the browser that is already open.
 
+The six frames are taken with `window.scrollTo`. On a site whose scrolling a
+library owns, scrollTo moves nothing and every frame shows the first screen.
+When the scroll trace reports that, or the page is a virtual scroller (the
+document one screen tall, a taller layer holding the content), the probe
+runs the motion capture into `motion/` in the bundle and records it as
+`motionCapture` in `raw.json` and `motion.json`. `--motion` asks for it on
+any site:
+
+```
+node scripts/probe.mjs https://example.com --motion
+node scripts/capture-motion.mjs https://example.com --click "#accept" --out captures/motion/example
+```
+
+The capture records a video, turns the wheel in small steps (PageDown and
+Space when the wheel changes nothing) until the scroll position, a
+downscaled picture and the canvas pixels stop changing, and writes
+`video.webm`, contact sheets of the whole recording, stills where the picture
+settled, and `capture.json`. ffmpeg is used when one is found and is not
+required.
+
 ### It quarantines rather than deletes
 
 `scripts/lib/validate.mjs` separates suspect fields into a `quarantine` list
@@ -428,7 +453,7 @@ of it. This keeps the aggregates honest — a 112px hero on a WebGL stage is
 not evidence about typographic heroes.
 
 ```
-npm test        # 36 tests, node:test, no network — a local fixture server
+npm test        # 409 tests in 27 files, node:test, no network — local fixtures and a fixture server
 ```
 
 ---
@@ -457,14 +482,15 @@ npm test        # 36 tests, node:test, no network — a local fixture server
 | `references/redesign.md` | An existing design as the material: audit, polish, restyle or full; what every depth keeps; the record and the handoff. |
 | `references/brand-truth.md` | Never theme a real brand from memory: probe or fetch its colours and faces, with the fetch rules that keep it safe. |
 | `scripts/probe.mjs` | The prober CLI. |
-| `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. |
+| `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. Writes each candidate's full page at rest and its motion capture side by side. |
 | `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
-| `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs. Exit 1 on a FAIL or an open REFLEX. |
+| `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs, and the motion capture's contact sheets for a page with a canvas, a pinned section, a scroll-driven animation or a virtual scroller (`--motion` on any page). Exit 1 on a FAIL or an open REFLEX. |
 | `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
 | `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
+| `scripts/capture-motion.mjs` | The motion capture: a video of the page driven by the wheel (keys as the fallback) to its true end, past any gate given as `--click`; contact sheets of the whole run, stills where the picture settled, and `capture.json` with the steps, the input that moved it and whether it reached the end. Used by `probe --motion`, `check-auditions` and `check-slop --render`. |
 | `scripts/draw.mjs` | Drawn assets: `check` a set for one line and one palette, `roughen` clean geometry into a seeded hand-drawn line, `sheet` the set on the brief's ground, inverted and at 24px. |
-| `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle; the slop gates (static and render) and the page record. |
-| `test/` | 398 tests in 25 files, and the HTML fixtures they run against. |
+| `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, motion capture, archetype, validate, bundle; the slop gates (static and render) and the page record. |
+| `test/` | 409 tests in 27 files, and the HTML fixtures they run against. |
 | `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT). |
 
 Claude reads the mode's recipe file and works from it; `benchmarks.md` and
@@ -584,7 +610,12 @@ fields side by side. Near-total agreement is what makes any disagreement
 diagnostic: when seven of nine fields reproduce to the pixel, the other two
 are defects, not noise, and they are exactly the ones no fixture encoded.
 Where a field legitimately differs, record why beside the row, so the
-comparison stays a live check instead of decaying into noise.
+comparison stays a live check instead of decaying into noise. A tool that
+looks at motion is checked the same way against a page you can watch: run
+`capture-motion` over a site whose scrolling a library owns and read the
+sheets against the live page. `capture.json` must say it reached the end and
+which input moved it, and the sheets must show every scene in order; stills
+that all show the first screen are the failure this capture exists for.
 **Adding gates.** A gate is a row in `references/gates.md` §3 with a tier
 and a class, and, when a script can settle it, an entry in `GATES`
 (`scripts/lib/slop-static.mjs`) with its check and a line in the fixtures

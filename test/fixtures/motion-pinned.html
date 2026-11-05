@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pinned section page</title>
+<style>
+  body { margin: 0; font: 20px/1.5 Georgia, serif; background: #f4efe6; }
+  header { height: 700px; display: grid; place-items: center; }
+  /* The pin: a track three screens tall holds a sticky stage one screen tall. The stage stays put while the
+     page scrolls and its bar fills, so a full-page screenshot shows the scene once, at one moment. */
+  .track { height: 2700px; position: relative; }
+  .stage { position: sticky; top: 0; height: 900px; background: #23395b; color: #fff; display: grid; place-items: center; }
+  .bar { position: absolute; left: 0; bottom: 0; height: 40px; width: 0; background: #e2a33c; }
+  footer { height: 600px; display: grid; place-items: center; background: #111; color: #eee; }
+</style>
+</head>
+<body>
+  <header><h1>Before the pin</h1></header>
+  <div class="track">
+    <div class="stage"><h2 id="label">Step 0</h2><div class="bar" id="bar"></div></div>
+  </div>
+  <footer><p>After the pin</p></footer>
+<script>
+  const track = document.querySelector('.track');
+  const bar = document.getElementById('bar');
+  const label = document.getElementById('label');
+  const update = () => {
+    const r = track.getBoundingClientRect();
+    const p = Math.max(0, Math.min(1, -r.top / (r.height - innerHeight)));
+    bar.style.width = `${Math.round(p * 100)}%`;
+    label.textContent = `Step ${Math.round(p * 4)}`;
+  };
+  addEventListener('scroll', update, { passive: true });
+  update();
+</script>
+</body>
+</html>
