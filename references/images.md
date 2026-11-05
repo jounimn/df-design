@@ -179,7 +179,9 @@ image. Licences and pages change, and the record is your evidence:
 ```
 
 Summarise it in the identity brief (`identity.md` §8): the sources, the
-treatment, and which pages use stock.
+treatment, and which pages use stock. Drawings made for the project get a
+row too, with "drawn for this project" as the source and the roughen seed
+(`drawn-assets.md` §5).
 
 ---
 

@@ -126,6 +126,7 @@ Default labels to sentence case, and earn the caps.
   --ink-subtle: ...;     /* meta */
 
   --brand: ...;          /* ONE accent */
+  --hint: ...;           /* the design hint, only when --brand belongs to the base pair */
   --accent: ...;         /* a second, for charts only */
 
   --success: ...; --warning: ...; --danger: ...;   /* semantic, never the accent */
@@ -139,6 +140,39 @@ Store as space-separated RGB channels (`--brand: 94 106 210`) so Tailwind's
 Tinybird acid green `rgb(39 247 149)` on `rgb(10 10 10)`, Monte Carlo orange
 `rgb(255 87 0)` on `rgb(0 17 29)`, Cerebrium pink on off-white, Stripe
 `rgb(83 58 253)`. Everything else in the palette is quiet.
+
+**The design hint.** That one loud colour is the design hint, and it is
+chosen last. First the base pair: the ground and one second colour that
+already look good together (black and cobalt, orchid pink and eggplant
+violet, sage grey and warm beige). Then the hint: a third colour that breaks
+from both in hue and in chroma (acid lime, signal orange, deep burgundy) and
+gives the palette its personality. Name that personality in one word in the
+brief: electrified, fearless, luxurious. A base pair alone looks good and
+says nothing. The loud colours of the measured sites above work this way:
+one hint over a quiet ground (Tinybird's acid green over near-black, Monte
+Carlo's orange over navy).
+
+Spend the hint in at most three places, chosen from these:
+
+- **the subject:** the product, the garment, the object in the photograph,
+  chosen or recoloured so it carries the hint
+- **the primary action**
+- **one structural mark:** a band, a diagonal, a whole display line. Never
+  one word inside a head (`accented-word`, `gates.md`)
+
+Everything else stays in the base pair. The accent-footprint gate still
+holds: the hint passes about 5% of a viewport only when the subject image
+carries it.
+
+When the brand colour is itself the hint, `--brand` is the hint. When the
+brand colour belongs to the base pair (a cobalt brand with a lime hint),
+`--brand` stays in the base and the hint gets its own `--hint`. `--accent`
+stays for charts.
+
+`Hint: none` is a choice, and it is written down with its reason. An
+identity whose grammar refuses chroma (a monochrome archive, a newspaper of
+record) takes its contrast from scale or material instead, and the brief
+says which.
 
 **Neutrals are chosen, not inherited.** A pure mid-grey reads as
 unconsidered. Bias the neutral slightly toward the accent's hue.
