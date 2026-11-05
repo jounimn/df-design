@@ -1,15 +1,23 @@
-// The five canvas checks of check-motion, run on one page. A page with no canvas has nothing to judge: the four
-// canvas checks are 'na' and only the weight is reported.
+// The checks of check-motion, run on one page. A page with no canvas has nothing to judge on the canvas: the four
+// canvas checks are 'na' and only the weight is reported. The page checks after them (works without JS, video under
+// reduced motion, audio before a gesture, weight by type) are the Floor that the yolo tier still owes.
 // status: 'pass' | 'fail' | 'na' (nothing to judge) | 'report' (a number with no ceiling to hold it to).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { newPage, settle } from './browser.mjs';
 import { installCanvasTrace, runCanvasTrace } from './canvas-trace.mjs';
+import { formatBytes, formatTransfer, kindOf, watchTransfer } from './transfer.mjs';
 
 export class UsageError extends Error {}
 
-export const TIERS = ['fast', 'medium', 'high', 'custom'];
+export const TIERS = ['fast', 'medium', 'high', 'yolo', 'custom'];
+// Tiers never judged by weight: fast is checked by rule (works without JS), yolo has no ceiling and is judged by the
+// Floor, custom has no ceiling. A ceiling for any of them in motion-ceilings.json is dropped.
+const UNWEIGHED = new Set(['fast', 'yolo', 'custom']);
+// Tiers that fail when the content is not there without JavaScript: fast by its rule, yolo by the Floor.
+const NO_JS_FAILS = new Set(['fast', 'yolo']);
+
 export const CHECK_NAMES = [
   'canvas is alive',
   'canvas honours reduced motion',
@@ -17,13 +25,18 @@ export const CHECK_NAMES = [
   'fallback without WebGL',
   'motion weight within tier',
   'works without JS',
+  'video honours reduced motion',
+  'no audio before a gesture',
+  'page weight by type',
+  'built at the chosen tier',
 ];
 
 const CEILINGS_FILE = path.join(path.dirname(fileURLToPath(import.meta.url)), 'motion-ceilings.json');
 
-// { fast?, medium?, high? } in bytes. Absent file, or a tier missing from it: the weight is reported, not judged.
+// { medium?, high? } in bytes. Absent file, or a tier missing from it: the weight is reported, not judged.
 // Only a missing file means "no ceilings yet": an unreadable or malformed one is a mistake to see, not to hide, and a
-// value that is not a number of bytes is dropped (that tier is then reported, not judged).
+// value that is not a number of bytes is dropped (that tier is then reported, not judged), as is a ceiling for a tier
+// that is never weighed (fast, yolo, custom).
 export function loadCeilings(file = CEILINGS_FILE) {
   let text;
   try {
@@ -39,7 +52,7 @@ export function loadCeilings(file = CEILINGS_FILE) {
     throw new Error(`${path.basename(file)} is not valid JSON: ${err.message}`);
   }
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error(`${path.basename(file)} must be an object of tier: bytes`);
-  return Object.fromEntries(Object.entries(parsed).filter(([tier, bytes]) => TIERS.includes(tier) && tier !== 'custom' && Number.isFinite(bytes) && bytes >= 0));
+  return Object.fromEntries(Object.entries(parsed).filter(([tier, bytes]) => TIERS.includes(tier) && !['custom', 'yolo'].includes(tier) && Number.isFinite(bytes) && bytes >= 0));
 }
 
 export function parseMotionArgs(argv) {
@@ -87,7 +100,9 @@ function verdict(name, canvases, judge, { naDetail, passDetail }) {
   return { name, status: 'pass', detail: passDetail(judged.length) };
 }
 
-export function evaluateMotion(trace, { tier, ceilings, content = null, includeWithoutJs = true }) {
+// page: what the page checks need, read by runMotionChecks; null when they were not run (a presentation's slide).
+//   { url, videos: { count, playing: [names] } | null, audio: [urls], transfer: { firstView, full } }
+export function evaluateMotion(trace, { tier, ceilings, content = null, includeWithoutJs = true, page = null }) {
   const { canvases } = trace;
   const none = 'no canvas on the page';
   const checks = [];
@@ -130,15 +145,16 @@ export function evaluateMotion(trace, { tier, ceilings, content = null, includeW
     passDetail: (n) => `a fallback shows without WebGL (${plural(n, 'WebGL canvas')} checked)`,
   }));
 
-  // custom has no ceiling, and neither does fast: its page is checked by rule (works without JS), not by weight.
-  const ceiling = tier === 'custom' || tier === 'fast' ? undefined : ceilings?.[tier];
+  // custom has no ceiling, and neither do fast (checked by rule: works without JS) and yolo (judged by the Floor).
+  const ceiling = UNWEIGHED.has(tier) ? undefined : ceilings?.[tier];
   const bytes = trace.motionJsBytes;
   if (typeof ceiling !== 'number') {
-    checks.push({
-      name: CHECK_NAMES[4],
-      status: 'report',
-      detail: `motion JS is ${kb(bytes)}; ${tier === 'custom' ? 'the custom tier has no ceiling' : tier === 'fast' ? 'the fast tier has no weight ceiling; it is checked by the works-without-JS rule' : `there is no measured ceiling for the ${tier} tier yet`}`,
-    });
+    const why = {
+      custom: 'the custom tier has no ceiling',
+      fast: 'the fast tier has no weight ceiling; it is checked by the works-without-JS rule',
+      yolo: 'the yolo tier has no ceiling; it is judged by the Floor checks below',
+    }[tier] ?? `there is no measured ceiling for the ${tier} tier yet`;
+    checks.push({ name: CHECK_NAMES[4], status: 'report', detail: `motion JS is ${kb(bytes)}; ${why}` });
   } else if (bytes > ceiling) {
     checks.push({ name: CHECK_NAMES[4], status: 'fail', detail: `motion JS is ${kb(bytes)}, over the ${kb(ceiling)} ceiling of the ${tier} tier.` });
   } else {
@@ -146,20 +162,138 @@ export function evaluateMotion(trace, { tier, ceilings, content = null, includeW
   }
 
   // A presentation's slideshow needs its script by design, so check-presentation asks for the canvas checks only.
-  if (includeWithoutJs) checks.push(withoutJsCheck(content, tier));
+  if (includeWithoutJs) {
+    checks.push(withoutJsCheck(content, tier));
+    checks.push(videoCheck(page?.videos ?? null, tier));
+    checks.push(audioCheck(page?.audio ?? null, tier));
+    checks.push(weightCheck(page?.transfer ?? null, page?.url ?? '', tier));
+    checks.push(ambitionCheck(trace, page, tier, ceilings));
+  }
 
   return { checks, ok: checks.every((c) => c.status !== 'fail') };
+}
+
+// ---- The ambition floor of the yolo tier ---------------------------------------------------------------------
+
+// The High ceiling when the ceilings file names none: 340 KB, the p75 of motion JS (benchmarks.md).
+const HIGH_CEILING_FALLBACK = 348376;
+const SEQUENCE_FRAMES_MIN = 30; // numbered stills sharing one name before it counts as an image sequence
+const PARALLAX_PLANES_MIN = 3; // the page's own flow plus at least two layers moving at other speeds
+const FILM_BYTES_MIN = 1048576; // 1 MB of video: a film, not an icon loop
+
+// Numbered stills by their shared name (frame_0001.webp, frame_0002.webp, ...): the largest such set.
+export function sequenceFrames(entries) {
+  const sets = new Map();
+  for (const e of entries) {
+    if (kindOf(e) !== 'images') continue;
+    const m = e.url.split(/[?#]/)[0].toLowerCase().match(/^(.*?)[-_]?(\d{2,5})\.(jpe?g|png|webp|avif)$/);
+    if (m) sets.set(m[1], (sets.get(m[1]) ?? 0) + 1);
+  }
+  return Math.max(0, ...sets.values());
+}
+
+// Choosing yolo commits the build to at least one yolo technique at flagship scale. Never a Floor fail: the author
+// chose the tier, and a page built below it is reported so the tier message can be re-sent or the build finished.
+// signals (page.ambition): { sequenceFrames, videoBytes, audio, planes }; WebGL comes from the canvas trace.
+function ambitionCheck(trace, page, tier, ceilings) {
+  const name = CHECK_NAMES[9];
+  if (tier !== 'yolo') return { name, status: 'na', detail: 'only the yolo tier sets an ambition floor' };
+  const a = page?.ambition;
+  if (!a) return { name, status: 'na', detail: 'the page was not weighed' };
+  const found = [];
+  const webgl = trace.canvases.filter((c) => /webgl/.test(`${c.requested ?? ''} ${c.context ?? ''}`));
+  if (webgl.length) found.push(`a real-time 3D scene (${webgl.length} WebGL ${webgl.length === 1 ? 'canvas' : 'canvases'})`);
+  if (a.sequenceFrames >= SEQUENCE_FRAMES_MIN) found.push(`an image sequence (${a.sequenceFrames} numbered frames)`);
+  if (a.videoBytes >= FILM_BYTES_MIN) found.push(`a film (${formatBytes(a.videoBytes)} of video)`);
+  if (a.planes >= PARALLAX_PLANES_MIN) found.push(`layered parallax (${a.planes} planes)`);
+  if (a.audio) found.push('sound');
+  const high = ceilings?.high ?? HIGH_CEILING_FALLBACK;
+  const total = a.total ?? 0;
+  const light = total < high;
+  const local = a.local ? ' (measured on a file:// page, which reports only the document and its scripts: serve it over http(s))' : '';
+  const problems = [];
+  if (!found.length) problems.push('none of the yolo techniques this check can see (a WebGL scene, an image sequence, a film, layered parallax, sound)');
+  if (light) problems.push(`${formatBytes(total)} in all, under the ${kb(high)} High ceiling${local}`);
+  if (problems.length) {
+    return { name, status: 'report', detail: `built below the chosen tier: ${problems.join('; ')}${found.length ? `. Seen: ${found.join(', ')}` : ''}. That is a high build with a yolo label: build the yolo techniques at flagship scale (techniques/yolo.md), or re-send the tier message.` };
+  }
+  return { name, status: 'pass', detail: `built at the chosen tier: ${found.join(', ')}; ${formatBytes(total)} in all` };
+}
+
+// Runs in the page: how many planes move at different speeds when the page scrolls. Pictures, drawings and layers
+// with a background image are sampled at two scroll positions; each distinct speed is a plane, the page's own flow
+// (speed 1) included. A fixed layer (speed 0) is not a plane.
+async function parallaxPlanes(page) {
+  const sample = () => page.evaluate(() => {
+    const els = [...document.querySelectorAll('img,svg,picture,canvas,video,[style*="background"],[class*="layer" i],[data-speed],[data-parallax]')].slice(0, 400);
+    window.__dfPlanes = els;
+    return els.map((el) => el.getBoundingClientRect().top);
+  });
+  try {
+    const before = await sample();
+    const moved = await page.evaluate(() => { const y0 = window.scrollY; window.scrollBy(0, 400); return window.scrollY - y0; });
+    await page.waitForTimeout(400);
+    if (!moved) return 0;
+    const after = await page.evaluate(() => window.__dfPlanes.map((el) => el.getBoundingClientRect().top));
+    await page.evaluate(() => { window.scrollTo(0, 0); delete window.__dfPlanes; });
+    const speeds = new Set();
+    before.forEach((t, i) => {
+      const speed = Math.round(((t - after[i]) / moved) * 10) / 10;
+      if (speed !== 0) speeds.add(speed);
+    });
+    return speeds.size;
+  } catch {
+    return 0;
+  }
+}
+
+// ---- The Floor of the page: video, sound, weight ----------------------------------------------------------------
+
+// videos: { count, playing } read under reduced motion, or null when the page was not opened that way.
+function videoCheck(videos, tier) {
+  const name = CHECK_NAMES[6];
+  if (!videos) return { name, status: 'na', detail: 'the page was not opened under reduced motion' };
+  if (!videos.count) return { name, status: 'na', detail: 'no video on the page' };
+  if (!videos.playing.length) return { name, status: 'pass', detail: `no video plays under reduced motion (${plural(videos.count, 'video')} on the page)` };
+  const detail = `${plural(videos.playing.length, 'video')} still ${videos.playing.length === 1 ? 'plays' : 'play'} when the visitor asks for reduced motion: ${videos.playing.slice(0, 5).join(', ')}. Show the poster, or stop it until the visitor presses play.`;
+  return tier === 'yolo' ? { name, status: 'fail', detail } : { name, status: 'report', detail: `${detail} (only the yolo tier fails on this)` };
+}
+
+// audio: the URLs of every sound file the page fetched while it was opened, scrolled and read. The check never
+// clicks, taps or types, so any of them was fetched before the visitor did anything.
+function audioCheck(audio, tier) {
+  const name = CHECK_NAMES[7];
+  if (!audio) return { name, status: 'na', detail: 'the page was not weighed' };
+  if (!audio.length) return { name, status: 'pass', detail: 'no sound file fetched before the visitor did anything' };
+  const files = audio.slice(0, 5).map((u) => u.split(/[?#]/)[0].split('/').pop() || u).join(', ');
+  const detail = `${plural(audio.length, 'sound file')} fetched before any click or tap: ${files}${audio.length > 5 ? `, and ${audio.length - 5} more` : ''}. Fetch sound only after the visitor turns it on.`;
+  return tier === 'yolo' ? { name, status: 'fail', detail } : { name, status: 'report', detail: `${detail} (only the yolo tier fails on this)` };
+}
+
+// transfer: { firstView, full } summaries (full is null when the page was not scrolled). Reported on every tier and
+// never judged: for a yolo page the weight is the price the tier message names, not a limit.
+function weightCheck(transfer, url, tier) {
+  const name = CHECK_NAMES[8];
+  if (!transfer?.firstView) return { name, status: 'na', detail: 'the page was not weighed' };
+  const parts = [`first view ${formatTransfer(transfer.firstView)}`];
+  if (transfer.full) parts.push(`after a full scroll ${formatTransfer(transfer.full)}`);
+  const local = /^file:/i.test(url) ? '; a file:// page reports only the document and its scripts, so serve it over http(s) for the full weight' : '';
+  const why = tier === 'yolo' ? '; the yolo tier has no weight ceiling: this is the price for the tier message' : '';
+  return { name, status: 'report', detail: `${parts.join('; ')}${local}${why}` };
 }
 
 // ---- works without JS -----------------------------------------------------------------------------------------
 
 const CONTENT_SELECTOR = 'h1,h2,h3,h4,h5,h6,p,li,img,a,button,figure,blockquote';
-const MISSING_SHARE_MAX = 0.05; // more than this share of the content missing or hidden fails the fast tier
+const MISSING_SHARE_MAX = 0.05; // more than this share of the content missing or hidden fails the fast and yolo tiers
 const MAX_EXAMPLES = 5;
 
 // Runs in the page: every content element with a key to find it by in the other render, and whether it can be seen.
 // Seen = checkVisibility (display, visibility, content-visibility) plus no ancestor at opacity 0 and a box with area.
-function readContent(selector) {
+// With cover, also not covered: scrolled to the middle of the viewport, the element (or its own content) is what sits
+// on top at its centre, not a loader or a curtain laid over the page. The text under an opaque loader is in the DOM,
+// but nobody can read it.
+function readContent({ selector, cover }) {
   const norm = (text) => (text || '').replace(/\s+/g, ' ').trim().slice(0, 100);
   const parentOf = (n) => n.parentElement ?? (n.parentNode instanceof ShadowRoot ? n.parentNode.host : null);
   const seen = (el) => {
@@ -167,6 +301,16 @@ function readContent(selector) {
     for (let n = el; n; n = parentOf(n)) if (parseFloat(getComputedStyle(n).opacity) === 0) return false;
     const r = el.getBoundingClientRect();
     return r.width >= 1 && r.height >= 1;
+  };
+  const covered = (el) => {
+    el.scrollIntoView({ block: 'center', inline: 'nearest' });
+    const r = el.getBoundingClientRect();
+    const x = Math.min(Math.max(r.left + r.width / 2, 0), innerWidth - 1);
+    const y = Math.min(Math.max(r.top + r.height / 2, 0), innerHeight - 1);
+    const root = el.getRootNode();
+    const top = (typeof root.elementFromPoint === 'function' ? root : document).elementFromPoint(x, y);
+    if (!top) return false; // nothing at that point (outside the viewport): it cannot be said to be covered
+    return !(top === el || el.contains(top) || top.contains(el));
   };
   const out = [];
   const walk = (root) => {
@@ -178,16 +322,19 @@ function readContent(selector) {
         ? `${(el.getAttribute('src') || '').split('/').pop()}|${norm(el.getAttribute('alt'))}`
         : norm(el.textContent) || norm(el.getAttribute('aria-label')) || (tag === 'a' ? norm(el.getAttribute('href')) : '');
       if (!label) continue;
-      out.push({ key: `${tag}|${label}`, tag, label, seen: seen(el) });
+      const visible = seen(el);
+      const under = cover && visible ? covered(el) : false;
+      out.push({ key: `${tag}|${label}`, tag, label, seen: visible && !under, covered: under });
     }
   };
   walk(document);
+  if (cover) window.scrollTo(0, 0);
   return out;
 }
 
 // With scripts on, scroll the page once from top to bottom, so content a script reveals as it is reached is out, then
 // read what can be seen. Anything seen here is what a visitor with JavaScript gets.
-async function contentWithJs(page) {
+export async function contentWithJs(page) {
   const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   for (let y = 0, steps = 0; y < height && steps < 60; y += Math.round(viewport.height * 0.8), steps += 1) {
@@ -195,19 +342,19 @@ async function contentWithJs(page) {
     await page.waitForTimeout(120);
   }
   await page.waitForTimeout(300);
-  const items = await page.evaluate(readContent, CONTENT_SELECTOR);
+  const items = await page.evaluate(readContent, { selector: CONTENT_SELECTOR, cover: false });
   await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
   return items.filter((i) => i.seen);
 }
 
-// The same page in a context with JavaScript off: what exists there, and what can be seen.
-async function contentWithoutJs(browser, url, viewport) {
+// The same page in a context with JavaScript off: what exists there, and what can be seen (and is not covered).
+export async function contentWithoutJs(browser, url, viewport) {
   const context = await browser.newContext({ viewport, javaScriptEnabled: false, reducedMotion: 'no-preference' });
   try {
     const page = await context.newPage();
     await page.goto(url, { waitUntil: 'load' });
     await page.waitForTimeout(1500); // a CSS entrance (fade, slide) has finished by now
-    return await page.evaluate(readContent, CONTENT_SELECTOR);
+    return await page.evaluate(readContent, { selector: CONTENT_SELECTOR, cover: true });
   } finally {
     await context.close();
   }
@@ -217,32 +364,81 @@ async function contentWithoutJs(browser, url, viewport) {
 function withoutJsCheck(content, tier) {
   const name = CHECK_NAMES[5];
   if (!content) return { name, status: 'na', detail: 'the page was not opened without JavaScript' };
+  if (tier === 'yolo' && !content.withJs.some((i) => READING.test(i.tag))) {
+    // A page whose words are all drawn (in a canvas, a film, a picture) has nothing to read without the experience.
+    return { name, status: 'fail', detail: 'the page has no headings or paragraphs in its HTML, even with JavaScript: the yolo tier owes the Floor, and the content must be readable without the experience. Put the words in the HTML beside the scene.' };
+  }
   if (!content.withJs.length) return { name, status: 'na', detail: 'no headings, text, images or links to compare' };
-  const available = new Map(); // key -> how many of that item exist, and how many of those can be seen, without JS
+  const available = new Map(); // key -> how many of that item exist, can be seen, and are covered, without JS
   for (const i of content.withoutJs) {
-    const slot = available.get(i.key) ?? { seen: 0, any: 0 };
+    const slot = available.get(i.key) ?? { seen: 0, any: 0, covered: 0 };
     slot.any += 1;
     if (i.seen) slot.seen += 1;
+    if (i.covered) slot.covered += 1;
     available.set(i.key, slot);
   }
   const missing = [];
   for (const i of content.withJs) {
     const slot = available.get(i.key);
     if (slot?.seen) { slot.seen -= 1; slot.any -= 1; continue; }
-    if (slot?.any) slot.any -= 1;
-    missing.push({ ...i, why: slot ? 'hidden' : 'absent' });
+    let why = 'absent';
+    if (slot?.any) {
+      slot.any -= 1;
+      why = slot.covered > 0 ? 'covered' : 'hidden';
+      if (slot.covered > 0) slot.covered -= 1;
+    } else if (slot) why = 'hidden';
+    missing.push({ ...i, why });
   }
   const total = content.withJs.length;
   const share = missing.length / total;
   const examples = missing.slice(0, MAX_EXAMPLES).map((m) => `${m.tag} "${m.label.replace(/^.*\|/, '') || m.label}" (${m.why})`);
   const more = missing.length > MAX_EXAMPLES ? `, and ${missing.length - MAX_EXAMPLES} more` : '';
-  const summary = `${missing.length} of ${plural(total, 'content item')} (${Math.round(share * 100)} %) missing or hidden without JavaScript`;
+  const summary = `${missing.length} of ${plural(total, 'content item')} (${Math.round(share * 100)} %) missing, hidden or covered without JavaScript`;
   if (!missing.length) return { name, status: 'pass', detail: `all ${plural(total, 'content item')} show without JavaScript` };
   const detail = `${summary}: ${examples.join(', ')}${more}.`;
-  if (tier !== 'fast') return { name, status: 'report', detail: `${detail} (only the fast tier fails on this)` };
+  if (!NO_JS_FAILS.has(tier)) return { name, status: 'report', detail: `${detail} (only the fast and yolo tiers fail on this)` };
+  if (tier === 'yolo') return yoloReadable(content.withJs, missing, detail);
   return share > MISSING_SHARE_MAX
     ? { name, status: 'fail', detail: `${detail} The fast tier must work without JavaScript.` }
     : { name, status: 'pass', detail: `${summary} (within the ${Math.round(MISSING_SHARE_MAX * 100)} % allowed): ${examples.join(', ')}${more}.` };
+}
+
+// The yolo Floor asks that the content be readable without the experience, not that the page work without scripts:
+// menus, cookie dialogs and buttons a script builds are not the content. So it is judged on the reading text (headings,
+// paragraphs, quotes, by characters, up to 100 per element) that can be seen without JavaScript. The 40 % is set on
+// the cohort of 2026-11-03 (benchmarks.md, "YOLO, measured"): the pages read as readable by eye showed 47 to 91 % of
+// their text; the blank pages and those under a loader showed 0 %.
+const READING = /^(h[1-6]|p|blockquote)$/;
+const YOLO_TEXT_SHARE_MIN = 0.4;
+function yoloReadable(withJs, missing, detail) {
+  const name = CHECK_NAMES[5];
+  const chars = (items) => items.filter((i) => READING.test(i.tag)).reduce((n, i) => n + i.label.length, 0);
+  const total = chars(withJs);
+  const share = 1 - chars(missing) / total;
+  const shown = `${Math.round(share * 100)} % of the reading text (headings and paragraphs) shows without JavaScript`;
+  return share < YOLO_TEXT_SHARE_MIN
+    ? { name, status: 'fail', detail: `${shown}, under the ${Math.round(YOLO_TEXT_SHARE_MIN * 100)} % the yolo tier needs. ${detail} The yolo tier owes the Floor: the content must be readable without the experience.` }
+    : { name, status: 'pass', detail: `${shown} (the yolo tier needs ${Math.round(YOLO_TEXT_SHARE_MIN * 100)} %); ${detail}` };
+}
+
+// Runs in the page: how many videos there are, and which of them are playing (not paused, not ended) and visible.
+function readVideos() {
+  const videos = [...document.querySelectorAll('video')];
+  const name = (v) => (v.id ? `video#${v.id}` : `video ${((v.currentSrc || v.src || '').split(/[?#]/)[0].split('/').pop()) || `#${videos.indexOf(v) + 1}`}`);
+  return { count: videos.length, playing: videos.filter((v) => !v.paused && !v.ended && v.checkVisibility()).map(name) };
+}
+
+// The page again under reduced motion, only to see whether its videos still play. Opened only when it has a video.
+async function videosUnderReducedMotion(browser, url, viewport) {
+  const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
+  try {
+    const page = await context.newPage();
+    await page.goto(url, { waitUntil: 'load' });
+    await settle(page);
+    return await page.evaluate(readVideos);
+  } finally {
+    await context.close();
+  }
 }
 
 // Loads the page with its loop running (no __DF_EXPORT__: the export freezes it) and judges the trace.
@@ -252,14 +448,35 @@ export async function runMotionChecks(target, { tier, browser, ceilings = loadCe
   const { page, context } = await newPage(browser, { reducedMotion: 'no-preference' });
   try {
     await installCanvasTrace(context);
+    const transfer = includeWithoutJs ? await watchTransfer(page) : null;
     await page.goto(url, { waitUntil: 'load' });
     await settle(page);
+    const firstView = transfer?.snapshot() ?? null;
     const trace = await runCanvasTrace(page);
     const viewport = page.viewportSize() ?? { width: 1440, height: 900 };
     if (!includeWithoutJs) return evaluateMotion(trace, { tier, ceilings, includeWithoutJs });
+    const planes = tier === 'yolo' ? await parallaxPlanes(page) : 0;
     const withJs = await contentWithJs(page);
+    const full = transfer.snapshot();
+    const audio = transfer.entries().filter((e) => kindOf(e) === 'audio').map((e) => e.url);
+    const videoCount = await page.evaluate(() => document.querySelectorAll('video').length);
+    const audioElements = await page.evaluate(() => document.querySelectorAll('audio').length);
+    const ambition = {
+      sequenceFrames: sequenceFrames(transfer.entries()),
+      videoBytes: full.byKind.video,
+      audio: audio.length > 0 || audioElements > 0,
+      planes,
+      total: full.total,
+      local: /^file:/i.test(url),
+    };
+    const videos = videoCount ? await videosUnderReducedMotion(browser, url, viewport) : { count: 0, playing: [] };
     const withoutJs = await contentWithoutJs(browser, url, viewport);
-    return evaluateMotion(trace, { tier, ceilings, content: { withJs, withoutJs } });
+    return evaluateMotion(trace, {
+      tier,
+      ceilings,
+      content: { withJs, withoutJs },
+      page: { url, videos, audio, transfer: { firstView, full }, ambition },
+    });
   } finally {
     await context.close();
   }

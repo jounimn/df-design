@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { probe } from '../scripts/probe.mjs';
+import { parseProbeArgs, probe, splitClicks } from '../scripts/probe.mjs';
 import { startFixtureServer } from './helpers/fixture-server.mjs';
 import { motionFixture } from './helpers/motion-fixture.mjs';
 
@@ -79,6 +79,78 @@ test('records the canvases of a WebGL page, with weight and libraries', async ()
     await fs.rm(root, { recursive: true, force: true });
     await server.close();
     fx.cleanup();
+  }
+});
+
+// ---- Options for pages that stream forever or sit behind a gate (the YOLO survey, 2026-11-03) -----------------
+
+test('parseProbeArgs: the old command line keeps the old defaults', () => {
+  assert.deepEqual(parseProbeArgs(['https://x.example/']), { url: 'https://x.example/', cohort: null, root: 'captures', wait: 'load', timeout: 30000, clicks: [] });
+  assert.deepEqual(parseProbeArgs(['https://x.example/', '--cohort', 'yolo', '--root', 'out']).cohort, 'yolo');
+});
+
+test('parseProbeArgs: --wait, --timeout and --click, repeatable and comma-separated', () => {
+  const o = parseProbeArgs(['https://x.example/', '--wait', 'domcontentloaded', '--timeout', '60000', '--click', '#age-yes, #sound-off', '--click', ':is(.begin, .start)']);
+  assert.equal(o.wait, 'domcontentloaded');
+  assert.equal(o.timeout, 60000);
+  assert.deepEqual(o.clicks, ['#age-yes', '#sound-off', ':is(.begin, .start)']);
+  assert.deepEqual(splitClicks('button[data-x="a,b"], #go'), ['button[data-x="a,b"]', '#go']);
+});
+
+test('parseProbeArgs: a bad wait, a bad timeout, a missing value, an unknown option and no url are refused', () => {
+  for (const argv of [
+    ['https://x.example/', '--wait', 'never'],
+    ['https://x.example/', '--timeout', 'soon'],
+    ['https://x.example/', '--timeout', '-5'],
+    ['https://x.example/', '--click'],
+    ['https://x.example/', '--bogus'],
+    ['--wait', 'load'],
+  ]) assert.throws(() => parseProbeArgs(argv), Error, argv.join(' '));
+});
+
+// A gate: the content and the sound arrive only after the visitor clicks "Enter".
+const GATE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Gate</title></head><body>
+<button id="enter" style="font-size:40px">Enter</button><main id="m" hidden><h1 style="font-size:72px">Behind the gate</h1><p>Inside.</p></main>
+<script>fetch('poster.png');document.getElementById('enter').addEventListener('click', () => { document.getElementById('m').hidden = false; fetch('tone.mp3'); });</script>
+</body></html>`;
+
+async function gateSite() {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'dfd-gate-'));
+  await fs.writeFile(path.join(dir, 'gate.html'), GATE);
+  await fs.writeFile(path.join(dir, 'tone.mp3'), Buffer.alloc(30000, 3));
+  await fs.writeFile(path.join(dir, 'poster.png'), Buffer.alloc(5000, 1));
+  const server = await startFixtureServer(dir);
+  return { url: `${server.url}/gate.html`, close: async () => { await server.close(); await fs.rm(dir, { recursive: true, force: true }); } };
+}
+
+test('--click passes a gate; the record weighs the first view before the click and the full page after it', async () => {
+  const site = await gateSite();
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dfd-probe-'));
+  try {
+    const { record } = await probe(site.url, { root, wait: 'domcontentloaded', timeout: 20000, clicks: ['#enter'] });
+    assert.deepEqual(record.load, { wait: 'domcontentloaded', timeout: 20000, clicks: ['#enter'] });
+    assert.equal(record.transfer.firstView.byKind.audio, 0);
+    assert.ok(record.transfer.firstView.byKind.images >= 5000, JSON.stringify(record.transfer.firstView));
+    assert.ok(record.transfer.full.byKind.audio >= 30000, JSON.stringify(record.transfer.full));
+    assert.equal(record.transfer.audioBeforeGesture, 0);
+    assert.ok(record.transfer.full.total > record.transfer.firstView.total);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+    await site.close();
+  }
+});
+
+test('a click that finds nothing is recorded as a gate not passed, and the probe still finishes', async () => {
+  const site = await gateSite();
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dfd-probe-'));
+  try {
+    const { record } = await probe(site.url, { root, timeout: 3000, clicks: ['#no-such-button'] });
+    assert.equal(record.load.clicksFailed.length, 1);
+    assert.equal(record.load.clicksFailed[0].selector, '#no-such-button');
+    assert.equal(record.transfer.full.byKind.audio, 0);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+    await site.close();
   }
 });
 

@@ -7,7 +7,7 @@ individual mockups, social posts and one PDF, and it includes a view of the
 chosen site so the presentation shows the full work.
 
 It is not a third value of `path`. It is recorded in the status line as
-`selling=<now|end|skip> tier=<fast|medium|high>`.
+`selling=<now|end|skip> tier=<fast|medium|high|yolo>`.
 
 | Section | Covers |
 |---|---|
@@ -50,6 +50,7 @@ warrant heavy motion, a bakery usually does not.
 | `fast` | CSS only: slide and fade transitions, `clip-path` reveals for images (`[data-reveal]`). Built into the runtime (§7) |
 | `medium` | A small library (GSAP core or Motion One) for choreographed image and mockup reveals, hooked on the runtime's `df:slidechange` event |
 | `high` | Techniques from [`techniques/high.md`](techniques/high.md), run by `canvas-loop.js` inside the slide in focus. Every export shows the poster frame, and the lighter version appears without WebGL; under reduced motion the poster frame stays |
+| `yolo` | Offered, never the default: a scene, film or sequence from [`techniques/yolo.md`](techniques/yolo.md) in the slide in focus, with no weight ceiling. The Floor still applies: the poster frame in every export and under reduced motion, the slide's words in the HTML, no sound until the viewer turns it on |
 
 `prefers-reduced-motion` turns all of it off, at every tier. If the author
 answers **skip**, no tier is asked or recorded.
@@ -72,7 +73,7 @@ Record the answer as a condition. If the author accepts HTML only, deliver
 watermarked) and tell them how to export by hand.
 
 Record the choice in the status line:
-`selling=<now|end|skip> tier=<fast|medium|high>`.
+`selling=<now|end|skip> tier=<fast|medium|high|yolo>`.
 
 ---
 
@@ -211,6 +212,12 @@ gets kraft paper and a street front, not a phone on marble.
 - The export crops each mockup to its **computed size**.
 - **Device frames.** A laptop or phone drawn in CSS around a capture is
   allowed. It is not a photograph, so it needs no row in `assets.md`.
+- **A cutout on the ground.** When no blank-surface photo passes, the
+  product itself (packaging, a bottle, a shoe) can be cut out of a passing
+  photo with `scripts/cutout.mjs` and set on the identity's ground with the
+  one accent beside it (`images.md` §6). The cutout is still a photograph:
+  it is a local file with its own row in `assets.md`, carrying the
+  original's source and licence.
 - An application with no passing photo is **dropped** from the presentation,
   and the reason is reported. A failing mockup is never used "just this
   once".
@@ -407,7 +414,7 @@ Optional flags of `check-presentation.mjs`:
 | `--offline` | Skips the source-URL fetch when there is no network |
 | `--after-gate` | Also fails a site section still marked `data-pending` |
 | `--watermark <spec\|none>` | Says what the export was run with. `none` fails a leftover `preview/`; a spec fails a missing or stale one. Pass the same value given to the export |
-| `--tier <fast\|medium\|high\|custom>` | The tier the author chose. Required when a slide has a canvas, which then also gets the `motion:` canvas checks (`verification.md`) |
+| `--tier <fast\|medium\|high\|yolo\|custom>` | The tier the author chose. Required when a slide has a canvas, which then also gets the `motion:` canvas checks (`verification.md`) |
 
 When the presentation has a canvas, `check-presentation` also runs the same motion checks as a page (`verification.md`) against the `tier=` recorded for it, and each is prefixed `motion:`. Without a canvas it adds nothing.
 

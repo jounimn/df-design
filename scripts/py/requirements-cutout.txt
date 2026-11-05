@@ -1,0 +1,10 @@
+# Background removal (remove-bg). Installed by `node scripts/cutout.mjs setup` into ~/.cache/df-design/cutout-venv.
+# Pinned to the versions the 2026-11-03 survey ran on (Python 3.13.5, Windows 11, CPU only).
+rembg==2.0.86
+onnxruntime==1.31.1
+numpy==2.5.4
+pillow==13.0.0
+PyMatting==1.1.16
+scipy==1.18.1
+scikit-image==0.26.0
+pooch==1.9.0

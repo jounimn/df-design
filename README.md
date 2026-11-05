@@ -100,8 +100,12 @@ A few rules run through all of it:
 - **The author picks the loading tier.** Claude recommends the cheapest tier
   that fully delivers the identity, then offers fast, medium and high
   expensive loading, each described and costed for this project, plus a
-  fourth "custom / unrestricted" choice if the author declines the
-  recommendation. The question comes with the candidates, every run, even
+  "custom / unrestricted" choice if the author declines the
+  recommendation. YOLO, the no-savings tier for flagship experiences, is
+  offered in the same message with its weight in MB and never recommended:
+  it has no ceiling, and it still owes the Floor (reduced motion, a lighter
+  path, the content readable without the experience, no sound before the
+  visitor asks), which `check-motion --tier yolo` fails when it is missing. The question comes with the candidates, every run, even
   when every candidate is fast, and is confirmed after the assets are
   priced. When the author combines candidates or techniques from different
   tiers, each technique is listed with its own tier and cost and the author
@@ -209,7 +213,7 @@ flowchart LR
         CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
         CKP["scripts/check-kept.mjs<br/>record · check"]
         CPT["scripts/capture.mjs"]
-        CMO["scripts/capture-motion.mjs<br/>video · contact sheets"]
+        CUT["scripts/cutout.mjs<br/>remove-bg · detect · mask"]
         DRW["scripts/draw.mjs<br/>check · roughen · sheet"]
     end
     SK --> ID & AUD & LIB & RD & RM & IC & DRA & IMG & VER & ANA & GAT & PAT & REV & RED & BRT
@@ -225,9 +229,7 @@ flowchart LR
     RED -. "the record" .-> CKP
     BRT -. "probe the brand" .-> PRB
     CSL -. "screenshots for" .-> REV
-    CSL & PRB -. "a page that moves" .-> CMO
-    CMO -. "contact sheets for" .-> REV
-    TST --> LIBS & CSL & CKP & CPT & CMO
+    TST --> LIBS & CSL & CKP & CPT & CUT
 ```
 
 The skill and the rig are separate halves. The skill tells Claude how to
@@ -403,7 +405,25 @@ media query and animate anyway.
 
 Output lands in `captures/<site>/<date>/` — the validated record, the raw
 capture, the motion traces, the frames, and a `contact.png` thumbnail grid
-rendered by the browser that is already open.
+rendered by the browser that is already open. The record carries a
+`transfer` field: bytes on the wire by type (images, video, models, audio,
+script, other) for the first view, before any click, and for the full page
+after the scroll frames, plus the sound fetched before any click.
+
+For pages that stream forever or sit behind a gate (the YOLO cohort):
+
+| Option | Default | What it is for |
+|---|---|---|
+| `--wait <domcontentloaded\|load\|networkidle>` | `load` | What `goto` waits for. A page that streams media never reaches `load` in time; `domcontentloaded` lets it be measured |
+| `--timeout <ms>` | `30000` | How long `goto` may take (the settle after it still waits at most 15 s) |
+| `--click "<css>"` | none | Clicks to pass a gate (age question, "Begin", sound prompt), in order, after the page settles and again on the reduced-motion pass. Repeat the option, or separate selectors with commas; a comma inside `:is(...)` or `[...]` stays in its selector. A click that fails is kept in `load.clicksFailed`, and the probe goes on |
+
+```
+node scripts/probe.mjs https://santionispirits.com/ --cohort yolo --wait domcontentloaded --timeout 60000 --click "#age-yes"
+```
+
+The canvas trace reopens the page twice (reduced motion, no WebGL) without
+the clicks, so behind a gate its canvas columns may read "not measured".
 
 The six frames are taken with `window.scrollTo`. On a site whose scrolling a
 library owns, scrollTo moves nothing and every frame shows the first screen.
@@ -453,7 +473,7 @@ of it. This keeps the aggregates honest — a 112px hero on a WebGL stage is
 not evidence about typographic heroes.
 
 ```
-npm test        # 409 tests in 27 files, node:test, no network — local fixtures and a fixture server
+npm test        # 407 tests in 25 files, node:test, no network — a local fixture server
 ```
 
 ---
@@ -473,7 +493,8 @@ npm test        # 409 tests in 27 files, node:test, no network — local fixture
 | `docs/examples/` | The four README examples as built pages, each with its identity brief, surface spec, verification record, screenshots, asset record and selling-positioning presentation. |
 | `references/benchmarks.md` | The measurements. Aggregates, per-site data, easing curves and durations actually shipped. |
 | `references/recipes-design.md` | Ten sections: type roles and measure, colour ladders, page structure, chrome vocabulary, subject-derived identity, layout, anti-slop, the plan-and-review pass, words as design, and the checklist. |
-| `references/recipes-motion.md` | The rules every motion technique obeys: the signature curve, the reduced-motion contract, icons and images in motion, and a checklist. The techniques themselves are 34 cards in `references/techniques/` (23 fast, 4 medium, 7 high), 18 of them with a measured cost, and the other 16 say "not measured". |
+| `references/recipes-motion.md` | The rules every motion technique obeys: the signature curve, the reduced-motion contract, icons and images in motion, and a checklist. The techniques themselves are 40 cards in `references/techniques/` (23 fast, 4 medium, 7 high, 6 yolo), 24 of them with a measured cost, and the other 16 say "not measured". |
+| `references/techniques/yolo.md` | The YOLO tier: six techniques of flagship experiences (scroll-scrubbed image sequence, pre-rendered 3D film, real-time 3D world, illustrated scroll story, sound design, physics and drag), each priced in MB from the sites that ship it, with the Floor fallback it still owes. |
 | `references/verification.md` | How to confirm the work is real. Read this one even if you skip the rest. |
 | `references/gates.md` | The one list of what the skill refuses to ship: Floor (never waived), Reflex (waived on the record), Finish (noted). Which a script settles, which a browser measures, which the eye judges; the judged clauses. |
 | `references/anatomy.md` | What a page is built around, by the visitor's job: subscribe, book, visit, attend, buy, try, sign up, hire, join, listen, work in. Where the action lives, the category's own sections, how pages end. |
@@ -484,13 +505,18 @@ npm test        # 409 tests in 27 files, node:test, no network — local fixture
 | `scripts/probe.mjs` | The prober CLI. |
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. Writes each candidate's full page at rest and its motion capture side by side. |
 | `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
-| `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs, and the motion capture's contact sheets for a page with a canvas, a pinned section, a scroll-driven animation or a virtual scroller (`--motion` on any page). Exit 1 on a FAIL or an open REFLEX. |
+| `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle. |
+| `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off; writes the screenshots the look needs. Exit 1 on a FAIL or an open REFLEX. |
 | `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
 | `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
 | `scripts/capture-motion.mjs` | The motion capture: a video of the page driven by the wheel (keys as the fallback) to its true end, past any gate given as `--click`; contact sheets of the whole run, stills where the picture settled, and `capture.json` with the steps, the input that moved it and whether it reached the end. Used by `probe --motion`, `check-auditions` and `check-slop --render`. |
 | `scripts/draw.mjs` | Drawn assets: `check` a set for one line and one palette, `roughen` clean geometry into a seeded hand-drawn line, `sheet` the set on the brief's ground, inverted and at 24px. |
-| `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, motion capture, archetype, validate, bundle; the slop gates (static and render) and the page record. |
-| `test/` | 409 tests in 27 files, and the HTML fixtures they run against. |
+| `scripts/lib/` | Browser launch, static pass, motion inventory, property trace, scroll trace, archetype, validate, bundle; the slop gates (static and render) and the page record. |
+| `scripts/cutout.mjs` | Cuts a product or a person out of a photo to sit on a colour ground, lists what is in a photo as labelled boxes, or masks one named object. Local, CPU, offline after `setup`. Only MIT and Apache-2.0 weights from the allow-list in `scripts/py/cutout-models.json`. Prints the `assets.md` row and warns when the subject is a person. |
+| `scripts/py/` | The Python side of the cutout tool, its pinned requirements and the model allow-list. The venv and the weights live in `~/.cache/df-design`, never in the repo. |
+| `test/` | 407 tests in 25 files, and the HTML fixtures they run against. The two that run the cutout models are skipped unless `DF_DESIGN_CUTOUT_TESTS=1`. |
+| `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT), and the licences of the cutout models, which are downloaded, not vendored (`cutout-models.md`). |
+| `test/` | 398 tests in 25 files, and the HTML fixtures they run against. |
 | `licenses/` | Third-party licences for what is adapted here (Hallmark, MIT). |
 
 Claude reads the mode's recipe file and works from it; `benchmarks.md` and
@@ -610,12 +636,19 @@ fields side by side. Near-total agreement is what makes any disagreement
 diagnostic: when seven of nine fields reproduce to the pixel, the other two
 are defects, not noise, and they are exactly the ones no fixture encoded.
 Where a field legitimately differs, record why beside the row, so the
-comparison stays a live check instead of decaying into noise. A tool that
-looks at motion is checked the same way against a page you can watch: run
-`capture-motion` over a site whose scrolling a library owns and read the
-sheets against the live page. `capture.json` must say it reached the end and
-which input moved it, and the sheets must show every scene in order; stills
-that all show the first screen are the failure this capture exists for.
+comparison stays a live check instead of decaying into noise.
+
+**Cutting out images.** The cutout tool keeps its own venv, so nothing changes for the rest of the rig:
+
+```bash
+node scripts/cutout.mjs setup                  # remove-bg: venv + ~0.4 GB of weights, once
+node scripts/cutout.mjs setup --with detect    # detect and mask: torch CPU + ~0.8 GB more
+node scripts/cutout.mjs doctor
+DF_DESIGN_CUTOUT_TESTS=1 node --test test/cutout.test.mjs   # the model tests, minutes on a laptop
+```
+
+A new model goes in `scripts/py/cutout-models.json` only after its **weights** licence has been read on the model card (a code licence is not enough), with a pinned revision, and with a row in `licenses/cutout-models.md`. The test suite refuses any licence other than MIT or Apache-2.0.
+
 **Adding gates.** A gate is a row in `references/gates.md` §3 with a tier
 and a class, and, when a script can settle it, an entry in `GATES`
 (`scripts/lib/slop-static.mjs`) with its check and a line in the fixtures

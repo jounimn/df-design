@@ -1,0 +1,10 @@
+# Detection and named-object masks (detect, mask). Installed by `node scripts/cutout.mjs setup --with detect`
+# on top of requirements-cutout.txt. The extra index serves torch's CPU-only wheels (about 0.5 GB instead of
+# several GB with CUDA); on macOS the plain PyPI wheel is CPU/MPS already.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.15.0
+torchvision==0.29.2
+transformers==5.22.1
+huggingface_hub==2.4.0
+safetensors==0.8.0
+tokenizers==0.23.3

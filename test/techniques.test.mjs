@@ -149,6 +149,31 @@ test('measured-heading: the fixed line comes right after the heading, and the li
 
 test('files: a missing tier file fails only files', () => {
   assert.deepEqual(rules(lint({}, { remove: ['techniques/high.md'] })), ['files']);
+  assert.deepEqual(rules(lint({}, { remove: ['techniques/yolo.md'] })), ['files']);
+});
+
+// ---- YOLO: most of its techniques have no card of the same name below them -----------------------------------
+
+test('yolo: the lighter version may link any card of a lower tier, of another name', () => {
+  for (const to of ['high.md#particles', 'medium.md#particles', 'fast.md#particles']) {
+    assert.deepEqual(lint({ 'techniques/yolo.md': [['(fast.md#particles)', `(${to})`]] }), [], to);
+  }
+});
+
+test('yolo: the link must still be a card of a lower tier, not a heading that is no card, nor the yolo file itself', () => {
+  assert.deepEqual(rules(lint({ 'techniques/yolo.md': [['(fast.md#particles)', '(high.md#high-techniques)']] })), ['lighter-resolves']);
+  assert.deepEqual(rules(lint({ 'techniques/yolo.md': [['(fast.md#particles)', '(yolo.md#sound)']] })), ['lighter-resolves']);
+});
+
+test('yolo: "No lighter version" needs a reason, and a lighter version with no link and no reason fails', () => {
+  assert.deepEqual(rules(lint({ 'techniques/yolo.md': [['No lighter version: silence is the fallback, and it is the default.', 'No lighter version.']] })), ['lighter-resolves']);
+  assert.deepEqual(rules(lint({ 'techniques/yolo.md': [['The [Particles](fast.md#particles) card is not this technique', 'The Particles card is not this technique']] })), ['lighter-resolves']);
+});
+
+test('yolo: the other rules hold as on every tier (layers, API words, a measured cost)', () => {
+  assert.deepEqual(rules(lint({ 'techniques/yolo.md': [['### Lighter version\n\nNo lighter', '### Simpler\n\nNo lighter']] })), ['layers']);
+  assert.deepEqual(rules(lint({ 'techniques/yolo.md': [['Packaged products with a hero object.', 'Packaged products, drawn in WebGL.']] })), ['no-api-in-top-layers']);
+  assert.deepEqual(rules(lint({ 'techniques/yolo.md': [['About 25 MB of stills before the page was usable (1 site).', 'A lot of stills.']] })), ['cost-number-or-not-measured']);
 });
 
 test('an error names the card it is about', () => {

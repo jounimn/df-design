@@ -2,7 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript' };
+const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mp3': 'audio/mpeg', '.webm': 'video/webm', '.png': 'image/png' };
 
 export async function startFixtureServer(dir) {
   const server = http.createServer(async (req, res) => {
