@@ -71,7 +71,7 @@ For one object, the [Clay 3D](high.md#clay-3d) card draws it live at a fraction 
 
 ### For the builder
 
-One `<video muted playsinline preload="metadata" poster="...">`, chapters as buttons that set `currentTime`, hotspots as buttons placed over it. Scrubbing a video by scroll needs an encode with every frame a keyframe (`-g 1`) or it stutters; Emons chose chapters over scrubbing, Apple scrubs. Under `prefers-reduced-motion: reduce` do not autoplay: show the poster and the chapters. Without scripts the poster and the chapter text are in the HTML.
+One `<video muted playsinline preload="metadata" poster="...">`, chapters as buttons that set `currentTime`, hotspots as buttons placed over it. Blender, run headless with the render script kept in the project, is the tool for the film (the [Rendered 3D](high.md#rendered-3d) card has the setup and the look); scrubbing a video by scroll needs an encode with every frame a keyframe (`-g 1`) or it stutters; Emons chose chapters over scrubbing, Apple scrubs. Under `prefers-reduced-motion: reduce` do not autoplay: show the poster and the chapters. Without scripts the poster and the chapter text are in the HTML.
 
 `check-motion --tier yolo` fails a video that still plays under reduced motion.
 

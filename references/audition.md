@@ -153,7 +153,7 @@ serves the identity. Unnecessary cost is always wrong.
 |---|---|---|
 | **[Fast expensive loading](techniques/fast.md)** | CSS only (gradients, masks, clip-path, blend modes, `@keyframes`, scroll-driven animations), SVG, system fonts or one or two subset webfonts, small vanilla JS | Adds roughly nothing past the fonts; works without JS |
 | **[Medium expensive loading](techniques/medium.md)** | Several webfonts, a small motion library (GSAP core, Motion One, Lenis), Lottie for a few illustrations, heavy optimised imagery, `backdrop-filter` across panels | Tens of KB of JS, or noticeable image weight and GPU work |
-| **[High expensive loading](techniques/high.md)** | WebGL / Three.js / shader scenes, 3D models, physics, background video, large Lottie or Rive sets, canvas particle systems | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
+| **[High expensive loading](techniques/high.md)** | WebGL / Three.js / shader scenes, 3D models rendered live or offline in Blender, physics, background video, large Lottie or Rive sets, canvas particle systems | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
 | **[YOLO](techniques/yolo.md)** | Real-time 3D worlds, pre-rendered 3D films, scroll-scrubbed image sequences, illustrated scroll stories, sound, physics | No ceiling. Measured on eight flagship sites: 5.6 to 26.7 MB of transfer after a full scroll (median 13.8 MB), 376 to 976 KB of script. Still owes the Floor: reduced motion, a lighter path, the content readable without it, no sound before the visitor asks; `check-motion --tier yolo` proves it |
 
 The measured finding (`benchmarks.md`) supports starting cheap: premium
@@ -186,14 +186,14 @@ The number beside a technique is the motion code of a production page that shows
 - [Halftone](techniques/medium.md#halftone): 7 KB
 - [Glassmorphism](techniques/medium.md#glassmorphism): 0 to 282 KB
 
-**[High](techniques/high.md), 7 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D, which says why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph and Halftone say "not measured".
+**[High](techniques/high.md), 8 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D and Rendered 3D, which say why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph, Rendered 3D and Halftone say "not measured".
 
 - [Particles](techniques/high.md#particles): 340 KB, the ceiling itself
 - [Holographic](techniques/high.md#holographic): 340 KB, the ceiling itself
 - [Wireframe 3D](techniques/high.md#wireframe-3d): 180 KB
 - [Gradient mesh](techniques/high.md#gradient-mesh): 282 to 315 KB
 - [Clay 3D](techniques/high.md#clay-3d): 180 to 640 KB, the heavier above the ceiling
-- Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Halftone](techniques/high.md#halftone)
+- Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Rendered 3D](techniques/high.md#rendered-3d) (Blender, offline), [Halftone](techniques/high.md#halftone)
 
 **[YOLO](techniques/yolo.md), 6 techniques:** no ceiling, priced in MB of transfer, not in motion code (`benchmarks.md`, "YOLO, measured"). Each names its Floor fallback and links the nearest lower card where one exists. The number is the whole page after a full scroll.
 
