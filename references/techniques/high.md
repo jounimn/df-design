@@ -1,6 +1,6 @@
 # High techniques
 
-High expensive loading: heavy script, large media, and main-thread and GPU cost, so it needs a fallback. The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. Each card here links its lighter version, in [medium.md](medium.md) or [fast.md](fast.md), except Clay 3D, which says why there is none.
+High expensive loading: heavy script, large media, and main-thread and GPU cost, so it needs a fallback. The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. Each card here links its lighter version, in [medium.md](medium.md) or [fast.md](fast.md), except Clay 3D and Rendered 3D, which say why there is none.
 
 | Technique | What the visitor sees | Suits |
 |---|---|---|
@@ -10,6 +10,7 @@ High expensive loading: heavy script, large media, and main-thread and GPU cost,
 | [Wireframe 3D](#wireframe-3d) | A solid object drawn as bare edges, turning in space | Technical, plan-like and sci-fi brands |
 | [Gradient mesh](#gradient-mesh) | A full-screen field of colour that flows with no edges | Fintech, AI and launch pages |
 | [Clay 3D](#clay-3d) | Soft, matte lumps that look hand-modelled and turn slowly | Friendly consumer, kids and playful brands |
+| [Rendered 3D](#rendered-3d) | A modelled, lit object or scene, rendered once and shipped as pictures | Products, characters and toon worlds |
 | [Halftone](#halftone) | A picture, video or 3D scene turned into printed-looking dots | Print, music and campaign brands |
 
 ## Particles
@@ -727,6 +728,44 @@ Save `clay-poster.jpg` once from the loop's own poster: open the page with reduc
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - spline.design and github.com, probed 2026-10-14: motion code of the page 180 KB and 640 KB (the table does not say which is which), four animated drawings in all; reduced motion honoured 75 %, fallback without WebGL 100 %. One drawing had a nameable renderer (an Intel UHD GPU through ANGLE, Direct3D11): median frame 16.7 ms, slowest 5 % 17 ms; the other three had a median of 16.7 ms and 33.4 ms for the slowest 5 % (WebGPU or a worker).
+
+## Rendered 3D
+
+### What it is
+
+A model lit and rendered once, offline, in Blender, and shipped as pictures: a hero still, a short turntable the scroll turns, or a loop of a few seconds. The page draws no 3D at all, so the picture can have the light, the ink lines and the materials a live scene could not afford on a phone.
+
+### Where it comes from
+
+Pre-rendering is the film way of making 3D: each frame is computed ahead of time, so it can be richer than a device could draw live ([Wikipedia, Pre-rendering](https://en.wikipedia.org/wiki/Pre-rendering)).
+
+### Suits
+
+Products, characters and places that need to look modelled and lit rather than drawn: packaged goods, devices, comic and toon worlds ([Comic / manga panels](../identities/print-craft.md#comic--manga-panels), [Claymorphism](../identities/digital.md#claymorphism), [Low-poly](../identities/digital.md#low-poly)), and any identity whose live 3D would cost more than its picture.
+
+### What it costs the visitor
+
+Not measured on a production page yet. It costs what its pictures cost: one still is one image, and a scrubbed turntable is its frames times their size, so the frame count is the budget. Past a few dozen frames at full width, or a film, the technique is [Pre-rendered 3D film](yolo.md#pre-rendered-3d-film) on the YOLO tier.
+
+### Lighter version
+
+No lighter version: the lighter version is the same render as one still picture, which costs what any image costs.
+
+### For the builder
+
+Blender is the tool, run headless so the render can be repeated: the portable build (no installer) and one Python script kept in the project, `blender -b -P render.py`. Models, materials and HDRIs from CC0 sources (Poly Haven, Kenney, Quaternius, ambientCG), each recorded in the asset record (`images.md` §5) with its page and licence; no CC BY and no non-commercial files.
+
+- **The look comes from the brief**, not from Blender's defaults. A drawn identity gets ink: Line Art or Freestyle for the contour, toon bands with a tinted shadow (a cool, saturated tint, never grey, which reads as dirt), and the Standard view transform so the flat colour you pick is the pixel you get. A product gets a soft key, a rim and one HDRI, matched to the page's ground.
+- **The design hint** goes on the model only where the brief spends it (`recipes-design.md` §2): the subject's material, never the whole scene.
+- **Frames:** WebP or AVIF at the size the page shows them, a poster frame first, the rest loaded after the first view. A turntable of 24 to 72 frames scrubbed by scroll is drawn to a canvas; a loop is a muted, `playsinline` video with a poster.
+- **Floor:** under `prefers-reduced-motion: reduce` show the poster and do not scrub or play; without scripts the poster is an `<img>` with its alt text.
+- Agent skills for Blender (toon and NPR shading, Line Art, Grease Pencil, lighting) can drive the scene, when the author has installed them; the render script and the asset record are what ship with the project.
+
+#### Where the cost was measured
+
+Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- Not measured on a production page yet; measure the shipped frames with `probe.mjs` and record them here.
 
 ## Halftone
 

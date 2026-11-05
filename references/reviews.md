@@ -93,7 +93,8 @@ and write.
 
 First line: one of `recapture` (a screenshot is missing, blank or shows the
 wrong thing; list what to recapture and stop), `rebuild` (the first
-viewport fails the identity wholesale), `fix` (findings follow), `ship`
+viewport fails the identity wholesale, or, on a YOLO page, it is the
+outlier on production value beside the cohort; see below), `fix` (findings follow), `ship`
 (nothing owed).
 
 Then the findings, ranked by cost to the page, at most eight, one line
@@ -128,6 +129,16 @@ better? Name anything a visitor could do, read or find before that is
 harder now; if nothing, say so. On a polish you get only the full pages at
 1440, before and after: the layout was kept on purpose, so ask one thing,
 whether anything still reads as machine-made, in at most five findings.
+
+On a YOLO page the standard is reference parity. The reviewer also gets
+the cohort captures: the sites of `benchmarks.md` "YOLO, measured",
+captured fresh with `scripts/capture.mjs` at 1440 (the first view and one
+screen mid-scroll each), with the page's own captures among them and every
+name and URL cropped or left off the files. Answer one question first,
+before the findings: shown side by side without names, is this page the
+outlier on production value? A yes is `rebuild`, whatever the gates say:
+the author chose the tier for parity, and a page that looks cheaper than
+every flagship beside it has not delivered it.
 
 On a screen someone works in (a dashboard, an admin) there is no hero, fold
 or section rhythm to judge. Read the full screens at 1440 and 390 and ask

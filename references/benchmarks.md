@@ -243,3 +243,67 @@ that shows the recipe, and some of it belongs to other parts of that site:
   Additive blends card cites; its canvases are left out of that Fast row for the same reason.
 - apple.com: 0 KB, DOM only.
 The Fast p75 above (99 KB over 5 sites) is context only: the measured weight is the page's, and the 70-99 KB come from other parts of the site, not from the CSS technique. The Fast tier is checked by rule instead of by weight: the page must work without JS (check-motion, `works without JS`).
+
+## YOLO, measured 2026-11-03
+
+A separate cohort, not part of the thirty sites above or of any median in this file: eight flagship experiences by big companies and the studios they hire, the material of the YOLO tier ([techniques/yolo.md](techniques/yolo.md)). Each was probed once with `scripts/probe.mjs --cohort yolo` and weighed in a second pass: bytes on the wire by type (CDP `encodedDataLength`) after the page settled ("first view") and after a 40-step wheel scroll ("full"), a render with reduced motion and a scroll, and a render with JavaScript off. Headless Chrome at 1440x900, an Intel UHD GPU through ANGLE (Direct3D11). KB and MB here are 1,024 and 1,048,576 bytes, as `check-motion` prints them; motion JS is the number `check-motion` holds to a ceiling on the other tiers (High: 340 KB).
+
+### Per site
+
+| Site | First view | Full | Script | Motion JS | Images | Video | 3D models | Audio | Techniques |
+|---|---|---|---|---|---|---|---|---|---|
+| duyucare.dops.agency | 25.1 MB | 26.7 MB | 376 KB | 9 KB | 23.7 MB (1,082 requests) | 2.4 MB | 0 | 0 | Scroll-scrubbed image sequence |
+| www.emons.de | 1.3 MB | 17.7 MB | 883 KB | 105 KB | 5.8 MB | 10.8 MB | 0 | 0 | Pre-rendered 3D film (chapters) |
+| www.apple.com/airpods-pro | 8.3 MB | 23.1 MB | 976 KB | 355 KB | 8.1 MB | 13.0 MB | 0 | 0 | Pre-rendered 3D film (scrubbed and autoplay) |
+| www.igloo.inc | 8.3 MB | 14.6 MB | 450 KB | 414 KB | 0 | 0 | 11.1 MB | 2.8 MB | Real-time 3D world, sound design |
+| lusion.co | 10.6 MB | 13.0 MB | 476 KB | not measured | 6.0 MB | 2.4 MB | 0.6 MB | 1.2 MB | Real-time 3D world, physics and drag, sound design |
+| santionispirits.com | 9.7 MB | 9.7 MB | 633 KB | 431 KB | 0 | 0 | not separated | 8.5 MB | Illustrated scroll story, sound design |
+| landonorris.com | 5.2 MB | 7.4 MB | 589 KB | not measured | 4.6 MB | 0 | 1.5 MB | 0 | Real-time 3D world |
+| messenger.abeto.co | 5.6 MB | 5.6 MB | 526 KB | 495 KB | 0 | 0 | 1.0 MB | 3.5 MB | Real-time 3D world, sound design |
+
+santionispirits.com was measured at its age gate, which the probe could not pass then (its textures sit in "other"); `--click` now exists for that. The motion JS of lusion.co and landonorris.com is missing because the probe waited for `load` within Playwright's 30 s and those pages stream for longer; `--wait` and `--timeout` now exist for that.
+
+### Range
+
+| Measure | Min | Median | Max |
+|---|---|---|---|
+| Transfer, full | 5.6 MB (messenger.abeto.co) | 13.8 MB | 26.7 MB (duyucare.dops.agency) |
+| Transfer, first view | 1.3 MB (www.emons.de) | 8.3 MB | 25.1 MB (duyucare.dops.agency) |
+| Script | 376 KB | 558 KB | 976 KB |
+| Motion JS (6 measured) | 9 KB | 385 KB | 495 KB |
+
+Four of the six measured carry more motion JS than the High ceiling, yet the heaviest page by transfer (duyucare.dops.agency, 26.7 MB) carries 9 KB of it and the third heaviest (www.emons.de, 17.7 MB) 105 KB: media, not script, is what makes a page YOLO. That is why the tier is priced in MB, and why `check-motion --tier yolo` reports the weight by type and never fails on it.
+
+### The Floor, per site
+
+Judged from the screenshots and records of the run, and then by `check-motion --tier yolo` (below): reduced motion honoured, a lighter path for a visitor who cannot run the experience, the content readable without the experience (looked at, not counted: text in the DOM under an opaque loader is not readable), and honest loading (no sound before the visitor asks, the wait shown). Floor: pass when all four pass; partial when the content is readable and one or two of the others fail; fail otherwise.
+
+| Site | Reduced motion | Lighter path | Readable without it | Honest loading | Floor |
+|---|---|---|---|---|---|
+| www.apple.com/airpods-pro | pass: the hero film becomes a still; none of its 16 videos plays | pass: a still for every film | pass: 30,524 characters, 81 `<noscript>` pictures | pass: content first | pass |
+| www.emons.de | fail: the film keeps playing under reduced motion (check-motion; the screenshots had not shown it) | pass: the film is itself the lighter path | pass: 10,660 characters, the film's first frame, the chapters | pass: content first, the film streams | partial |
+| duyucare.dops.agency | fail: ambient motion stopped in the screenshots, but check-motion found the drawing and two videos still moving | fail: no fallback for the drawing | pass: 7,765 characters and the h1 | partial: an honest 0-100 % counter, over a 25 MB preload | partial |
+| santionispirits.com | fail: the drawing kept moving | pass: a fallback without WebGL | fail: one line of 24 characters | fail: 8.5 MB of sound before the age gate is answered | fail |
+| www.igloo.inc | fail: stayed on its loader for the 25 s watched | not measured: the drawing was not found by the trace | fail: blank | fail: 2.8 MB of sound during the scroll, before any click | fail |
+| landonorris.com | pass: usable, the helmet grid still | not measured | fail: a full-screen loader covers the 1,854 characters | pass: a branded loader, no sound | fail |
+| lusion.co | fail: no frame could be captured in 30 s | not measured | fail: a counter on black covers the text | fail: 1.2 MB of sound in the first view | fail |
+| messenger.abeto.co | fail: the scene looked the same (the prober counted 8 moving elements, then 0) | fail: none | fail: blank | fail: 3.5 MB of sound in the first view | fail |
+
+One of the eight passes the whole Floor and two pass in part. The one that passes carries 23.1 MB, so the weight is not what stops a page from passing: the Floor costs a still, the text in the HTML and a sound button, not the experience.
+
+### check-motion --tier yolo, run on the cohort
+
+Run the same day over the live sites, as the check of the rebuilt tool against the judgement above ("Rebuilding a probe" in the README). Its weights differ from the table above because it scrolls by script, not by wheel, and settles to network idle, so a streaming film counts more or less; the failing checks are what it is for.
+
+| Site | Failed | Not failed |
+|---|---|---|
+| www.apple.com/airpods-pro | none | readable 91 % of the reading text; 16 videos, none playing under reduced motion; no sound |
+| www.emons.de | video honours reduced motion | readable 47 %; no sound |
+| duyucare.dops.agency | canvas honours reduced motion, video honours reduced motion | readable 53 % (two lines covered by the counter); no sound |
+| landonorris.com | canvas is alive, canvas honours reduced motion, canvas pauses off-screen, works without JS (0 %) | fallback without WebGL; no sound |
+| santionispirits.com | canvas honours reduced motion, works without JS (0 %), no audio before a gesture (47 files) | fallback without WebGL |
+| lusion.co | canvas is alive, canvas honours reduced motion, fallback without WebGL, works without JS (0 %), no audio before a gesture (16 files) | |
+| messenger.abeto.co | no audio before a gesture (53 files), works without JS (no headings or paragraphs) | no canvas found before "Begin" |
+| www.igloo.inc | works without JS (no headings or paragraphs), no audio before a gesture (18 files, in the second of two runs) | no canvas found |
+
+It agrees with the judgement on the readable column and on sound for every site, though not on every run: igloo.inc fetched no sound in a first run and 18 files in a second, so its sound depends on timing. It is stricter on reduced motion: it caught films and drawings that kept moving where the screenshots looked still. It cannot judge a scene it cannot find (igloo.inc and messenger.abeto.co draw behind a loader or a "Begin" button), so on such a page the reduced-motion and lighter-path columns still need the look.

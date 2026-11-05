@@ -153,7 +153,8 @@ serves the identity. Unnecessary cost is always wrong.
 |---|---|---|
 | **[Fast expensive loading](techniques/fast.md)** | CSS only (gradients, masks, clip-path, blend modes, `@keyframes`, scroll-driven animations), SVG, system fonts or one or two subset webfonts, small vanilla JS | Adds roughly nothing past the fonts; works without JS |
 | **[Medium expensive loading](techniques/medium.md)** | Several webfonts, a small motion library (GSAP core, Motion One, Lenis), Lottie for a few illustrations, heavy optimised imagery, `backdrop-filter` across panels | Tens of KB of JS, or noticeable image weight and GPU work |
-| **[High expensive loading](techniques/high.md)** | WebGL / Three.js / shader scenes, 3D models, physics, background video, large Lottie or Rive sets, canvas particle systems | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
+| **[High expensive loading](techniques/high.md)** | WebGL / Three.js / shader scenes, 3D models rendered live or offline in Blender, physics, background video, large Lottie or Rive sets, canvas particle systems | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
+| **[YOLO](techniques/yolo.md)** | Real-time 3D worlds, pre-rendered 3D films, scroll-scrubbed image sequences, illustrated scroll stories, sound, physics | No ceiling. Measured on eight flagship sites: 5.6 to 26.7 MB of transfer after a full scroll (median 13.8 MB), 376 to 976 KB of script. Still owes the Floor: reduced motion, a lighter path, the content readable without it, no sound before the visitor asks; `check-motion --tier yolo` proves it |
 
 The measured finding (`benchmarks.md`) supports starting cheap: premium
 pages are built mostly from **masks, clip paths and blend modes**, which
@@ -185,14 +186,23 @@ The number beside a technique is the motion code of a production page that shows
 - [Halftone](techniques/medium.md#halftone): 7 KB
 - [Glassmorphism](techniques/medium.md#glassmorphism): 0 to 282 KB
 
-**[High](techniques/high.md), 7 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D, which says why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph and Halftone say "not measured".
+**[High](techniques/high.md), 8 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D and Rendered 3D, which say why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph, Rendered 3D and Halftone say "not measured".
 
 - [Particles](techniques/high.md#particles): 340 KB, the ceiling itself
 - [Holographic](techniques/high.md#holographic): 340 KB, the ceiling itself
 - [Wireframe 3D](techniques/high.md#wireframe-3d): 180 KB
 - [Gradient mesh](techniques/high.md#gradient-mesh): 282 to 315 KB
 - [Clay 3D](techniques/high.md#clay-3d): 180 to 640 KB, the heavier above the ceiling
-- Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Halftone](techniques/high.md#halftone)
+- Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Rendered 3D](techniques/high.md#rendered-3d) (Blender, offline), [Halftone](techniques/high.md#halftone)
+
+**[YOLO](techniques/yolo.md), 6 techniques:** no ceiling, priced in MB of transfer, not in motion code (`benchmarks.md`, "YOLO, measured"). Each names its Floor fallback and links the nearest lower card where one exists. The number is the whole page after a full scroll.
+
+- [Scroll-scrubbed image sequence](techniques/yolo.md#scroll-scrubbed-image-sequence): 26.7 MB, 25.1 MB of it before the first view
+- [Pre-rendered 3D film](techniques/yolo.md#pre-rendered-3d-film): 17.7 to 23.1 MB, 1.3 to 8.3 MB before the first view
+- [Real-time 3D world](techniques/yolo.md#real-time-3d-world): 5.6 to 14.6 MB
+- [Illustrated scroll story](techniques/yolo.md#illustrated-scroll-story): 9.7 MB at the age gate
+- [Sound design](techniques/yolo.md#sound-design): 1.2 to 8.5 MB of sound
+- [Physics and drag](techniques/yolo.md#physics-and-drag): 13.0 MB (one site, the page as a whole)
 
 ### The tier is the author's choice, not yours
 
@@ -246,7 +256,7 @@ candidate implies (how many, at what size, with what treatment). The
 Assets stage (`images.md`) then fixes the actual files, and the tier
 confirmation carries their real weight.
 
-**The tier message.** Keep the four tier names exactly as written. Fill in
+**The tier message.** Keep the tier names exactly as written. Fill in
 every slot for *this* project. A generic
 description of the tiers is not a filled slot.
 
@@ -262,17 +272,40 @@ Loading cost: how heavy the site is to load. Pick one:
    Cost: <e.g. "+40 KB of script, heavier images">.
 3. High expensive loading: <what it adds, e.g. "a 3D loaf you can turn">.
    Cost: <e.g. "+300 KB of script, needs a fallback on older phones">.
+4. YOLO, the no-savings tier for flagship sites: <what it adds, e.g. "the
+   bakery as a 3D world you scroll through, with the oven's sound on a tap">.
+   Cost: <the weight in MB, e.g. "about 10 to 15 MB after a full scroll,
+   4 MB before the first view; flagship sites measured 5.6 to 26.7 MB">.
+   No ceiling, but the Floor still applies: <the fallback for this project,
+   e.g. "a still of the oven for phones that cannot run it and under reduced
+   motion, the menu and hours as plain text, no sound until they tap it">.
 
 <If the cheapest tier cannot fully deliver the identity: say exactly what
 it cannot do and which tier can. Otherwise: "Fast does everything this
 identity needs.">
 ```
 
-Only when the author declines the recommendation, offer the fourth choice
+The YOLO line is always offered and never the recommendation. Its cost is
+the transfer in MB for this project, with the first view stated apart, not
+a motion-code figure: on that tier media is what weighs. If YOLO would add
+nothing this identity needs, say so in its line. If the author chooses it,
+the Floor fallback named in the line is part of the build, and
+`check-motion --tier yolo` checks it.
+
+YOLO also sets an ambition floor. Choosing it commits the build to at least
+one of the `techniques/yolo.md` techniques built at flagship scale:
+authored media (a pre-rendered film, an image sequence, an illustrated
+story in layers) or a real-time 3D scene. One WebGL panel on a page under
+the High ceiling is a high build with a yolo label: either build the yolo
+techniques or re-send the tier message. `check-motion --tier yolo` reports
+such a page as "built below the chosen tier"; it is a report, not a Floor
+failure.
+
+Only when the author declines the recommendation, offer the last choice
 explicitly:
 
 ```
-4. Custom / unrestricted: no limit. Tell me which effects you want, and I'll tell you
+5. Custom / unrestricted: no limit. Tell me which effects you want, and I'll tell you
    what each one costs.
 ```
 
@@ -286,4 +319,5 @@ its justification in the identity brief. Every surface inherits it, so the
 404 does not ship Three.js because the landing page does.
 
 Whatever the tier, the reduced-motion contract (`recipes-motion.md` §14)
-and a no-JS-legible baseline still apply.
+and a no-JS-legible baseline still apply. YOLO removes the ceiling, never
+the Floor.

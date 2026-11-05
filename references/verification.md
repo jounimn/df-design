@@ -138,6 +138,18 @@ recorded tier; read the result, and tell the author "passed" or the problem in
 plain words. On a Fast page it also opens the page with JavaScript off and
 fails when its headings, text or images are missing or hidden there.
 
+On a YOLO page always run `check-motion --tier yolo`, over http(s), since a
+file:// page cannot be weighed. It never fails on weight: it reports what
+the page downloads by type (images, video, models, audio, script), which is
+the price the tier message names. It fails the Floor: a canvas or a video
+that moves under reduced motion, a blank canvas without WebGL, less than
+40 % of the headings and paragraphs readable without JavaScript (text under
+an opaque loader counts as missing), and any sound file fetched before the
+visitor clicked. It also reports, without failing, a page built below the
+chosen tier: none of the yolo techniques it can see, or less in all than
+the High ceiling. Tell the author; build the techniques or re-send the tier
+message.
+
 For a presentation, `check-presentation --tier <tier>` runs the same canvas
 checks, named `motion: ...`, once for each slide that has a canvas. It only
 looks at a canvas inside a `section[data-section]`: a canvas outside a slide
