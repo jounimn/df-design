@@ -10,13 +10,17 @@ import { classifyArchetype } from './lib/archetype.mjs';
 import { validateRecord } from './lib/validate.mjs';
 import { bundleDir, writeBundle, renderContactSheet } from './lib/bundle.mjs';
 import { kindOf, summarizeTransfer, watchTransfer } from './lib/transfer.mjs';
+import { captureMotion, movingSignals } from './lib/motion-capture.mjs';
+
+// The words scroll-trace uses when window.scrollTo did not move the page: a smooth-scroll library owns it.
+const SCROLL_OWNED = /programmatic scroll did not move the document/;
 
 const today = () => new Date().toISOString().slice(0, 10);
 // settle() waits for load and network idle up to 15 s, as before; a shorter --timeout shortens that wait too.
 const settleTimeout = (timeout) => Math.min(timeout, 15000);
 
 export const WAITS = ['domcontentloaded', 'load', 'networkidle'];
-export const USAGE = 'usage: node scripts/probe.mjs <url> [--cohort <tag>] [--root <dir>] [--wait <domcontentloaded|load|networkidle>] [--timeout <ms>] [--click "<css>"]...';
+export const USAGE = 'usage: node scripts/probe.mjs <url> [--cohort <tag>] [--root <dir>] [--wait <domcontentloaded|load|networkidle>] [--timeout <ms>] [--click "<css>"]... [--motion]';
 
 // Splits "a, b" on the commas between selectors, not on those inside brackets, parentheses or quotes, so
 // `:is(.yes, .ok)` stays one click and "#age-yes, #sound-off" is two.
@@ -57,6 +61,7 @@ export function parseProbeArgs(argv) {
       if (!Number.isInteger(ms) || ms <= 0) throw new Error(`--timeout needs a whole number of milliseconds (got "${argv[i]}")`);
       out.timeout = ms;
     } else if (a === '--click') { out.clicks.push(...splitClicks(value(i, 'click'))); i += 1; }
+    else if (a === '--motion') out.motion = true;
     else if (a.startsWith('--')) throw new Error(`unknown option ${a}`);
     else if (out.url === undefined) out.url = a;
     else throw new Error(`unexpected extra argument: ${a}`);
@@ -87,7 +92,7 @@ async function passGate(page, { timeout, clicks }) {
   return failed;
 }
 
-export async function probe(url, { cohort = null, root = 'captures', date = today(), wait = 'load', timeout = 30000, clicks = [] } = {}) {
+export async function probe(url, { cohort = null, root = 'captures', date = today(), wait = 'load', timeout = 30000, clicks = [], motion = false } = {}) {
   if (!WAITS.includes(wait)) throw new Error(`wait must be one of ${WAITS.join(', ')}`);
   const site = new URL(url).hostname;
   const browser = await launchBrowser();
@@ -185,6 +190,7 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
       canvasJsBytes: canvasTrace ? { jsBytes: canvasTrace.jsBytes, motionJsBytes: canvasTrace.motionJsBytes } : null,
       libraries: canvasTrace ? canvasTrace.libraries : null,
       ...(canvasError ? { canvasError } : {}),
+      ...(motionCapture ? { motionCapture } : {}),
       // Bytes on the wire by type (images, video, models, audio, script, other). firstView: settled, before any click;
       // full: after the gate and the six scroll frames. audioBeforeGesture: sound bytes fetched before any click.
       transfer: {
@@ -231,7 +237,7 @@ if (process.argv[1]?.endsWith('probe.mjs')) {
     process.exit(1);
   }
   const { url, ...rest } = options;
-  const { dir, record, quarantine } = await probe(url, rest);
+  const { dir, record, quarantine, motionCapture } = await probe(url, rest);
   console.log(`${record.site} -> ${dir}`);
   console.log(`  archetype: ${record.archetype} (${record.archetypeReason})`);
   const t = record.transfer;
