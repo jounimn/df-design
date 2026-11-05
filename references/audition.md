@@ -139,6 +139,32 @@ reason the identity gives it (`gates.md` §2). A choice made between pages
 that read as generated is a choice between defaults, and the author will
 pick the least generic one instead of the right identity.
 
+### On the YOLO tier: three prototypes before production
+
+When the author chooses `yolo` in the tier message, production does not
+start yet, on either path. First build **three light prototypes of the
+experience**, and let the author pick one. A YOLO build costs days of drawing,
+rendering and recording; the choice has to be made while it still costs an
+afternoon.
+
+- **What varies.** On the audition path, the three are the candidate
+  identities, each at the YOLO tier. On the design path, where the author
+  already gave the identity, the three keep that identity and vary the
+  experience: the scenes, the transition between each pair of scenes, and how
+  the characters or the product are made (drawn, 3D, hybrid).
+- **What each one is.** One light HTML file with 4 to 6 key beats of the same
+  story or content, and the transitions between them actually working. The art
+  is rough on purpose; no mass production, no final renders.
+- **What it says.** A short cost note under each: the time, the tools
+  (Blender, an image model, a 3D scene), and the weight full production would
+  take.
+- **How it is judged.** Record each one in motion (`scripts/capture-motion.mjs`)
+  and show the contact sheets beside the files, so the author judges the
+  transitions and the timing, not stills.
+
+Production of the chosen prototype starts only after the author picks it.
+Record the choice and the two that were dropped in the identity brief.
+
 ### After the author chooses
 
 The author selects, combines, rejects or redirects (`identity.md` §5).

@@ -157,7 +157,8 @@ Step 0 conditions  →  Author intent  →  Identity definition  →  Reference 
       →  Implementation, one surface at a time:
            [surface spec → author approves → build → verify] → next surface
       →  Consistency validation  →  Verification gate  →  [selling-positioning: end]**
-                                         * audition path only
+                                         * audition path only; on the yolo tier both paths build three
+                                           light prototypes before production (audition.md §2)
                                         ** optional detour, see below
 ```
 
@@ -196,7 +197,6 @@ heavier tier, or the images weigh more than the first message assumed.
 | Icons (mandatory), illustration, textures | `references/icons-and-assets.md` |
 | Stock photographs: asking, sources, search, treatment, weight; cutting out the subject | `references/images.md` |
 | Drawn assets: doodles, annotations, spot illustrations, a drawn icon set, in the identity's own line | `references/drawn-assets.md` |
-| Stock photographs: asking, sources, search, treatment, weight | `references/images.md` |
 | Looking at it | `references/verification.md` |
 | Watermark: question, layer, preview and final | `references/watermark.md` |
 | Selling-positioning: logo, positioning, mockups, slideshow, export | `references/selling-positioning.md` |
@@ -435,6 +435,7 @@ is an acceptable sentence. "Done" without having looked is not.
 | "The admin and 404 are just utility pages" | Same product, same identity, adapted density. A stock admin panel is a different product. |
 | "The page looks empty, a doodle will help" | Every drawing has a job: annotate, divide, explain, stand in, label or mark. An empty screen needs a photograph, the product or better type. `drawn-assets.md` §1. |
 | "The palette already looks good" | Looking good is the base pair. Name the design hint, its feeling and its places, or write `Hint: none` with the reason. `recipes-design.md` §2. |
+| "The author gave the identity, so the YOLO build can start" | On the yolo tier both paths build three light prototypes of the experience first, and the author picks one. A full build is days; a prototype is an afternoon. `audition.md` §2. |
 | "Three.js will make it feel premium" | Cheapest viable tier first. Masks and blends are CSS. |
 | "Fast tier obviously fits; I'll just use it" | Recommending is yours, choosing is the author's. Send the tier message. |
 | "Every candidate is fast, so there is nothing to ask" | The question is asked every run, with the candidates. Fast is the recommendation, not the answer. The message says what medium and high would add, or that they add nothing. |
