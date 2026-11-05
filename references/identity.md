@@ -193,6 +193,19 @@ comparable products · visual movements · presentation techniques.
 - references that conflict with the author's intent
 - references that add noise rather than meaning
 
+**Study a scroll-driven reference in motion.** The probe's six stills are
+taken with `window.scrollTo`, and on a site whose scrolling a library owns
+(Lenis, a virtual scroller, a canvas scene) they can all show the first
+screen; no still shows choreography or timing. When the probe reports that
+programmatic scroll did not move the document, or finds a virtual scroller,
+it runs the motion capture into the bundle (`motion/`) on its own; `--motion`
+asks for it on any reference whose motion is the point. Or run it alone:
+`node scripts/capture-motion.mjs <url>` (`--click "<css>"` passes a cookie
+banner or an "enter" gate). Study the contact sheets in order: what pins,
+for how long, what enters and leaves, where the page rests. Write down what
+you took from the run in the research log, scene by scene, not "nice
+scroll".
+
 Keep a short **research log**: what was kept, what was rejected, one line of
 reason each. The log is what makes the direction defensible.
 

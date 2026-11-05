@@ -29,11 +29,12 @@ export async function newPage(browser, {
   reducedMotion = 'no-preference',
   viewport = VIEWPORT,
   recordVideoDir,
+  recordVideoSize = viewport,
 } = {}) {
   const context = await browser.newContext({
     viewport,
     reducedMotion,
-    ...(recordVideoDir ? { recordVideo: { dir: recordVideoDir, size: viewport } } : {}),
+    ...(recordVideoDir ? { recordVideo: { dir: recordVideoDir, size: recordVideoSize } } : {}),
   });
   const page = await context.newPage();
   return { page, context };

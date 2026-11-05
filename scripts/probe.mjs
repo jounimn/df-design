@@ -110,6 +110,8 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
     const selectors = tracked(staticResult, inventory);
     const trace = await runPropertyTrace(page, { selectors, samples: 40, durationMs: 1600 });
     const scroll = await runScrollTrace(page, { selectors, steps: 12 });
+    // A virtual scroller leaves the document one screen tall, so scroll-trace reads it as not scrollable at all.
+    const virtualScroll = !scroll.available && (await movingSignals(page)).includes('virtual scroll');
 
     const frames = [];
     // Last of the motion pass: it scrolls canvases into view and reopens the page twice (reduced motion,
@@ -135,6 +137,22 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
     const afterScroll = transfer.entries();
     await transfer.stop();
     await context.close();
+
+    // When scrollTo did not move the page (or there is no document scroll and a virtual scroller holds the content),
+    // the six frames above all show the first screen. Drive it with real input
+    // instead and keep the video and its contact sheets in the bundle (motion/). --motion asks for it on any page.
+    const dir = bundleDir(root, site, date);
+    let motionCapture = null;
+    const scrollOwned = !scroll.available && SCROLL_OWNED.test(scroll.reason || '');
+    if (motion || scrollOwned || virtualScroll) {
+      const cap = await captureMotion(browser, url, { out: path.join(dir, 'motion') });
+      motionCapture = {
+        why: motion ? 'asked (--motion)' : scrollOwned ? 'programmatic scroll did not move the document' : 'virtual scroll: the document does not scroll, a taller layer holds the content',
+        dir: 'motion', reachedEnd: cap.reachedEnd, endReason: cap.endReason, movedBy: cap.movedBy, steps: cap.steps,
+        sheets: cap.sheets.map((s) => `motion/${s}`), sheetsFrom: cap.sheetsFrom, video: cap.video ? `motion/${cap.video}` : null,
+        stills: cap.stills.length, errors: cap.errors,
+      };
+    }
 
     // Contract pass — reduced motion ON. Behavioural, not a stylesheet grep.
     const { page: rmPage, context: rmContext } = await newPage(browser, { reducedMotion: 'reduce' });
@@ -190,16 +208,15 @@ export async function probe(url, { cohort = null, root = 'captures', date = toda
     record.archetypeReason = reason;
     record.quarantined = quarantine.map((q) => q.field);
 
-    const dir = bundleDir(root, site, date);
     await writeBundle(dir, {
       record,
       raw: { ...raw, quarantine },
-      motion: { inventory, trace, scroll, reducedMotionTrace: rmTrace },
+      motion: { inventory, trace, scroll, reducedMotionTrace: rmTrace, ...(motionCapture ? { capture: motionCapture } : {}) },
       frames,
     });
     await renderContactSheet(browser, frames, path.join(dir, 'contact.png'));
 
-    return { dir, record, quarantine };
+    return { dir, record, quarantine, motionCapture };
   } finally {
     await browser.close();
   }
@@ -222,4 +239,5 @@ if (process.argv[1]?.endsWith('probe.mjs')) {
   console.log(`  transfer: first view ${mb(t.firstView.total)}, full ${mb(t.full.total)}${t.audioBeforeGesture ? `, ${mb(t.audioBeforeGesture)} of sound before any click` : ''}`);
   if (record.load.clicksFailed) console.log(`  gate not passed: ${record.load.clicksFailed.map((c) => c.selector).join(', ')}`);
   console.log(`  quarantined: ${quarantine.length ? quarantine.map((q) => q.field).join(', ') : 'none'}`);
+  if (motionCapture) console.log(`  motion capture (${motionCapture.why}): ${motionCapture.reachedEnd ? 'reached the end' : 'did NOT reach the end'}, moved by ${motionCapture.movedBy}; sheets in ${path.join(dir, 'motion')}`);
 }

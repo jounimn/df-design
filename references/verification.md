@@ -101,6 +101,48 @@ For an app shell bounded to the viewport (`h-screen` + an inner
 content scrolls inside a child. Capture the viewport, and scroll the inner
 container if you need what is below.
 
+## Looking at a page that moves
+
+The capture at rest shows the layout. It cannot show the motion. A pinned
+scene appears once in a full-page screenshot, at one moment; a canvas shows
+one frame; a choreography, a transition or its timing appears in no still at
+all. And on a page whose scrolling a library owns (Lenis, a virtual
+scroller, a canvas scene), `window.scrollTo` does nothing, so stills taken
+that way all show the first screen.
+
+In `mode=motion` or `both`, and on any page whose design rides on motion,
+look at the motion capture as well:
+
+```
+node scripts/capture-motion.mjs page.html --out captures/motion/home
+node scripts/capture-motion.mjs https://localhost:3000/ --click "#enter"   # pass a gate first
+```
+
+It records a video, drives the page with real input (the wheel in 120px
+steps, PageDown and Space when the wheel changes nothing) and keeps going
+until the page truly ends: the scroll position, a downscaled picture of the
+viewport and the canvas pixels unchanged for six steps in a row. Where the
+picture settles it pauses and keeps a still. Out come `video.webm`, the
+contact sheets `sheet-01.png…` covering the whole recording in order,
+`stills/` and `capture.json` (the steps, whether the wheel or the keys moved
+it, whether it reached the end, the durations).
+
+Read `capture.json` before the sheets. `reachedEnd: false` means the run
+stopped at the safety cap (`--max-steps`, 300 by default) and the rest of
+the page is unseen; raise the cap. `movedBy: "none"` means nothing moved the
+page, which is a finding in itself on a page that should scroll. The sheets
+come from the video through ffmpeg when one is found (`FFMPEG`,
+`imageio_ffmpeg` in a Python on PATH, or ffmpeg on PATH), otherwise the
+browser decodes the video itself, and if that fails they are built from the
+stills (`sheetsFrom` says which).
+
+Judge the scenes in order from the sheets: does each one enter, hold and
+leave, does the pinned scene progress rather than stall, does anything sit
+blank for a whole frame, does the end of the page arrive. `check-slop
+--render` adds this capture on its own for a page with a canvas, a pinned
+section, a scroll-driven animation or a virtual scroller, and `--motion`
+asks for it on any page.
+
 ---
 
 ## Probe, do not squint

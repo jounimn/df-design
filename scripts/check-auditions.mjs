@@ -2,10 +2,15 @@
 // with images only under the rules in references/images.md.
 // Usage: node scripts/check-auditions.mjs <auditions-dir> <images: yes|no> <captures-dir>
 // 'images' is the author's answer to the stock-image question. Exit code 0 = every check passed.
+// Into <captures-dir> go, per page, <name>.jpg (the full page at 1440 under reduced motion: the layout at rest) and,
+// per candidate, <name>-motion/ (the motion capture with motion allowed: video.webm, sheets, stills, capture.json)
+// with its first sheet copied beside the JPEG as <name>-motion.png. The author and the reviewer look at both.
 import { launchBrowser } from './lib/browser.mjs';
+import { captureMotion } from './lib/motion-capture.mjs';
 import { licenceNeedsCredit } from './lib/licence.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const [dir, imagesAllowed, capDir] = process.argv.slice(2);
 const results = [];
@@ -57,6 +62,13 @@ for (const f of html) {
     }
     if (w === 1440) await page.screenshot({ path: path.join(capDir, f.replace('.html', '.jpg')), fullPage: true, type: 'jpeg', quality: 70 });
     await ctx.close();
+  }
+  // The candidate in motion: the still above is taken with motion reduced, so it never shows what moves.
+  if (f !== 'index.html') {
+    const name = f.replace(/\.html$/, '');
+    const cap = await captureMotion(browser, pathToFileURL(path.resolve(dir, f)).href, { out: path.join(capDir, `${name}-motion`) });
+    if (cap.sheets.length) fs.copyFileSync(path.join(cap.dir, cap.sheets[0]), path.join(capDir, `${name}-motion.png`));
+    check(`${f}: motion capture written`, cap.sheets.length > 0 && !!cap.video, `${cap.sheets.length} sheet(s) from ${cap.sheetsFrom}; ${cap.reachedEnd ? 'reached the end' : cap.endReason}; moved by ${cap.movedBy}${cap.errors.length ? '; ' + cap.errors.join(' | ') : ''}`);
   }
 }
 await browser.close();

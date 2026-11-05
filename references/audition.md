@@ -116,6 +116,15 @@ a licence that needs no credit, and that each source page answers. It
 cannot see a watermark or a missing strike-through. Looking at the
 captures is still yours.
 
+Each candidate gets two captures side by side. `<name>.jpg` is the full
+page at 1440 under reduced motion: the layout at rest. `<name>-motion.png`
+is the first contact sheet of the motion capture, taken with motion allowed
+and driven to the end of the page by the wheel, with the video, every sheet
+and the stills in `<name>-motion/` (`verification.md`, "Looking at a page
+that moves"). The still never shows what moves, and an audition that
+proposes motion is chosen partly on it. The author and the reviewer look at
+both: the still for the layout, the sheets in order for the motion.
+
 Then the gates, on every candidate:
 
 ```bash

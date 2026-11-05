@@ -91,6 +91,16 @@ pane shows once in a full-page shot: the column beside its later screens is
 the pin, not an empty half. Batch your reads; stop reading by the tenth turn
 and write.
 
+In `mode=motion` or `both`, and on any page whose design rides on motion,
+you also get the motion capture: the contact sheets of the whole run (`motion/sheet-01.png…`, in the screenshots list
+`check-slop --render` prints; it adds them on its own for a canvas, a
+pinned section, a scroll-driven animation or a virtual scroller, and
+`--motion` asks for them) and its `capture.json`. Judge the scenes in order
+from the sheets, not from the full-page shot: each scene enters, holds and
+leaves; a pinned scene progresses instead of stalling; no frame sits blank;
+the run reaches the end of the page. `reachedEnd: false` in `capture.json`,
+or sheets missing on such a page, is `recapture`.
+
 First line: one of `recapture` (a screenshot is missing, blank or shows the
 wrong thing; list what to recapture and stop), `rebuild` (the first
 viewport fails the identity wholesale, or, on a YOLO page, it is the

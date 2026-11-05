@@ -398,7 +398,11 @@ caps, an emoji icon, a missing focus ring, motion with no reduced-motion
 fallback, content hidden until a script runs) and measures what only a
 browser can (the fold at 1280 x 800, horizontal scroll at six widths, focus
 by tabbing, the measure, images that load, the page with scripting off). It
-writes the screenshots the look needs. Nothing ships with an open `FAIL` or
+writes the screenshots the look needs; on a page that moves (a canvas, a
+pinned section, a scroll-driven animation, a virtual scroller; `--motion` on
+any page) it adds the motion capture's contact sheets, since a full-page
+still shows none of it (`verification.md`, "Looking at a page that
+moves"). Nothing ships with an open `FAIL` or
 an open `REFLEX`; a Reflex gate is fixed or waived on the record with a
 reason. The whole list, its tiers and the judged gates the script cannot
 settle: `references/gates.md`. Then the finish review in fresh context

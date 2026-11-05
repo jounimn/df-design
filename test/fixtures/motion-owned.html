@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scroll owned by a library</title>
+<style>
+  body { margin: 0; font: 20px/1.5 Georgia, serif; }
+  section { height: 900px; display: grid; place-items: center; }
+  section:nth-child(1) { background: #f4efe6; }
+  section:nth-child(2) { background: #c9d6c3; }
+  section:nth-child(3) { background: #23395b; color: #fff; }
+  section:nth-child(4) { background: #e2a33c; }
+</style>
+</head>
+<body>
+  <section><h1>Owned one</h1></section>
+  <section><h2>Owned two</h2></section>
+  <section><h2>Owned three</h2></section>
+  <section><h2>Owned four</h2></section>
+<script>
+  // As a smooth-scroll library does: the document is tall, but the library keeps its own position, moves it on
+  // wheel input and puts the document back wherever anything else scrolls it. window.scrollTo alone moves nothing.
+  let y = 0;
+  addEventListener('wheel', (e) => {
+    e.preventDefault();
+    y = Math.max(0, Math.min(document.documentElement.scrollHeight - innerHeight, y + e.deltaY));
+    window.scrollTo(0, y);
+  }, { passive: false });
+  addEventListener('scroll', () => { if (Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y); });
+</script>
+</body>
+</html>

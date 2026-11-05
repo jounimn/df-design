@@ -151,6 +151,7 @@ test('the render tier passes the good page with nothing to fix', { timeout: 1800
     const r = await renderCheck({ pages: [path.join(FIX, 'render-good.html')], out, browser });
     assert.deepEqual(renderGates(r, 'FAIL'), [], JSON.stringify(r.findings.filter((f) => f.grade === 'FAIL'), null, 1));
     assert.deepEqual(renderGates(r, 'REFLEX'), [], JSON.stringify(r.findings.filter((f) => f.grade === 'REFLEX'), null, 1));
+    assert.deepEqual(r.motion, [], 'a still page gets no motion capture unless asked');
   } finally {
     await browser.close();
     fs.rmSync(out, { recursive: true, force: true });
@@ -165,6 +166,54 @@ test('--render on the CLI merges both tiers and reports the pages rendered', { t
     const parsed = JSON.parse(r.stdout);
     assert.equal(parsed.rendered, 1);
     assert.ok(parsed.screenshots.length >= 4);
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+// --- the motion capture in the render tier ---------------------------------------------------------------------------
+const MOTION_FIX = path.join(HERE, 'fixtures');
+
+test('a pinned section gets the motion capture on its own, its sheets in the screenshots list', { timeout: 240000 }, async () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'df-slop-'));
+  const browser = await launchBrowser();
+  try {
+    const r = await renderCheck({ pages: [path.join(MOTION_FIX, 'motion-pinned.html')], out, browser });
+    assert.equal(r.motion.length, 1);
+    const [m] = r.motion;
+    assert.deepEqual(m.why, ['pinned section']);
+    assert.equal(m.reachedEnd, true, m.endReason);
+    assert.ok(m.sheets.length >= 1);
+    for (const s of m.sheets) assert.ok(r.screenshots.includes(s), `${s} is in the screenshots list`);
+    for (const s of r.screenshots) assert.ok(fs.existsSync(path.resolve(s)), `${s} written`);
+  } finally {
+    await browser.close();
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('a virtual scroller is named as one and captured', { timeout: 240000 }, async () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'df-slop-'));
+  const browser = await launchBrowser();
+  try {
+    const r = await renderCheck({ pages: [path.join(MOTION_FIX, 'motion-virtual.html')], out, browser });
+    assert.deepEqual(r.motion.map((m) => m.why), [['virtual scroll']]);
+    assert.equal(r.motion[0].movedBy, 'wheel');
+  } finally {
+    await browser.close();
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('--motion on the CLI adds the capture to a still page and prints it', { timeout: 240000 }, () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'df-slop-'));
+  try {
+    const r = spawnSync(process.execPath, [CLI, path.join(FIX, 'render-good.html'), '--motion', '--out', out, '--json'], { encoding: 'utf8', timeout: 230000 });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const parsed = JSON.parse(r.stdout);
+    assert.equal(parsed.rendered, 1, '--motion implies --render');
+    assert.deepEqual(parsed.motion.map((m) => m.why), [['asked (--motion)']]);
+    assert.ok(parsed.screenshots.some((s) => /motion[\\/]sheet-01\.png$/.test(s)), parsed.screenshots.join(', '));
   } finally {
     fs.rmSync(out, { recursive: true, force: true });
   }

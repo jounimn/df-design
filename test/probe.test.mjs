@@ -21,6 +21,8 @@ test('a conventional page probes end to end', async () => {
     assert.ok(record.measured_at, 'record must carry its own measurement date');
     await fs.access(path.join(dir, 'contact.png'));
     await fs.access(path.join(dir, 'motion.json'));
+    const raw = JSON.parse(await fs.readFile(path.join(dir, 'raw.json'), 'utf8'));
+    assert.equal(raw.motionCapture, undefined, 'a page that scrolls gets no motion capture unless asked');
   } finally {
     await fs.rm(root, { recursive: true, force: true });
     await server.close();
@@ -164,5 +166,63 @@ test('a page without a canvas records an empty list', async () => {
     await fs.rm(root, { recursive: true, force: true });
     await server.close();
     fx.cleanup();
+  }
+});
+
+test('a page whose scrolling a library owns gets the motion capture in its bundle', { timeout: 240000 }, async () => {
+  const server = await startFixtureServer(FIXTURES);
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dfd-probe-'));
+  try {
+    const { dir, motionCapture } = await probe(`${server.url}/motion-owned.html`, { root });
+    assert.equal(motionCapture.why, 'programmatic scroll did not move the document');
+    assert.equal(motionCapture.reachedEnd, true, motionCapture.endReason);
+    assert.equal(motionCapture.movedBy, 'wheel');
+    const raw = JSON.parse(await fs.readFile(path.join(dir, 'raw.json'), 'utf8'));
+    assert.deepEqual(raw.motionCapture, motionCapture);
+    const motion = JSON.parse(await fs.readFile(path.join(dir, 'motion.json'), 'utf8'));
+    assert.equal(motion.scroll.available, false);
+    assert.deepEqual(motion.capture, motionCapture);
+    for (const s of motionCapture.sheets) await fs.access(path.join(dir, s));
+    await fs.access(path.join(dir, 'motion', 'video.webm'));
+    await fs.access(path.join(dir, 'motion', 'capture.json'));
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+    await server.close();
+  }
+});
+
+test('a virtual scroller, where the document does not scroll at all, gets the motion capture too', { timeout: 240000 }, async () => {
+  const server = await startFixtureServer(FIXTURES);
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dfd-probe-'));
+  try {
+    const { dir, motionCapture } = await probe(`${server.url}/motion-virtual.html`, { root });
+    assert.match(motionCapture.why, /^virtual scroll/);
+    assert.equal(motionCapture.reachedEnd, true, motionCapture.endReason);
+    assert.equal(motionCapture.movedBy, 'wheel');
+    const raw = JSON.parse(await fs.readFile(path.join(dir, 'raw.json'), 'utf8'));
+    assert.deepEqual(raw.motionCapture, motionCapture);
+    const motion = JSON.parse(await fs.readFile(path.join(dir, 'motion.json'), 'utf8'));
+    assert.equal(motion.scroll.available, false);
+    assert.deepEqual(motion.capture, motionCapture);
+    for (const s of motionCapture.sheets) await fs.access(path.join(dir, s));
+    await fs.access(path.join(dir, 'motion', 'video.webm'));
+    await fs.access(path.join(dir, 'motion', 'capture.json'));
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+    await server.close();
+  }
+});
+
+test('--motion asks for the capture on a page that scrolls normally', { timeout: 240000 }, async () => {
+  const server = await startFixtureServer(FIXTURES);
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dfd-probe-'));
+  try {
+    const { dir, motionCapture } = await probe(`${server.url}/motion-normal.html`, { root, motion: true });
+    assert.equal(motionCapture.why, 'asked (--motion)');
+    assert.equal(motionCapture.reachedEnd, true);
+    await fs.access(path.join(dir, motionCapture.sheets[0]));
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+    await server.close();
   }
 });
