@@ -8,6 +8,7 @@ Medium expensive loading: a small amount of script, noticeable image weight or s
 | [ASCII art](#ascii-art) | A picture or a moving field built from letters and symbols | Developer tools, terminals and zines |
 | [Halftone](#halftone) | A picture or field built from printed-looking dots that follow its tone | Print, music and campaign brands |
 | [Glassmorphism](#glassmorphism) | A row of frosted panels over colour that moves behind them | OS-like products and dashboards over moving imagery |
+| [Cursor-painted reveal](#cursor-painted-reveal) | A picture that turns into another wherever the pointer has just been | Portrait and product heroes with two states |
 
 ## Particles
 
@@ -326,3 +327,68 @@ Keep the budget small: the blur runs over every panel on every frame, so a handf
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - nothing.tech and raycast.com, probed 2026-10-14: motion code 0 KB at one and 282 KB at the other (the table does not say which). One animated drawing in all: median frame 49.9 ms, slowest 5% 216.6 ms, on an Intel UHD GPU through ANGLE (Direct3D11); reduced motion honoured 0 %, pauses off screen 100 %, fallback without WebGL 100 %.
+
+## Cursor-painted reveal
+
+### What it is
+
+A picture shown one way, an engraving, a wireframe or a helmet over a face, that turns into another wherever the pointer has just been: the hand paints a hole with a torn edge, and the hole closes again a moment later.
+
+### Where it comes from
+
+It is the scratchcard made to heal: a printed layer hidden under a coating that the hand rubs away ([Wikipedia, Scratchcard](https://en.wikipedia.org/wiki/Scratchcard)).
+
+### Suits
+
+A portrait or product hero with two states worth comparing (the drawing and the photograph, the shell and the inside, the gear and the person): [Engraving / banknote (guilloche)](../identities/print-craft.md#engraving--banknote-guilloche), [Photographer portfolio](../identities/industry.md#photographer-portfolio), [Sports & performance](../identities/industry.md#sports--performance), [Hardware product](../identities/industry.md#hardware-product).
+
+### What it costs the visitor
+
+Measured on the example page built for this card (2026-11-07): 11 KB of motion code and 89 KB in all, 79 KB of it the photograph. It held 60 frames a second (16.7 ms, 16.8 ms for the slowest 5 %) on an Intel UHD GPU, and still about 47 frames a second with no usable graphics chip: the trail is drawn at a quarter of the size and the picture is one pass.
+
+### Lighter version
+
+No lighter version: the hole follows the hand, and a flat recipe cannot paint it. The fallback is the photograph standing still; when the second state matters more than the play, show both side by side, or reveal the second once on scroll ([Image reveal through the identity's device](fast.md#image-reveal-through-the-identitys-device)).
+
+### For the builder
+
+A trail buffer and one composite. The trail is two small 8-bit textures (a quarter of the canvas) drawn in turn: each frame keeps the last one multiplied by a decay and adds a soft stamp along the segment the pointer moved through, so a fast stroke leaves a line and not a row of dots. The composite reads the trail as a mask between the two pictures, thresholded with a little noise so the edge tears instead of fading. Here the first picture is computed from the second: an engraving drawn from the photograph's own tone, so there is one image to download.
+
+```glsl
+// The trail: last frame faded, plus a stamp along the segment the pointer moved through.
+uniform sampler2D uPrev; uniform vec2 uA, uB; uniform float uAspect, uRadius, uDecay, uStrength;
+void main() {
+  vec2 p = vUv, a = uA, b = uB; p.x *= uAspect; a.x *= uAspect; b.x *= uAspect;
+  vec2 ab = b - a; float h = clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-6), 0.0, 1.0);
+  float stamp = smoothstep(uRadius, 0.0, length(p - a - ab * h)) * uStrength;
+  o = vec4(min(1.0, texture(uPrev, vUv).r * uDecay + stamp), 0, 0, 1);
+}
+```
+
+```glsl
+// The picture: an engraving from the photograph's tone, and the photograph where the trail is.
+void main() {
+  vec2 uv = (vUv - 0.5) * uCover + 0.5; uv.y = 1.0 - uv.y;
+  vec3 photo = texture(uPhoto, uv).rgb;
+  float lum = dot(photo, vec3(0.299, 0.587, 0.114));
+  float line = abs(fract((gl_FragCoord.y + gl_FragCoord.x * 0.35) / (4.0 * uPx.x)) - 0.5) * 2.0;
+  vec3 engraving = mix(uInk, uPaper, smoothstep(lum - 0.12, lum + 0.12, line));   // dark tone, thick line
+  float m = smoothstep(0.35, 0.55, texture(uTrail, vUv).r + (noise(vUv * 38.0) - 0.5) * 0.35);
+  o = vec4(mix(engraving, photo, m), 1.0);
+}
+```
+
+The page, with the loop and the pointer wiring, is `docs/examples/motion-techniques/cursor-reveal/page.html`.
+
+- **Decay:** 0.975 a frame, a half-life of about 0.45 s at 60 frames a second; at 0.955 the hole had closed before the eye found it. The steady brightness of a held brush is stamp / (1 − decay), so keep the threshold well under it (the `shader-dev` skill, MiniMax, MIT, has the budget).
+- **Discoverable on touch:** after three seconds with no pointer, a slow brush draws a loop over the subject at 60 % strength, so a phone visitor sees what the picture does.
+- **Two real pictures** instead of one computed from the other: load both, same crop, and mix them; two 3D materials work the same way with the trail sampled in screen space. A smear instead of a hole (the light version of [Fluid ink](high.md#fluid-ink)): use the trail to push the picture's coordinates instead of to mix.
+- **No float textures needed:** the trail fits in 8 bits, so this runs where the fluid solver cannot.
+- **Poster frame:** the engraving with one fixed opening over the subject. **Reduced motion:** the poster, and the pointer paints nothing (`recipes-motion.md` §14).
+- **Checks:** `node scripts/check-motion.mjs <page> --tier medium`.
+
+#### Where the cost was measured
+
+Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- docs/examples/motion-techniques/cursor-reveal/page.html, the example page built for this card, served compressed over http and probed 2026-11-07: motion code 11 KB, 89 KB in all (photograph 79 KB); Intel UHD GPU through ANGLE (Direct3D11), median frame 16.7 ms, slowest 5 % 16.8 ms; SwiftShader (software) about 47 frames a second; reduced motion honoured, pauses off screen, fallback without WebGL, readable without scripts; the wheel recording reached the end with no stalls. The template pages read for this card publish preview recordings only.

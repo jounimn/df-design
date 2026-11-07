@@ -359,6 +359,57 @@ On one site (hex.tech, measured 2026-10-15) the page's motion code weighed 70 KB
 because any easing makes a continuous loop visibly stutter at the seam.
 Pair with the [Edge fade](#edge-fade) card.
 
+**The ring.** The same endless row bent into a cylinder: panels stand on a
+ring (`rotateY(i * 360/n deg) translateZ(r)` inside a `preserve-3d` parent),
+it turns slowly by itself, and the visitor can drag it and let go, so it
+keeps the speed of the throw and slows by friction. Without the script it is
+a plain row that scrolls sideways, so every panel can still be read; the 3D
+and the drag are added only when the script runs.
+
+```css
+.ring { display: flex; gap: 12px; overflow-x: auto; }            /* without the script: a row */
+.js .ring-stage { overflow: clip; perspective: 1400px; height: 420px; display: grid; place-items: center; touch-action: pan-y; }
+.js .ring { display: block; overflow: visible; position: relative; width: 200px; height: 280px; transform-style: preserve-3d; }
+.js .ring figure { position: absolute; inset: 0; backface-visibility: hidden;
+  transform: rotateY(calc(var(--i) * 36deg)) translateZ(min(340px, 62vw)); }
+```
+
+```js
+// Drag sets the angle; release keeps the speed and friction stops it; with no hand on it, it turns slowly.
+stage.addEventListener('pointerdown', (e) => { dragging = true; lastX = e.clientX; lastT = e.timeStamp; speed = 0; stage.setPointerCapture(e.pointerId); });
+stage.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - lastX, dt = Math.max(1, e.timeStamp - lastT);
+  angle += dx * 0.25; speed = (dx * 0.25) / dt * 1000; lastX = e.clientX; lastT = e.timeStamp;
+});
+stage.addEventListener('pointerup', () => { dragging = false; if (reduce) speed = 0; });
+stage.addEventListener('keydown', (e) => {                        // the arrow keys turn it one panel
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { angle += e.key === 'ArrowLeft' ? 36 : -36; speed = 0; e.preventDefault(); }
+});
+function spin(t) {                                                // runs only while the ring is on screen and the tab is visible
+  const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
+  if (!dragging) {
+    speed *= Math.exp(-2.2 * dt);                                 // friction
+    if (!stopped && !held && Math.abs(speed) < 6) speed += (6 - Math.abs(speed)) * Math.sign(speed || -1) * dt;   // the idle turn
+    angle += speed * dt;
+  }
+  ring.style.transform = `rotateY(${angle}deg)`;
+  if (visible && !document.hidden) requestAnimationFrame(spin); else last = 0;
+}
+```
+
+A ring that turns by itself is a loop, so it owes a pause (`gates.md`, the
+loop; `patterns.md`, "A loop that can pause"): `held` is true while the
+pointer is over the stage or focus is inside it, and `stopped` is a visible
+button, "Stop the turning", with `aria-pressed`, and starts true under reduced
+motion. The stage is focusable with a label that says how to turn it. Clip the stage
+(`overflow: clip`) and cap the radius on a phone, or the panels at the sides
+push the page sideways: the first build scrolled 549 px wide at 390. Under
+reduced motion the ring does not turn by itself and a throw stops where it is
+let go. A mirror under the ring is the [Reflective water
+floor](high.md#reflective-water-floor) card. Built in
+`docs/examples/motion-techniques/dom-recipes/page.html`.
+
 - **Poster frame:** the row at its start position.
 - **Reduced motion:** the blanket rule in `recipes-motion.md` §14 stops the slide; the row stays readable at rest.
 - **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; look at the rendered page with and without the reduced-motion setting (`verification.md`, "Probe, do not squint").
@@ -368,6 +419,7 @@ Pair with the [Edge fade](#edge-fade) card.
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - hex.tech, probed 2026-10-15: where the recipe was read. Motion code of the page 70 KB, no canvas listed; the weight is the page's, not the marquee's.
+- docs/examples/motion-techniques/dom-recipes/page.html, the ring, served over http on 2026-11-07: readable without scripts as a row, `check-slop --render` 0 FAIL after the stage was clipped; a few hundred bytes of script, no library.
 
 ## Additive blends on a dark ground
 
@@ -472,6 +524,41 @@ Know which one you need: **scroll-triggered** (fires on entry — use
 use `useScroll`). Reaching for the second when you meant the first is how
 pages end up with content that never appears.
 
+**The wordmark between two planes.** Three planes, the type in the middle
+one: the ground (a colour or a photograph), the giant wordmark, and the
+subject cut out of its photograph in front, so the letters pass behind the
+loaf, the house or the person. On scroll the letters spread. It is the
+depth-plane idea of `recipes-motion.md` §17 with type as one of the planes,
+and it costs one cut-out picture and no script. Cut the subject out with
+the skill's own tool (`node scripts/cutout.mjs remove-bg photo.jpg
+--quality high`, `images.md`), look at the edge at 100 %, then save it as
+WebP: the example's PNG was 623 KB and its WebP 99 KB.
+
+```html
+<section class="sandwich" aria-label="The word Forno behind a loaf">
+  <p class="word" aria-hidden="true">Forno</p>
+  <img src="loaf.webp" alt="A round loaf of bread, cut out from its photograph" width="800" height="765">
+</section>
+```
+
+```css
+.sandwich { position: relative; height: 120svh; overflow: clip; background: var(--ground-deep); }
+.sandwich .word { position: absolute; inset: 18svh 0 auto; text-align: center; color: var(--paper);
+  font: 700 clamp(90px, 22vw, 340px)/0.8 var(--face-display); letter-spacing: -0.04em; margin: 0; }
+.sandwich img { position: absolute; left: 50%; bottom: 0; width: min(80vw, 800px); translate: -50% 18%; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .sandwich .word { animation: spread linear both; animation-timeline: view(); animation-range: cover 0% cover 60%; }
+  }
+}
+@keyframes spread { from { letter-spacing: -0.04em; } to { letter-spacing: 0.06em; } }
+```
+
+The word is `aria-hidden`, because the section's label already says it, and
+the picture keeps its alt text. Put the word's top edge where the subject's
+silhouette is lowest, so the letters read before they disappear behind it.
+Built and checked in `docs/examples/motion-techniques/dom-recipes/page.html`.
+
 - **Poster frame:** the finished state, which is also the default.
 - **Reduced motion:** the recipe only animates under `no-preference`; every entrance also needs its resting state (`recipes-motion.md` §14).
 - **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; scroll the rendered page with and without the reduced-motion setting (`verification.md`, "Probe, do not squint").
@@ -479,6 +566,8 @@ pages end up with content that never appears.
 #### Where the cost was measured
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- docs/examples/motion-techniques/dom-recipes/page.html, the example page for the wordmark between two planes and the other recipes added on 2026-11-07, served over http: `check-motion` passes the fast tier (all 28 content items readable without scripts), `check-slop --render` 0 FAIL and 0 Reflex, the wheel recording reached the end with no stalls; 107 KB in all, 97 KB of it the cut-out picture.
 
 - No site is cited by the recipe, so none was probed on 2026-10-15; the support figure (~84% global) is the recipe's own. Cost not measured.
 
@@ -517,6 +606,28 @@ sticky elements.
 `x` comes from `useTransform(scrollYProgress, [0, 1], ["0%", "-75%"])`.
 A taller outer container makes the horizontal travel feel slower.
 
+**The sticky stack.** The same hold, turned into cards: each card sticks at
+the top a few pixels below the last, the next one rides up over it, and the
+held card shrinks back a little as it is covered, so the steps of a process
+pile up instead of scrolling away. CSS only: `position: sticky` and a scroll
+timeline on each card's own exit.
+
+```css
+.card { position: sticky; top: 12vh; height: 60svh; transform-origin: 50% 0; }
+.card:nth-child(2) { top: calc(12vh + 18px); }
+.card:nth-child(3) { top: calc(12vh + 36px); }      /* each one stops a little lower: the pile shows its edges */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .card { animation: settle linear both; animation-timeline: view(); animation-range: exit-crossing 0% exit-crossing 100%; }
+  }
+}
+@keyframes settle { to { scale: 0.92; filter: brightness(0.9); } }
+```
+
+Three to five cards; past that the pile is a slide deck. Without scroll
+timelines the cards still stack, they only do not shrink. Built in
+`docs/examples/motion-techniques/dom-recipes/page.html`.
+
 - **Poster frame:** the stage at its first position.
 - **Reduced motion:** show the stage at rest, or stack the pieces in reading order (`recipes-motion.md` §14).
 - **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; scroll the rendered page with and without the reduced-motion setting (`verification.md`, "Probe, do not squint").
@@ -526,6 +637,7 @@ A taller outer container makes the horizontal travel feel slower.
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - Antigravity and Observable (27 sticky elements): where the pattern was read. Named without a URL, so not probed on 2026-10-15. Cost not measured.
+- docs/examples/motion-techniques/dom-recipes/page.html, served over http on 2026-11-07: the sticky stack; `check-motion --tier fast` passes (readable without scripts), `check-slop --render` 0 FAIL and 0 Reflex, the wheel recording reached the end with no stalls. A few hundred bytes of script and CSS each; the page is 107 KB in all, 97 KB of it one picture.
 
 ## Counters that mean something
 
@@ -572,6 +684,40 @@ function useCountUp(target: number, ms: number, run: boolean) {
 Always `font-variant-numeric: tabular-nums` on a counting figure, or the
 whole row reflows on every frame.
 
+**The odometer.** The same number rolled instead of counted: each digit is a
+column of 0 to 9 in a window one figure tall, moved up by its value, the
+columns starting a beat apart from the right like a mechanical counter. The
+browser animates a transform, so no frame is computed in script, and the
+figure is the real number in the HTML until the script splits it.
+
+```html
+<div class="odo" data-odo="4817" aria-label="4817">4817</div>
+```
+
+```css
+.odo { font-variant-numeric: tabular-nums; display: inline-flex; overflow: hidden; height: 1em; line-height: 1; }
+.odo .col { display: flex; flex-direction: column; transition: transform 1.6s var(--ease-signature); transition-delay: calc(var(--k) * 90ms); }
+.odo .col span { height: 1em; }
+@media (prefers-reduced-motion: reduce) { .odo .col { transition: none; } }
+```
+
+```js
+for (const el of document.querySelectorAll('[data-odo]')) {
+  const digits = el.dataset.odo.split('');
+  el.innerHTML = digits.map((d, k) => `<span class="col" aria-hidden="true" style="--k:${digits.length - 1 - k}">${
+    [...'0123456789'].map((n) => `<span>${n}</span>`).join('')}</span>`).join('');
+}
+// when the figure is half on screen (an IntersectionObserver, once):
+el.querySelectorAll('.col').forEach((col, k) => { col.style.transform = `translateY(-${digits[k]}em)`; });
+```
+
+A preloader that counts from 0 to 100 % is this card only when the number is
+the real progress of real loading (`recipes-motion.md` §24); a counter that
+runs on a timer over a page that is already there is the most repeated tell of
+the template catalogue read on 2026-11-07 (eleven of its 59 pages). No
+script gate catches it; it is for the finish review to judge (`reviews.md`). Built in
+`docs/examples/motion-techniques/dom-recipes/page.html`.
+
 - **Poster frame:** the final number.
 - **Reduced motion:** the hook sets the target at once.
 - **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; look at the rendered page with and without the reduced-motion setting (`verification.md`, "Probe, do not squint").
@@ -581,6 +727,7 @@ whole row reflows on every frame.
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - No site is cited by the recipe, so none was probed on 2026-10-15. Cost not measured.
+- docs/examples/motion-techniques/dom-recipes/page.html, served over http on 2026-11-07: the odometer; `check-motion --tier fast` passes (readable without scripts), `check-slop --render` 0 FAIL and 0 Reflex, the wheel recording reached the end with no stalls. A few hundred bytes of script and CSS each; the page is 107 KB in all, 97 KB of it one picture.
 
 ## Text that performs its sentence
 
@@ -626,6 +773,72 @@ reader announces the text one letter at a time.
 
 Total stagger must stay under ~500ms. At `i * 0.012` that is 40 characters.
 
+Three named variants, read from a catalogue of WebGL template pages on
+2026-11-07 and built in `docs/examples/motion-techniques/dom-recipes/page.html`.
+Each splits the text into words with a small script and keeps the sentence in
+`aria-label`; each is visible when the script never runs.
+
+**Blur to focus.** Words arrive out of focus and sharpen, one after another.
+Blur words, never the block: a blur filter on a 100 px heading repaints the
+whole box every frame. About 1.1 s on the dramatic curve, a 40 ms stagger,
+10 px of blur (the `cinematic-gsap-lenis-motion-system` skill, Meng To, MIT,
+gives 8 to 10 px and a 35 to 70 ms word stagger).
+
+```css
+.js .focus-in .w { display: inline-block; filter: blur(10px); opacity: 0; transform: translateY(0.25em);
+  transition: filter 1.1s var(--ease-dramatic), opacity 1.1s var(--ease-dramatic), transform 1.1s var(--ease-dramatic);
+  transition-delay: calc(var(--i) * 40ms); }
+.js .focus-in.in .w { filter: none; opacity: 1; transform: none; }       /* .in is added once, on entry */
+@media (prefers-reduced-motion: reduce) {
+  .js .focus-in .w { filter: none; transform: none; transition: opacity 0.4s linear; }   /* opacity only */
+}
+```
+
+It is the entrance twelve of the 59 template pages give every heading. Used
+once, on the line that is about focus or arrival, it says something; on every
+heading it is the generated-page tell this skill exists to catch. No script
+gate measures it yet, so the finish review judges it (`reviews.md`).
+
+**Reading fill.** Every word starts pale and takes the ink as the paragraph
+crosses the middle of the screen, so the bright edge of the colour is the
+reader's place. Pure CSS on a scroll timeline; where scroll timelines are
+missing, or under reduced motion, the words are simply ink.
+
+```css
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .fill .w { animation: ink linear both; animation-timeline: view(); animation-range: cover 25% cover 50%; }
+  }
+}
+@keyframes ink { from { opacity: 0.18; } to { opacity: 1; } }
+```
+
+Each word has its own view timeline, so the fill runs line by line down the
+paragraph without a script driving it. Keep it to one paragraph that is worth
+reading slowly; a page of it is homework.
+
+**Scramble.** A label decodes: each letter cycles through random glyphs and
+locks into place from left to right in about 0.7 s. Labels and figures only,
+never a sentence someone has to read, and not at all under reduced motion.
+
+```js
+const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+function scramble(el, dur = 700) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const text = el.textContent; el.setAttribute('aria-label', text);
+  const t0 = performance.now();
+  const tick = (t) => {
+    const p = Math.min(1, (t - t0) / dur), locked = Math.floor(p * text.length);
+    el.textContent = [...text].map((c, i) => (i < locked || c === ' ' ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0])).join('');
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+```
+
+GSAP's ScrambleTextPlugin does the same with more options; it is free, under
+GreenSock's own standard licence, not MIT.
+
 - **Poster frame:** the headline settled.
 - **Reduced motion:** the letters appear in place at once (`recipes-motion.md` §14).
 - **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; look at the rendered page with and without the reduced-motion setting (`verification.md`, "Probe, do not squint").
@@ -635,6 +848,7 @@ Total stagger must stay under ~500ms. At `i * 0.012` that is 40 characters.
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - No site is cited by the recipe, so none was probed on 2026-10-15. Cost not measured.
+- docs/examples/motion-techniques/dom-recipes/page.html, served over http on 2026-11-07: the blur to focus, the reading fill and the scramble; `check-motion --tier fast` passes (readable without scripts), `check-slop --render` 0 FAIL and 0 Reflex, the wheel recording reached the end with no stalls. A few hundred bytes of script and CSS each; the page is 107 KB in all, 97 KB of it one picture.
 
 ## Image reveal through the identity's device
 
