@@ -38,6 +38,8 @@ Santioni Spirits presents its liqueurs as an etched comic the visitor scrolls th
 
 **What it fails.** The Floor: the drawing kept moving under reduced motion, and without scripts there was one line of text (24 characters).
 
+**What the author singled out,** narrating a recording of it: every element of the background is its own animated layer and the pointer moves the layers by their depth, overlapping one another; the characters are rendered in 3D; the cloud edge between the title card and the first set becomes the next ground; small caption transitions that do not take the whole frame; approaching the portal, the ground recedes and falls while the portal rises with its own surge, like water; during the hold the background keeps moving; the ink transition (black hatching rising and thinning) carries depth, and is the depth effect to bring to future projects, with a cleaner cut for a more commercial identity; a flat red block behind the bottles to give them focus; a table that becomes a pillar across a cut; 3D pillars that also answer the pointer; type that assembles at the end; a footer with the bottle in 3D, arrows to change flavour, and a button that restarts the whole experience. Every one of these is now a recipe (below).
+
 ## igloo.inc
 
 1,400 wheel steps, the cap: the page loops.
@@ -109,3 +111,26 @@ Gate "EXPLORE" passed; 190 steps to the footer.
 **What it takes to make one.** An illustrator or a 3D team producing hundreds of authored frames or a live world; motion designed shot by shot; a WebGL layer with post-processing; a scroll engine with pinned chapters; gestures; sound; a loader that tells the truth about the weight.
 
 **What a comic told by scroll needs to stand beside them** ([Webcomic experience](identities/digital.md#webcomic-experience-illustrated-scroll-story)): one drawn world in one hand, dense with hatching, at full-screen size; the scroll as a comic camera (panels inside panels, push-ins on eyes and hands, cuts on action, a portal or an ink cut between chapters); beats the reader performs; one spot colour spent like santioni's red; lettering and SFX inside the art, captions as small boxed narration; scored sound on a tap. What it must not be: generic 3D props under an edge-detect filter, or panels in a column with parallax.
+
+---
+
+## Where each technique lives in df-design
+
+The moves above, mapped to the recipe that builds them and to the installed skills whose code or rules were adapted into it (all MIT; credited in the README, licences in `licenses/`). No skill was copied in whole; where a skill had nothing on a move, the recipe was written from the recording.
+
+| Move (site) | Built in | Adapted from |
+|---|---|---|
+| Every element its own layer, pointer by depth, a moving hold (santioni; lusion's cursor) | `recipes-motion.md` §17, `dfStory.parallax` | `gsap-performance` (quickTo), `threejs-animation` (frame-rate independent damping), `animation-principles`: secondary action and loops (amplitude, phase offset), spatial thinking (overlap, tangents) |
+| One shape carried across a cut: cloud to ground, table to pillar, portal up while the ground recedes (santioni; everswap's landscape folding into the diamond) | §18 | `gsap-scrolltrigger` (pin, scrub, labels), `gsap-plugins` (Flip, MorphSVG), `gsap-scrolltrigger-storytelling` (section handoff) |
+| The ink-out with depth (santioni) | §19, `dfStory.ink`, `dfStory.hatchField` | `threejs-shaders` (threshold dissolve), written from the recording |
+| The focus field (santioni's red block behind the bottles) | §20 | written from the recording; `animation-principles` staging |
+| Captions, title cards assembling by tracking, type breaking round the subject (santioni; the Lusion DDD page; everswap's split words) | §21 | `gsap-plugins` (SplitText), `animation-principles` orchestrated sequences |
+| Hold to reach, hold to pour (santioni) | §22, `dfStory.hold` | `animation-principles` gesture responses; written from the recording |
+| The ending as a scene: product between the letters, rising sheet, carousel, restart (santioni; everswap's end card) | §23 | `gsap-plugins` (ScrollTo), written from the recording |
+| Preload, decode, upload and compile with honest progress (every site's loader) | §24, `dfStory.preload` | `threejs-performance` (`compileAsync`), `threejs-loaders`, `animation-principles` loading states |
+| Water, smoke and sparks drawn frame by frame (santioni's pour) | §25, `dfStory.flipbook`, `drawn-assets.md` §10 | `scenario-blender-grease-pencil`, `animation-principles` straight ahead and loops |
+| 3D characters that look drawn (santioni's monk; lusion's astronaut) | `drawn-assets.md` §9 | `blender-stylized-npr`, `blender-character-rigging`, `blender-animation`, `blender-rendering`, `blender-export-pipelines`, `threejs-materials` |
+| A live world that does not hitch (igloo, lusion, client-zero) | `techniques/yolo.md`, Real-time 3D world | `threejs-performance`, `threejs-loaders`, `threejs-textures`, `blender-game-optimization` |
+| Reduced motion for the whole story (none of the eight passes it) | §26 | `gsap-core` (matchMedia), `animation-principles` accessible motion and motion sickness |
+
+`comic-book-style` (arjun988) was read and gave nothing beyond what `drawn-assets.md` already says (two or three tone bands, strong contours, restrained screentone).
