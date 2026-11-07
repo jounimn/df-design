@@ -271,7 +271,7 @@ export async function captureMotion(browser, url, options = {}) {
     settings: { maxSteps: o.maxSteps, stepPx: o.stepPx, interval: o.interval, pause: o.pause, endSteps: o.endSteps },
     clicks: [], steps: 0, inputs: { wheel: 0, keys: 0 }, movedBy: 'none', nativeScroll: false,
     reachedEnd: false, endReason: null, maxStepsHit: false, stills: [], sheets: [], sheetsFrom: null, ffmpeg: null,
-    video: null, durations: {}, errors: [],
+    video: null, durations: {}, errors: [], stalls: [],
   };
   let videoPath = null;
 
@@ -314,6 +314,8 @@ export async function captureMotion(browser, url, options = {}) {
     let mode = 'wheel';
     let unchanged = 0;
     let travelled = 0;
+    // A stall: input that moved nothing, after which the page moved again. On a scroll story that is a stop.
+    let stallFrom = null;
     const travelPerStill = Math.round(o.size.height * 0.9);
     const changed = (a, b) => a.key !== b.key || a.picture !== b.picture || a.canvas !== b.canvas;
 
@@ -337,6 +339,7 @@ export async function captureMotion(browser, url, options = {}) {
       if (next.y !== startY) record.nativeScroll = true;
 
       if (moved) {
+        if (stallFrom !== null) { record.stalls.push({ fromStep: stallFrom, toStep: record.steps - 1, steps: record.steps - stallFrom, scrollY: prev.y }); stallFrom = null; }
         if (moved.how === 'wheel') record.inputs.wheel += 1; else record.inputs.keys += 1;
         mode = moved.how === 'wheel' ? 'wheel' : 'keys';
         travelled += moved.dist;
@@ -350,12 +353,13 @@ export async function captureMotion(browser, url, options = {}) {
         }
       } else {
         unchanged += 1;
+        if (stallFrom === null) stallFrom = record.steps;
       }
       prev = next;
       if (unchanged >= o.endSteps) {
         // Inertia may still be carrying the page: give it a pause and look once more before calling the end.
         const after = await settleHere();
-        if (changed(prev, after) && !(record.nativeScroll && after.key === prev.key)) { prev = after; unchanged = 0; continue; }
+        if (changed(prev, after) && !(record.nativeScroll && after.key === prev.key)) { prev = after; unchanged = 0; stallFrom = null; continue; }
         record.reachedEnd = true;
         record.endReason = record.inputs.wheel + record.inputs.keys === 0
           ? 'nothing moved: wheel, PageDown and Space changed neither the scroll position nor the picture'

@@ -1,6 +1,6 @@
 # YOLO techniques
 
-YOLO loading: the no-savings tier, for the flagship experience of a company with the budget and the team for it. It has no weight, script or GPU ceiling. It keeps the Floor: reduced motion honoured (drawings and films included), a lighter path for a visitor whose device cannot run the experience, the content readable without the experience, and honest loading (no sound fetched before the visitor asks for it, the first-view weight stated). The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. YOLO is offered in the tier message and never recommended by default. Choosing it commits the build to at least one technique below at flagship scale (authored media or a real-time 3D scene); a page under the High ceiling is a high build with a yolo label, and `check-motion --tier yolo` reports it as built below the chosen tier. Before production, three light prototypes of the experience are built and the author picks one ([audition.md §2](../audition.md#on-the-yolo-tier-three-prototypes-before-production)).
+YOLO loading: the no-savings tier, for the flagship experience of a company with the budget and the team for it. It has no weight, script or GPU ceiling. It keeps the Floor: reduced motion honoured (drawings and films included), a lighter path for a visitor whose device cannot run the experience, the content readable without the experience, and honest loading (no sound fetched before the visitor asks for it, the first-view weight stated). The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. YOLO is offered in the tier message and never recommended by default. Choosing it commits the build to at least one technique below at flagship scale (authored media or a real-time 3D scene); a page under the High ceiling is a high build with a yolo label, and `check-motion --tier yolo` reports it as built below the chosen tier. Before production, three light prototypes of the experience are built and the author picks one ([audition.md §2](../audition.md#on-the-yolo-tier-three-prototypes-before-production)). The flagship sites these cards were measured on are analysed scene by scene, with what makes each one absurd, in [yolo-references.md](../yolo-references.md): read it before probing them again.
 
 Each card names its Floor fallback under "Lighter version", and links the nearest card of a lower tier where one exists. Every cost below comes from the YOLO probes of 2026-11-03 ([benchmarks](../benchmarks.md#yolo-measured-2026-11-03)): one run per site, headless Chrome at 1440x900 on an Intel UHD GPU. On this tier media, not script, is what makes a page heavy: the heaviest page by transfer, 26.7 MB, carried 9 KB of motion code.
 
@@ -37,7 +37,7 @@ The [Sticky narrative](fast.md#sticky-narrative) card carries the same story wit
 
 ### For the builder
 
-A `<canvas>` 2D context draws `frames[Math.round(progress * (n - 1))]`, with `progress` from a GSAP ScrollTrigger with `scrub` (or a scroll listener). Load the first frame and every eighth one first, fill in the rest while the browser is idle, and serve a smaller set under 768 px wide. Keep the key frames as `<img>` in the HTML, so the page reads without scripts, and show them in flow under `prefers-reduced-motion: reduce`. Put the first-view weight in the tier message: it is the whole sequence unless the loading is staged.
+A `<canvas>` 2D context draws `frames[Math.round(progress * (n - 1))]`, with `progress` from a GSAP ScrollTrigger with `scrub`, Motion's `scroll()` (motion.dev, MIT) or a scroll listener. Load the first frame and every eighth one first, fill in the rest while the browser is idle, and serve a smaller set under 768 px wide. Keep the key frames as `<img>` in the HTML, so the page reads without scripts, and show them in flow under `prefers-reduced-motion: reduce`. Put the first-view weight in the tier message: it is the whole sequence unless the loading is staged.
 
 Check it with `node scripts/check-motion.mjs <page> --tier yolo`, over http(s): it reports the weight by type and fails the Floor.
 
@@ -106,7 +106,7 @@ For one object, the [Clay 3D](high.md#clay-3d) or [Wireframe 3D](high.md#wirefra
 
 ### For the builder
 
-three.js (or the studio's own engine), glTF models with Draco geometry and KTX2 textures, a loading manager that drives an honest percentage, and GSAP ScrollTrigger or a wheel handler for the camera path. Serve the text as HTML outside the `<canvas>` and keep it visible until the scene is ready, never under an opaque loader. Start the scene only after a WebGL2 test passes and `matchMedia('(prefers-reduced-motion: reduce)')` does not match; otherwise show the still. Pause the loop when the scene is out of view (`recipes-motion.md` §14).
+three.js (or the studio's own engine), glTF models with Draco geometry and KTX2 textures, a loading manager that drives an honest percentage, and GSAP ScrollTrigger, Motion's `scroll()` (motion.dev, MIT) or a wheel handler for the camera path, with the camera eased on one continuous timeline (`recipes-motion.md` §16). Serve the text as HTML outside the `<canvas>` and keep it visible until the scene is ready, never under an opaque loader. Start the scene only after a WebGL2 test passes and `matchMedia('(prefers-reduced-motion: reduce)')` does not match; otherwise show the still. Pause the loop when the scene is out of view (`recipes-motion.md` §14).
 
 `check-motion --tier yolo` fails text that is in the DOM but covered by a loader without scripts, and a canvas that moves under reduced motion or is blank without WebGL.
 
@@ -123,15 +123,15 @@ Fixed measurement examples; the project's references come from research (`identi
 
 ### What it is
 
-A hand-drawn world, etched in a few inks, that the visitor scrolls and drags through: panels open, characters move, a cocktail is poured.
+A comic told by the scroll: a hand-drawn world, etched in a few inks, that the visitor scrolls and drags through shot by shot. Panels open inside panels, close-ups of hands and eyes slide in, characters move, a cocktail is poured, and every change of scene is a drawn cut that keeps moving. The grounds change with the beats (paper, night, the one strong colour at the climax), and the visitor performs some beats by holding a button.
 
 ### Where it comes from
 
-The form is the long scrolling feature, often called "snowfall" after The New York Times piece "Snow Fall", published online in December 2012: editorial layout joined to parallax scrolling and web video ([Creative Bloq, Snowfall](https://www.creativebloq.com/web-design/snowfall-51411702)). Here the photographs are replaced by drawings in layers.
+The form is the long scrolling feature, often called "snowfall" after The New York Times piece "Snow Fall", published online in December 2012: editorial layout joined to parallax scrolling and web video ([Creative Bloq, Snowfall](https://www.creativebloq.com/web-design/snowfall-51411702)). Here the photographs are replaced by drawings in layers, and the page reads like a comic.
 
 ### Suits
 
-Spirits, heritage food and drink, publishers, music: brands with a story and an illustrator.
+Spirits, heritage food and drink, publishers, music: brands with a story and an illustrator. Comic, webtoon and animation studios presenting a series. The identity that owns it is the [Webcomic experience](../identities/digital.md#webcomic-experience-illustrated-scroll-story).
 
 ### What it costs the visitor
 
@@ -143,13 +143,23 @@ The [Scroll-linked](fast.md#scroll-linked) card gives the layered parallax with 
 
 ### For the builder
 
-Layered illustration planes in a WebGL scene (Active Theory's engine on this site), Lottie for line animation, pointer drag on the canvas. Fetch the sound only after the visitor turns it on, keep the age gate in HTML, and keep the story text in the HTML beside the scene. Under reduced motion show the panels still.
+Layered illustration planes in a WebGL scene (Active Theory's engine on this site; three.js with one ink-plane shader is enough), Lottie for line animation, pointer drag on the canvas. Fetch the sound only after the visitor turns it on, keep the age gate in HTML, and keep the story text in the HTML beside the scene. Under reduced motion show the panels still.
+
+- **The story first.** A treatment with a want, a fear, a turn, a cost and a question, then a beat table: each beat, its set, its ground, and the cut it leaves by.
+- **The cuts.** A transition list beside the scene list: every scene change is a designed, animated cut chosen for its beat (a match cut on a shape, a push through an object, an ink wipe, a panel break, a page turn, a reveal), never a fade or a static zoom. Each cut is continuous: the camera and the characters keep moving through it, the outgoing and incoming sets overlap in motion, and the scroll maps to one timeline with eased velocity, so nothing holds or stops. The recipe and the review are in `recipes-motion.md` §16; check the recording for stalls after every change.
+- **The grounds.** Alternate them by beat (paper, ink or night, the hint as a full ground only at the climax) so no two neighbouring sets share one. Spend the hint on the story's object of desire and its light, never across the frame.
+- **The art.** One hand for every set, figures built anatomy first (`drawn-assets.md` §6). Without an illustrator, generate the key panels locally (`drawn-assets.md` §7) and force them into the brief's inks with `node scripts/ink-pass.mjs` (`drawn-assets.md` §8), the figure on its own plane for parallax. Balloons and captions are HTML; SFX lettering is drawn type.
+- **Characters that move.** For movement that turns and walks through a cut, make the characters 3D on an anatomical base (rig, IK poses), toon and ink shaded with Line Art in Blender 5.2 (the `blender-character-rigging`, `blender-animation` and `blender-stylized-npr` skills) or in three.js with an outline pass, rendered as image sequences or live, and composite them into the ink world. The generated key art stays for the sets and the close-ups. A figure that reads as a mannequin beside the drawn sets is not ready.
+- **Hold beats.** A button the visitor holds (pointer down and up, and Space or Enter on it) advances the beat; a tap advances it a little, and scrolling past it completes it, so nothing is locked behind the gesture.
+- **The libraries.** GSAP with ScrollTrigger, or Motion (motion.dev, MIT) with `scroll()` and its springs, for the timeline; Lenis if the scroll is smoothed, with the native scroll position kept so the page still reads without it.
+
+`check-motion --tier yolo` fails a stage that moves under reduced motion, a blank canvas without WebGL, text hidden without scripts and sound fetched before a click.
 
 #### Where the cost was measured
 
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
-- santionispirits.com, probed 2026-11-03, measured at its age gate (the gate was not passed): 9.7 MB (audio 8.5 MB, script 633 KB); motion code 431 KB; a WebAssembly module and Lottie in the shipped code; the drawing kept moving under reduced motion; a fallback showed without WebGL; 24 characters without scripts.
+- santionispirits.com, probed 2026-11-03, measured at its age gate (the gate was not passed): 9.7 MB (audio 8.5 MB, script 633 KB); motion code 431 KB; a WebAssembly module and Lottie in the shipped code; the drawing kept moving under reduced motion; a fallback showed without WebGL; 24 characters without scripts. Wheel-recorded to its footer on 2026-11-05 (`yolo-references.md`).
 
 ## Sound design
 

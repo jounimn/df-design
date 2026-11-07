@@ -48,7 +48,7 @@ warrant heavy motion, a bakery usually does not.
 | Tier | Presentation motion |
 |---|---|
 | `fast` | CSS only: slide and fade transitions, `clip-path` reveals for images (`[data-reveal]`). Built into the runtime (§7) |
-| `medium` | A small library (GSAP core or Motion One) for choreographed image and mockup reveals, hooked on the runtime's `df:slidechange` event |
+| `medium` | A small library (GSAP core, or Motion from motion.dev, MIT) for choreographed image and mockup reveals, hooked on the runtime's `df:slidechange` event |
 | `high` | Techniques from [`techniques/high.md`](techniques/high.md), run by `canvas-loop.js` inside the slide in focus. Every export shows the poster frame, and the lighter version appears without WebGL; under reduced motion the poster frame stays |
 | `yolo` | Offered, never the default: a scene, film or sequence from [`techniques/yolo.md`](techniques/yolo.md) in the slide in focus, with no weight ceiling. The Floor still applies: the poster frame in every export and under reduced motion, the slide's words in the HTML, no sound until the viewer turns it on |
 

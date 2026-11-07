@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scroll story with a stop</title>
+<style>
+  /* A virtual scroller whose story stops dead between two scenes: three wheel steps there move nothing, then the
+     scroll carries on. The motion capture has to report those steps as a stall. */
+  html, body { margin: 0; height: 100%; overflow: hidden; font: 20px/1.5 Georgia, serif; }
+  #track { position: fixed; inset: 0 0 auto 0; will-change: transform; }
+  .scene { height: 900px; display: grid; place-items: center; }
+  .scene:nth-child(1) { background: #f4efe6; }
+  .scene:nth-child(2) { background: #23395b; color: #fff; }
+  .scene:nth-child(3) { background: #e2a33c; }
+</style>
+</head>
+<body>
+  <main id="track">
+    <section class="scene"><h1>Scene one</h1></section>
+    <section class="scene"><h2>Scene two</h2></section>
+    <section class="scene"><h2>Scene three, the end</h2></section>
+  </main>
+<script>
+  const track = document.getElementById('track');
+  let y = 0, held = 0;
+  addEventListener('wheel', (e) => {
+    e.preventDefault();
+    // the stop: at the cut into scene two, three wheel events are swallowed with nothing on screen changing
+    if (y >= 840 && held < 3) { held += 1; return; }
+    const max = track.offsetHeight - innerHeight;
+    y = Math.max(0, Math.min(max, y + e.deltaY));
+    track.style.transform = `translateY(${-y}px)`;
+  }, { passive: false });
+</script>
+</body>
+</html>

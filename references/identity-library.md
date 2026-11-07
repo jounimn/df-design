@@ -110,7 +110,7 @@ them as free-text searches, not curated lists.
 | Victorian | heritage, theatre, opulence, the antique | typography and art courses, museums, tea, theatre, heritage brands | medium |
 | Vienna Secession / Wiener Werkstätte | cultured, architectural, Viennese rigour with ornament | galleries, architecture firms, coffee houses, design shops, classical music | fast |
 
-### Digital and UI-native — `identities/digital.md` (51)
+### Digital and UI-native — `identities/digital.md` (52)
 
 | Identity | Says | Fits | Load |
 |---|---|---|---|
@@ -162,6 +162,7 @@ them as free-text searches, not curated lists.
 | Vaporwave | ironic consumer-capitalism nostalgia, dreamy, internet-art | music releases, art, streetwear, game jams, nostalgia events | medium |
 | Vectorheart (Y2K tech-industrial) | engineered futurism circa 2000, the studio as an instrument | creative-technology and interactive studios, motion design, electronic music, racing and sci-fi games, Flash-era archives | medium |
 | Web 1.0 / GeoCities | amateur, personal, sincere, 1990s internet | nostalgia projects, fan sites, music/zine side projects, retro films, art projects | fast |
+| Webcomic experience (illustrated scroll story) | you are inside the story; the brand or the series as a world with a plot | a product told through a story (spirits, heritage food and drink, fragrance), comic, webtoon and animation studios presenting a series | yolo |
 | Webcore | internet nostalgia as art; irony; archival love of the old web | artist portfolios, music releases, galleries, festival microsites | medium |
 | Weirdcore / Dreamcore | unease, nostalgia turned uncanny, dream logic, liminality | ARGs, horror games, experimental music, art projects | fast |
 | Y2K aesthetic | nostalgic, playful, internet-native | youth brands, events, creative schools, music, chrome-type and liquid-metal drops | medium |

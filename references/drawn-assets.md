@@ -5,7 +5,10 @@ bakery bulletin is marked up with a pen, a comic is inked. For those, the
 icons, the doodles in the margin and the small illustrations are drawn for
 the project, in the identity's own line, the same way the logo is
 (`selling-positioning.md` §2). This file covers when to draw, how to derive
-the line from the brief, and how to check a set before it reaches a page.
+the line from the brief, and how to check a set before it reaches a page;
+then, for a drawn story, how a living character is built (§6), how key art
+is generated on the project's own machine (§7) and how the ink pass forces
+any picture into the brief's inks (§8).
 
 Library icon sets and stock illustration are in `icons-and-assets.md` and
 `images.md`. A drawing never replaces a photograph or the product
@@ -142,6 +145,224 @@ Open the sheet and answer, in writing, before any drawing goes on a page:
 
 ---
 
+## 6. Living characters: anatomy first
+
+Any living character (a person, an animal, a creature, a hand) is built on
+an anatomical structure before it is drawn, whatever makes the picture: a
+pen, code, an image model's init, or a 3D rig. Style may bend the anatomy
+only after the anatomy is there. Without it every pose looks wrong in a way
+no texture hides: limbs from tubes, shoulders and hips parallel, hands as
+mittens.
+
+1. **Proportions.** The figure's height in heads, written down (a slight
+   teenager about 7, an old woman with a stooped spine about 6.5), and the
+   joints placed on that grid.
+2. **Gesture.** The line of action, then the shoulder line and the hip line,
+   tilted against each other in every standing pose (contrapposto: the
+   weight on one leg).
+3. **Skeleton, then masses.** The rib cage, the pelvis, the trapezius and
+   deltoids, the bulge of each limb. Hands from their bones: metacarpals to
+   the knuckles, three phalanges per finger with their curl, the knuckle
+   creases and the nails; a grip mode where the fingers wrap the object.
+4. **Silhouette, then clothing.** One union outline over the masses, then
+   the clothes over the body with their folds at the joints, then the hair.
+5. **The construction sheet is kept** beside the drawings, and each figure
+   is checked against it before it goes into a scene.
+
+In 3D the same order holds: an anatomical base mesh with a rig (`blender-character-rigging`),
+posed with IK, never a figure assembled from primitives. A generated figure
+is checked against the same sheet: the head count, the tilt of the lines,
+five fingers that do not fuse.
+
+---
+
+## 7. Generated key art, local
+
+### What it is
+
+The key panels of a drawn story (the sets, the figures, the close-ups of
+hands and eyes) made by a local open-weight image model on the project's own
+machine, then forced into the brief's inks by the ink pass (§8). Code keeps
+everything else: the compositing, the camera, the cuts, the SFX lettering,
+the balloons, the sound and the interface.
+
+### Where it comes from
+
+Text-to-image diffusion run on the CPU: [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)
+running [FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell),
+a four-step model whose weights are Apache-2.0.
+
+### Suits
+
+A drawn identity with a hand (comic ink, etching, woodcut, scratchboard)
+when no illustrator is supplied: the illustrated scroll story
+(`techniques/yolo.md`), the webcomic experience (`identities/digital.md`).
+Ask first: the tier message asks whether an illustrator or a 3D artist is
+supplied, and generated art is what the author agrees to when none is. It is
+never a product photograph, a real person, or a brand's own characters.
+
+It closes part of the gap to an illustrator, not all of it. In a trial of
+2026-11 the figures read as people for the first time (a girl's weight on a
+cliff, coat folds, the back of a rower, a hand with knuckles and nails), but
+the model drifted to a grey airbrushed engraving, drew glow, suns and moons
+it was told not to, and misread an invented object (a falling piece of the
+sky came out as a mountain, a sun, a sail and a boat). The ink pass is
+therefore not optional.
+
+### What it costs the visitor
+
+Nothing beyond the pictures: after the ink pass a panel has two or three
+colours, and lossless WebP of three inks compresses to little. A
+nine-set episode of inked key art weighed 1.4 MB at the first view and
+4.1 MB after a full scroll (measured 2026-11-07, `check-motion --tier yolo`).
+The cost is the builder's, in hours of CPU:
+
+| Step (Intel i5-10210U, 4 threads, no GPU) | Measured |
+|---|---|
+| Model load, 6.4 GB of weights | 8 s warm, 20 s cold |
+| Text encoding | 21 s |
+| One sampling step | 341 s at 768x432, 567 s at 1024x576 |
+| VAE decode, tiled | 160 s |
+| One 768x432 image, with RAM free | about 20 to 30 min |
+| The same under memory pressure (2.8 GB free, other apps open) | about 50 to 70 min; one 1024x576 image took 123 min |
+| Peak RAM | 9.6 GB |
+
+A whole episode (nine sets of about five layers, about four tries each) is
+about 180 generations: about 70 h of CPU at 768x432, and impractical at
+1536x864 (about 25 min a step). On a rented 24 GB GPU the same run is under
+an hour. Close the other applications before a run.
+
+### Lighter version
+
+An illustrator's own drawings; for simple sets and props, the code-drawn
+line of §3; for a figure that must move, a 3D character (`techniques/yolo.md`,
+"Illustrated scroll story").
+
+### For the builder
+
+**The stack.** Every part has a commercial licence, read on its own page,
+and a checksum recorded against the release digest or the Hugging Face LFS
+hash:
+
+| Part | Licence |
+|---|---|
+| stable-diffusion.cpp, a release build for the machine (the CPU build picks AVX2 at runtime) | MIT |
+| FLUX.1-schnell, quantized GGUF (Q4_0 runs in 9.6 GB) | Apache-2.0 |
+| `ae.safetensors`, the VAE of FLUX.1-schnell | Apache-2.0 |
+| `clip_l` text encoder | MIT |
+| `t5xxl` text encoder, quantized GGUF | Apache-2.0 |
+
+Never FLUX.1-dev, FLUX.1 Kontext dev or any weights under a non-commercial
+licence, and never a model whose card does not state its weights' licence.
+The weights live outside the repository, like the cutout models
+(`licenses/cutout-models.md`).
+
+**The prompts.**
+
+- **A style head per ground,** the same for every panel of that ground. For
+  night: flat black ink, white contour, directional hatching that follows
+  each form, screentone for the mid-tones, hard edges; "the sky is flat black
+  with small white stars, no gradient, no glow, no bloom, no sun, no moon,
+  no sunset". For day: black ink on flat newsprint, the same marks, "no
+  gradient, no glow, no airbrush".
+- **No full faces.** Characters seen from behind, as hands, as eyes, or in
+  profile. Faces change between shots, and a full face is where a generated
+  figure fails first.
+- **No text.** "No letters, no numbers and no words anywhere"; every letter
+  the page needs is HTML or drawn SFX.
+- **The story's object described concretely.** The model has no idea of an
+  invented thing, so give it a shape, a size, a material and the colour of
+  its edge ("a jagged flat slab of night sky the size of a boat, black
+  inside and full of tiny white stars, its broken angular edges outlined in
+  flat hot pink").
+- **One sentence per character,** repeated word for word in every prompt
+  (age, build, hair, the one garment). It is what keeps the character the
+  same across shots.
+
+**The modes.** Text-to-image for most panels, 4 steps, cfg 1, euler.
+Image-to-image only where a composition must hold, at strength 0.5 to 0.6,
+from an init built from the layout's own layers with no interface baked in;
+at 0.7 and above the four-step model all but ignores the init.
+
+**Seeds and rejection.** Two seeds per panel, a third only when both fail.
+Put both side by side on a contact sheet and reject a full face, fake
+letters or glyphs, a glow halo, a moon or a sun, fused fingers, and the
+story's object drawn as something else (a boat, a comet, a crescent moon).
+A small fault is fixed, not regenerated: `--erase` fills a part the model
+drew against the prompt with ink, and a prop can be cut from another
+generation of the same beat (`scripts/cutout.mjs`).
+
+**The run.** Generations go in the background, one at a time (two at once
+page the memory), from a queue script that writes a progress file after
+every step: the panel, the seed, the step, the start and end times, the
+output. Check the progress file; never hold the session on one blocking
+call that runs for an hour.
+
+**The record.** Each generated file gets a row in the asset record
+(`images.md` §5): the model, its quantization, source repository and
+licence; every checksum; the runner and its version; the seed, steps, cfg,
+sampler and size; the prompt (or the prompt file and its key); the mode,
+with the strength and the init; the ink settings, which `ink-pass.mjs`
+prints as the treatment; the cutout model. No copyright is claimed over a
+raw generation, and no prompt names a real person, a brand or an existing
+artwork.
+
+---
+
+## 8. The ink pass
+
+A generated panel, a 3D render or a scan comes out in greys, gradients and
+off-palette colour. The ink pass turns it into the brief's inks,
+deterministically:
+
+```bash
+node scripts/ink-pass.mjs ink raw/fall.png --out art/fall --brief docs/identity.md --width 3072,1200
+node scripts/ink-pass.mjs ink raw/row.png --out art/row --ink "#141019" --paper "#F0EBDF" --hint "#2E7DFF" --map paper --cutout person
+node scripts/ink-pass.mjs layers art/row@3072.png --out art --name row --alpha art/row.figure.png --fill "#141019"
+```
+
+- **The inks come from the brief,** the `Hint:` line's base pair and hint
+  (`--brief`), or from `--ink`, `--paper` and `--hint`. Nothing falls back
+  to a built-in palette.
+- **Hatching that follows the form.** The stroke direction comes from the
+  image's structure tensor, along the contours and across the gradient; a
+  seeded line-integral convolution along that field draws the strokes, their
+  coverage set by the tone, with a crossing layer in the darkest tones. Where
+  the picture has no structure (open sky, fog, a flat wall) a clustered-dot
+  screentone stays. `--texture dots` makes it screentone everywhere.
+- **The maps,** one per ground: `ink` (dark to ink, light to paper),
+  `paper` (inverted, so a light-line night drawing becomes ink line on
+  paper), `hint` (inverted onto the hint as the whole ground, for a set inside
+  the hint's light), `hintlit` (night, with what the light reaches in the
+  hint).
+- **The hint only through a mask,** never over a figure. The mask is the
+  source's own colour near the hint's hue (`--hint-hue` to set the range,
+  `--hint-mask` to give one), minus `--exclude` boxes and minus the figure.
+- **Figure and background layers.** `--cutout person` (or `object`) cuts the
+  figure with `scripts/cutout.mjs` and keeps its alpha; `layers` writes the
+  background with the figure's place filled with the set's ground, grown so
+  no outline shows when the planes move apart, and the figure on its own
+  transparent plane at full frame, so both stay in register. `--alpha
+  ellipse` feathers a small piece set into another panel.
+- **Crisp at every size.** The source is upscaled with Lanczos and an
+  unsharp mask, and each `--width` is inked on its own: resizing a finished
+  screentone or hatching blurs it.
+- **Levels and fixes.** `--lo` and `--hi` set where solid ink and solid
+  paper begin (0.18 and 0.72 by default; lower `--lo` and raise `--hi` to
+  hatch more of the picture); `--erase` fills an ellipse with ink; `--seed`
+  moves the strokes.
+
+It runs on Python 3 with numpy and Pillow: the cutout tool's venv
+(`node scripts/cutout.mjs setup`), or any Python that has both
+(`node scripts/ink-pass.mjs doctor` says which). It prints the share of each
+ink, the share that was hatched, a warning if any hint landed on the
+figure, and the treatment line for the asset record. Look at every result
+at 100 % before it goes on a page: the hatching runs along the forms, the
+figure carries no hint, and nothing the model drew against the prompt is
+left.
+
+---
+
 ## Red flags
 
 | Thought | Reality |
@@ -154,3 +375,7 @@ Open the sheet and answer, in writing, before any drawing goes on a page:
 | "The label is part of the drawing" | Live text inside an SVG is not read, translated or found. Set it in the page. |
 | "It looks right at 200px" | Run `sheet`: it has to read at 24px and inverted too. |
 | "The doodles can be in the hint colour" | The hint goes on a drawing only when it is the subject or the mark, and it counts toward the hint's places. |
+| "The figure reads well enough from its silhouette" | A living character starts from its skeleton and proportions, then volume, then clothing (§6). Without them every pose looks wrong. |
+| "The generated panel is close enough to the identity" | Run the ink pass (§8): the model's greys, glow and off-palette colour are not the brief's inks. |
+| "I'll wait for this generation to finish" | Run it in the background with a progress file (§7). One image can take an hour on a laptop. |
+| "Any open model will do" | Only weights whose own licence allows commercial use, with the checksum recorded; never a dev or non-commercial release (§7). |

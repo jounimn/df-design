@@ -16,6 +16,7 @@ within a minute of opening the page.
 | Five custom `fontSize` tokens | Build clean, classes present in source | `tailwind-merge` classifies unrecognised `text-*` as *colours* and deleted every one. `twMerge("text-title text-ink")` returned `"text-ink"`. The whole type scale was inert. |
 | Themed charts | Build clean, no warnings | Tremor styles its chrome with a `tremor-*` utility namespace the host config must define. It was never defined, so **41 classes compiled to nothing** and every axis label fell back to Recharts grey — invisible on a dark canvas. |
 | A rebrand | 183 tests green | Every page had the same layout it started with. Tokens and type had changed; not one structural decision had. |
+| A YOLO scroll story | Every gate and both reviews green, all run through a local server | The author double-clicked `index.html`. Under `file://` the browser blocked the module import and the WebGL image textures, and the page showed only its static fallback: no animation at all. |
 
 The pattern: **absence is silent.** A class that does not exist, a rule that
 never matches, a container that never bounds — none of them raise anything.
@@ -136,6 +137,11 @@ come from the video through ffmpeg when one is found (`FFMPEG`,
 browser decodes the video itself, and if that fails they are built from the
 stills (`sheetsFrom` says which).
 
+`stalls` in `capture.json` lists the stretches where input moved nothing
+before the page moved again. On a scroll story each one is a stop the
+visitor feels: a finding, unless it is a hold beat the visitor performs
+(`recipes-motion.md` §16).
+
 Judge the scenes in order from the sheets: does each one enter, hold and
 leave, does the pinned scene progress rather than stall, does anything sit
 blank for a whole frame, does the end of the page arrive. `check-slop
@@ -212,7 +218,17 @@ canvas in a slide with no `--tier` stops the run with exit code 2.
 3. **Is an animation still running?** A screenshot taken mid-transition
    shows a half-drawn chart or an empty donut. Wait, or emulate reduced
    motion.
-4. **Is the data degenerate?** A flat line, a single-slice donut and a
+4. **Does it open the way its reader will open it?** The gates and the
+   looks all serve the page over http, which is not how an author first
+   opens a delivered file. Open the deliverable from disk (`file://`) as
+   well: module scripts, dynamic `import()`, `fetch` and WebGL image
+   textures fail there without a sound, and the page falls back to its
+   still. Either make it work from disk (classic scripts, inlined code,
+   textures the page can read from `file://`), or ship a one-line serve
+   command (`npx serve .`, `python -m http.server`) in the deliverable's
+   README and in the verification record, and say it in the report to the
+   author.
+5. **Is the data degenerate?** A flat line, a single-slice donut and a
    one-bar list are a *data* problem wearing a design problem's clothes. No
    amount of styling fixes a chart with one value in it. Say so.
 

@@ -63,6 +63,7 @@ for (const c of cap.clicks) console.log(`  click ${c.selector}: ${c.ok ? 'ok' : 
 console.log(`  video: ${cap.video ? rel(path.join(cap.dir, cap.video)) : 'none'} (${cap.durations.videoSeconds}s)`);
 console.log(`  sheets (${cap.sheetsFrom}): ${cap.sheets.map((s) => rel(path.join(cap.dir, s))).join(', ') || 'none'}`);
 console.log(`  stills: ${cap.stills.length} in ${rel(path.join(cap.dir, 'stills'))}`);
+if (cap.stalls.length) console.log(`  stalls: ${cap.stalls.map((x) => `steps ${x.fromStep}-${x.toStep}`).join(', ')}: input that moved nothing before the page moved again (a stop, unless it is a hold the visitor performs)`);
 for (const e of cap.errors) console.log(`  note: ${e}`);
 if (cap.maxStepsHit) console.log(`  the safety cap of ${opts.maxSteps ?? MOTION_DEFAULTS.maxSteps} steps was hit: raise --max-steps to see the rest`);
 process.exit(cap.sheets.length ? 0 : 1);
