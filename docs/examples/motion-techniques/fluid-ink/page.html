@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fluid ink over a photograph: example</title>
+<style>
+  :root { --face-display: Georgia, "Times New Roman", serif; --ground: #0b0c10; --ink: #ecebe6; --muted: #a3a197; --hint: #ffcf7a; --shade: rgb(0 0 0 / .6); }
+  * { box-sizing: border-box; }
+  html { background: var(--ground); color: var(--ink); }
+  body { margin: 0; font: 400 18px/1.55 var(--face-display); }
+  a { color: var(--ink); }
+  a:focus-visible { outline: 2px solid var(--hint); outline-offset: 3px; }
+  .hero { position: relative; height: 100svh; min-height: 560px; overflow: clip; }
+  .hero canvas, .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .copy { position: absolute; left: 8vw; bottom: 12vh; max-width: 34rem; text-shadow: 0 1px 24px var(--shade); }
+  h1 { font: 400 clamp(44px, 6.5vw, 88px)/1 var(--face-display); letter-spacing: -0.03em; margin: 0 0 16px; }
+  .copy p { margin: 0; }
+  main { padding: 12vh 8vw; max-width: 46rem; min-height: 150svh; color: var(--muted); }
+</style>
+</head>
+<body>
+<section class="hero" aria-label="A prism and its spectrum">
+  <img id="ink-fallback" src="photo.jpg" alt="White light split by a prism into a band of colours">
+  <canvas id="ink" hidden></canvas>
+  <div class="copy">
+    <h1>Light, stirred</h1>
+    <p>Move the pointer across the picture: the colours of the photograph flow after it like ink in water and settle back.</p>
+  </div>
+</section>
+<main>
+  <p>A test page for the fluid-ink card. Without the drawing, the photograph stands still and the words read the same.</p>
+  <p><a href="../">Other examples</a></p>
+</main>
+
+<script src="canvas-loop.js"></script>
+<script>
+// A stable-fluids solver after Pavel Dobryakov's WebGL-Fluid-Simulation (MIT, Copyright (c) 2017 Pavel Dobryakov; github.com/PavelDoGreat/WebGL-Fluid-Simulation, licence in licenses/PavelDoGreat-WebGL-Fluid-Simulation-LICENSE),
+// cut down to what an ink-over-a-photograph hero needs: velocity and dye on half-float textures, advection, vorticity,
+// divergence, a Jacobi pressure solve and the gradient subtraction; the dye takes its colour from the photograph.
+(() => {
+  const canvas = document.getElementById('ink');
+  const fallback = document.getElementById('ink-fallback');
+  const SIM = 128, DYE = 512, PRESSURE_ITERATIONS = 20;
+  const VELOCITY_DISSIPATION = 0.25, DYE_DISSIPATION = 0.9, CURL = 18, SPLAT_RADIUS = 0.0025, SPLAT_FORCE = 5200;
+
+  const BASE_VS = `#version 300 es
+  in vec2 aPos; out vec2 vUv, vL, vR, vT, vB; uniform vec2 uTexel;
+  void main() { vUv = aPos * 0.5 + 0.5; vL = vUv - vec2(uTexel.x, 0.0); vR = vUv + vec2(uTexel.x, 0.0);
+    vT = vUv + vec2(0.0, uTexel.y); vB = vUv - vec2(0.0, uTexel.y); gl_Position = vec4(aPos, 0.0, 1.0); }`;
+  const head = `#version 300 es
+  precision highp float; precision highp sampler2D; in vec2 vUv, vL, vR, vT, vB; out vec4 o;`;
+  const FS = {
+    splat: `${head} uniform sampler2D uTarget; uniform float uAspect, uRadius; uniform vec3 uColor; uniform vec2 uPoint;
+      void main() { vec2 p = vUv - uPoint; p.x *= uAspect; vec3 s = exp(-dot(p, p) / uRadius) * uColor;
+        o = vec4(texture(uTarget, vUv).xyz + s, 1.0); }`,
+    advect: `${head} uniform sampler2D uVelocity, uSource; uniform vec2 uTexel; uniform float uDt, uDissipation;
+      void main() { vec2 coord = vUv - uDt * texture(uVelocity, vUv).xy * uTexel;
+        o = texture(uSource, coord) / (1.0 + uDissipation * uDt); }`,
+    curl: `${head} uniform sampler2D uVelocity;
+      void main() { o = vec4(0.5 * (texture(uVelocity, vR).y - texture(uVelocity, vL).y - texture(uVelocity, vT).x + texture(uVelocity, vB).x), 0, 0, 1); }`,
+    vorticity: `${head} uniform sampler2D uVelocity, uCurl; uniform float uCurlStrength, uDt;
+      void main() { float L = texture(uCurl, vL).x, R = texture(uCurl, vR).x, T = texture(uCurl, vT).x, B = texture(uCurl, vB).x, C = texture(uCurl, vUv).x;
+        vec2 f = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L)); f /= length(f) + 1e-4; f *= uCurlStrength * C; f.y *= -1.0;
+        o = vec4(clamp(texture(uVelocity, vUv).xy + f * uDt, -1000.0, 1000.0), 0, 1); }`,
+    divergence: `${head} uniform sampler2D uVelocity;
+      void main() { float L = texture(uVelocity, vL).x, R = texture(uVelocity, vR).x, T = texture(uVelocity, vT).y, B = texture(uVelocity, vB).y;
+        vec2 C = texture(uVelocity, vUv).xy; if (vL.x < 0.0) L = -C.x; if (vR.x > 1.0) R = -C.x; if (vT.y > 1.0) T = -C.y; if (vB.y < 0.0) B = -C.y;
+        o = vec4(0.5 * (R - L + T - B), 0, 0, 1); }`,
+    pressure: `${head} uniform sampler2D uPressure, uDivergence;
+      void main() { float L = texture(uPressure, vL).x, R = texture(uPressure, vR).x, T = texture(uPressure, vT).x, B = texture(uPressure, vB).x;
+        o = vec4((L + R + B + T - texture(uDivergence, vUv).x) * 0.25, 0, 0, 1); }`,
+    gradient: `${head} uniform sampler2D uPressure, uVelocity;
+      void main() { float L = texture(uPressure, vL).x, R = texture(uPressure, vR).x, T = texture(uPressure, vT).x, B = texture(uPressure, vB).x;
+        o = vec4(texture(uVelocity, vUv).xy - vec2(R - L, T - B), 0, 1); }`,
+    scale: `${head} uniform sampler2D uSource; uniform float uValue; void main() { o = uValue * texture(uSource, vUv); }`,
+    // The picture: the photograph pushed along the flow, with the dye laid over it.
+    display: `${head} uniform sampler2D uPhoto, uDye, uVelocity; uniform vec2 uCover;
+      void main() { vec2 uv = (vUv - 0.5) * uCover + 0.5; vec2 v = texture(uVelocity, vUv).xy;
+        vec3 photo = texture(uPhoto, vec2(uv.x, 1.0 - uv.y) - v * 0.00018).rgb; vec3 dye = texture(uDye, vUv).rgb;
+        o = vec4(photo * (1.0 - 0.25 * clamp(length(dye), 0.0, 1.0)) + dye, 1.0); }`,
+  };
+
+  let gl, P, quad, fbo, photo, last = 0, idle = 0, ghost = 0, pointer = null;
+  const programs = (g) => {
+    const sh = (type, src) => { const s = g.createShader(type); g.shaderSource(s, src); g.compileShader(s);
+      if (!g.getShaderParameter(s, g.COMPILE_STATUS)) throw new Error(g.getShaderInfoLog(s)); return s; };
+    const vs = sh(g.VERTEX_SHADER, BASE_VS), out = {};
+    for (const [name, src] of Object.entries(FS)) {
+      const p = g.createProgram(); g.attachShader(p, vs); g.attachShader(p, sh(g.FRAGMENT_SHADER, src)); g.bindAttribLocation(p, 0, 'aPos'); g.linkProgram(p);
+      if (!g.getProgramParameter(p, g.LINK_STATUS)) throw new Error(g.getProgramInfoLog(p));
+      const u = {}; for (let i = 0; i < g.getProgramParameter(p, g.ACTIVE_UNIFORMS); i++) { const n = g.getActiveUniform(p, i).name; u[n] = g.getUniformLocation(p, n); }
+      out[name] = { p, u };
+    }
+    return out;
+  };
+  // Half-float targets need EXT_color_buffer_float on WebGL2; without it the loop shows the still photograph.
+  function target(w, h, filter) {
+    const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
+    const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('half-float target not renderable');
+    return { tex, fb, w, h };
+  }
+  const pair = (w, h, f) => { const a = target(w, h, f), b = target(w, h, f); return { read: a, write: b, swap() { [this.read, this.write] = [this.write, this.read]; } }; };
+
+  function build(g) {
+    gl = g;
+    if (!gl.getExtension('EXT_color_buffer_float')) throw new Error('no float render targets');
+    gl.getExtension('OES_texture_float_linear');
+    P = programs(gl);
+    quad = gl.createVertexArray(); gl.bindVertexArray(quad); gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    const aspect = canvas.clientWidth / canvas.clientHeight;
+    const sim = [Math.round(SIM * Math.max(1, aspect)), Math.round(SIM / Math.min(1, aspect))];
+    const dye = [Math.round(DYE * Math.max(1, aspect)), Math.round(DYE / Math.min(1, aspect))];
+    fbo = { velocity: pair(...sim, gl.LINEAR), dye: pair(...dye, gl.LINEAR), pressure: pair(...sim, gl.NEAREST),
+      divergence: target(...sim, gl.NEAREST), curl: target(...sim, gl.NEAREST) };
+    photo = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, photo);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, fallback);   // the same picture the fallback shows
+  }
+
+  function pass(prog, out, uniforms, textures = {}) {
+    gl.useProgram(prog.p);
+    let unit = 0;
+    for (const [name, tex] of Object.entries(textures)) { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(prog.u[name], unit++); }
+    for (const [name, v] of Object.entries(uniforms)) Array.isArray(v) ? gl[`uniform${v.length}f`](prog.u[name], ...v) : gl.uniform1f(prog.u[name], v);
+    if (out) { gl.viewport(0, 0, out.w, out.h); gl.bindFramebuffer(gl.FRAMEBUFFER, out.fb); }
+    else { gl.viewport(0, 0, canvas.width, canvas.height); gl.bindFramebuffer(gl.FRAMEBUFFER, null); }
+    gl.bindVertexArray(quad); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+
+  // A splat pushes the velocity and lays dye coloured by the photograph under the point.
+  const sample = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  function photoColour(x, y, amount) {
+    if (sample.canvas.width !== 64) { sample.canvas.width = 64; sample.canvas.height = 64; sample.drawImage(fallback, 0, 0, 64, 64); }
+    const [r, g, b] = sample.getImageData(Math.min(63, x * 64 | 0), Math.min(63, (1 - y) * 64 | 0), 1, 1).data;
+    // The photograph's own hue, lifted: a dark pixel still lays a visible ink of its colour.
+    const m = Math.max(r, g, b, 40);
+    return [r / m * amount, g / m * amount, b / m * amount];
+  }
+  function splat(x, y, dx, dy, amount = 0.3) {
+    const v = fbo.velocity, d = fbo.dye, texel = [1 / v.read.w, 1 / v.read.h], aspect = canvas.width / canvas.height;
+    pass(P.splat, v.write, { uAspect: aspect, uRadius: SPLAT_RADIUS, uColor: [dx, dy, 0], uPoint: [x, y], uTexel: texel }, { uTarget: v.read.tex }); v.swap();
+    pass(P.splat, d.write, { uAspect: aspect, uRadius: SPLAT_RADIUS, uColor: photoColour(x, y, amount), uPoint: [x, y], uTexel: texel }, { uTarget: d.read.tex }); d.swap();
+  }
+
+  function step(dt) {
+    const v = fbo.velocity, texel = [1 / v.read.w, 1 / v.read.h];
+    pass(P.curl, fbo.curl, { uTexel: texel }, { uVelocity: v.read.tex });
+    pass(P.vorticity, v.write, { uTexel: texel, uCurlStrength: CURL, uDt: dt }, { uVelocity: v.read.tex, uCurl: fbo.curl.tex }); v.swap();
+    pass(P.divergence, fbo.divergence, { uTexel: texel }, { uVelocity: v.read.tex });
+    pass(P.scale, fbo.pressure.write, { uTexel: texel, uValue: 0.8 }, { uSource: fbo.pressure.read.tex }); fbo.pressure.swap();
+    for (let i = 0; i < PRESSURE_ITERATIONS; i++) { pass(P.pressure, fbo.pressure.write, { uTexel: texel }, { uPressure: fbo.pressure.read.tex, uDivergence: fbo.divergence.tex }); fbo.pressure.swap(); }
+    pass(P.gradient, v.write, { uTexel: texel }, { uPressure: fbo.pressure.read.tex, uVelocity: v.read.tex }); v.swap();
+    pass(P.advect, v.write, { uTexel: texel, uDt: dt, uDissipation: VELOCITY_DISSIPATION }, { uVelocity: v.read.tex, uSource: v.read.tex }); v.swap();
+    pass(P.advect, fbo.dye.write, { uTexel: texel, uDt: dt, uDissipation: DYE_DISSIPATION }, { uVelocity: v.read.tex, uSource: fbo.dye.read.tex }); fbo.dye.swap();
+  }
+
+  function show() {
+    const ca = canvas.width / canvas.height, ia = fallback.naturalWidth / fallback.naturalHeight;
+    const cover = ca > ia ? [1, ia / ca] : [ca / ia, 1];                     // object-fit: cover, like the fallback
+    pass(P.display, null, { uCover: cover, uTexel: [1 / canvas.width, 1 / canvas.height] }, { uPhoto: photo, uDye: fbo.dye.read.tex, uVelocity: fbo.velocity.read.tex });
+  }
+
+  canvas.addEventListener('pointermove', (e) => {
+    const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = 1 - (e.clientY - r.top) / r.height;
+    pointer = pointer ? { x, y, dx: x - pointer.x, dy: y - pointer.y, moved: true } : { x, y, dx: 0, dy: 0, moved: false };
+    idle = 0;
+  });
+
+  fallback.decode().then(() => {
+    canvas.hidden = false;
+    dfCanvasLoop(canvas, {
+      context: 'webgl2',
+      maxDpr: 1.5,
+      draw: (t, g) => {
+        if (!fbo) build(g);
+        const dt = Math.min(0.033, last ? (t - last) / 1000 : 0.016); last = t;
+        idle += dt;
+        if (pointer?.moved) { splat(pointer.x, pointer.y, pointer.dx * SPLAT_FORCE, pointer.dy * SPLAT_FORCE); pointer.moved = false; }
+        // With no pointer for two seconds, a slow figure eight shows what the picture does: it is never a dead frame.
+        if (idle > 2) {
+          ghost += dt * 0.35;
+          const x = 0.5 + 0.32 * Math.sin(ghost), y = 0.5 + 0.18 * Math.sin(ghost * 2);
+          const nx = 0.5 + 0.32 * Math.sin(ghost + dt * 0.35), ny = 0.5 + 0.18 * Math.sin((ghost + dt * 0.35) * 2);
+          splat(x, y, (nx - x) * SPLAT_FORCE * 0.6, (ny - y) * SPLAT_FORCE * 0.6, 0.012);   // a faint ink, every frame
+        }
+        step(dt); show();
+      },
+      poster: (g) => { if (!fbo) build(g); show(); },                       // the photograph, undisturbed
+      restore: () => { fbo = null; },
+      fallback: '#ink-fallback',
+    });
+  });
+})();
+</script>
+</body>
+</html>

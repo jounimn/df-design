@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cursor-painted reveal: example</title>
+<style>
+  :root { --face-display: Georgia, "Times New Roman", serif; --paper: #efe9dd; --ink: #1d1b17; --muted: #5d584d; --hint: #b0442a; }
+  * { box-sizing: border-box; }
+  html { background: var(--paper); color: var(--ink); }
+  body { margin: 0; font: 400 18px/1.55 var(--face-display); }
+  a { color: var(--ink); }
+  a:focus-visible { outline: 2px solid var(--hint); outline-offset: 3px; }
+  .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 6vw; align-items: center; padding: 10vh 8vw; min-height: 100svh; }
+  .frame { position: relative; aspect-ratio: 4 / 5; overflow: clip; }
+  .frame img, .frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  h1 { font: 400 clamp(44px, 6vw, 84px)/1 var(--face-display); letter-spacing: -0.03em; margin: 0 0 20px; }
+  .hero p { max-width: 30rem; color: var(--muted); margin: 0; }
+  main { padding: 10vh 8vw; min-height: 150svh; max-width: 46rem; color: var(--muted); }
+  @media (max-width: 760px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="frame">
+    <img id="reveal-fallback" src="photo.jpg" alt="Hands kneading a ball of dough on a floured table">
+    <canvas id="reveal" hidden></canvas>
+  </div>
+  <div>
+    <h1>The drawing, and under it the dough</h1>
+    <p>The picture is printed as an engraving. Where the pointer passes, the photograph shows through for a moment and closes again.</p>
+  </div>
+</section>
+<main>
+  <p>A test page for the cursor-painted reveal card. Without the drawing the photograph stands alone, and nothing is lost but the play.</p>
+  <p><a href="../">Other examples</a></p>
+</main>
+
+<script src="canvas-loop.js"></script>
+<script>
+(() => {
+  const canvas = document.getElementById('reveal');
+  const photoImg = document.getElementById('reveal-fallback');
+  const DECAY = 0.975, BRUSH = 0.075, TRAIL_SCALE = 0.25;      // per-frame fade, brush radius in uv, trail at quarter size
+
+  const VS = `#version 300 es
+  in vec2 aPos; out vec2 vUv; void main() { vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.0, 1.0); }`;
+  // The trail: last frame faded a little, plus a soft stamp along the segment the pointer moved through.
+  const TRAIL = `#version 300 es
+  precision highp float; in vec2 vUv; out vec4 o;
+  uniform sampler2D uPrev; uniform vec2 uA, uB; uniform float uAspect, uRadius, uDecay, uStrength;
+  void main() {
+    vec2 p = vUv, a = uA, b = uB; p.x *= uAspect; a.x *= uAspect; b.x *= uAspect;
+    vec2 ab = b - a; float h = clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-6), 0.0, 1.0);
+    float stamp = smoothstep(uRadius, 0.0, length(p - a - ab * h)) * uStrength;
+    o = vec4(min(1.0, texture(uPrev, vUv).r * uDecay + stamp), 0, 0, 1);
+  }`;
+  // The picture: an engraving made from the photograph's own tone, and the photograph where the trail is.
+  // A little noise on the threshold gives the edge a torn, organic line instead of a soft round spot.
+  const SHOW = `#version 300 es
+  precision highp float; in vec2 vUv; out vec4 o;
+  uniform sampler2D uPhoto, uTrail; uniform vec2 uCover, uPx; uniform vec3 uPaper, uInk;
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + 1.0), f.x), f.y); }
+  void main() {
+    vec2 uv = (vUv - 0.5) * uCover + 0.5; uv.y = 1.0 - uv.y;
+    vec3 photo = texture(uPhoto, uv).rgb;
+    float lum = dot(photo, vec3(0.299, 0.587, 0.114));
+    float line = abs(fract((gl_FragCoord.y + gl_FragCoord.x * 0.35) / (4.0 * uPx.x)) - 0.5) * 2.0;
+    float inked = smoothstep(lum - 0.12, lum + 0.12, line);       // dark tone, thick line
+    vec3 engraving = mix(uInk, uPaper, inked);
+    float t = texture(uTrail, vUv).r;
+    float m = smoothstep(0.35, 0.55, t + (noise(vUv * 38.0) - 0.5) * 0.35);
+    o = vec4(mix(engraving, photo, m), 1.0);
+  }`;
+
+  let gl, prog, quad, trail, photo, size, last = 0, idle = 0, ghost = 0;
+  let pointer = null, prev = null;
+
+  const compile = (vs, fs) => {
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    const p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs));
+    gl.bindAttribLocation(p, 0, 'aPos'); gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    const u = {}; for (let i = 0; i < gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); i++) { const n = gl.getActiveUniform(p, i).name; u[n] = gl.getUniformLocation(p, n); }
+    return { p, u };
+  };
+  // Two 8-bit targets at a quarter of the canvas, swapped every frame: the mask needs no float textures.
+  const target = (w, h) => {
+    const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    return { tex, fb, w, h };
+  };
+  const rgb = (v) => { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = v; c.fillRect(0, 0, 1, 1); return [...c.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((x) => x / 255); };
+
+  function build(g) {
+    gl = g;
+    prog = { trail: compile(VS, TRAIL), show: compile(VS, SHOW) };
+    quad = gl.createVertexArray(); gl.bindVertexArray(quad); gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    size = [canvas.width, canvas.height];
+    const w = Math.max(8, Math.round(canvas.width * TRAIL_SCALE)), h = Math.max(8, Math.round(canvas.height * TRAIL_SCALE));
+    trail = { read: target(w, h), write: target(w, h) };
+    photo = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, photo);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, photoImg);
+    const css = getComputedStyle(document.documentElement);
+    prog.colours = { paper: rgb(css.getPropertyValue('--paper')), ink: rgb(css.getPropertyValue('--ink')) };
+  }
+
+  function paint(a, b, strength) {
+    const { p, u } = prog.trail;
+    gl.useProgram(p); gl.bindFramebuffer(gl.FRAMEBUFFER, trail.write.fb); gl.viewport(0, 0, trail.write.w, trail.write.h);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, trail.read.tex); gl.uniform1i(u.uPrev, 0);
+    gl.uniform2f(u.uA, ...a); gl.uniform2f(u.uB, ...b); gl.uniform1f(u.uAspect, canvas.width / canvas.height);
+    gl.uniform1f(u.uRadius, BRUSH); gl.uniform1f(u.uDecay, DECAY); gl.uniform1f(u.uStrength, strength);
+    gl.bindVertexArray(quad); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    [trail.read, trail.write] = [trail.write, trail.read];
+  }
+  function show() {
+    const { p, u } = prog.show;
+    gl.useProgram(p); gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, canvas.width, canvas.height);
+    const ca = canvas.width / canvas.height, ia = photoImg.naturalWidth / photoImg.naturalHeight;
+    gl.uniform2f(u.uCover, ...(ca > ia ? [1, ia / ca] : [ca / ia, 1]));
+    gl.uniform2f(u.uPx, canvas.width / canvas.clientWidth, 0);
+    gl.uniform3f(u.uPaper, ...prog.colours.paper); gl.uniform3f(u.uInk, ...prog.colours.ink);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, photo); gl.uniform1i(u.uPhoto, 0);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, trail.read.tex); gl.uniform1i(u.uTrail, 1);
+    gl.bindVertexArray(quad); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+
+  canvas.addEventListener('pointermove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    pointer = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height]; idle = 0;
+  });
+  canvas.addEventListener('pointerleave', () => { pointer = null; prev = null; });
+
+  photoImg.decode().then(() => {
+    canvas.hidden = false;
+    dfCanvasLoop(canvas, {
+      context: 'webgl2',
+      maxDpr: 1.5,
+      draw: (t, g) => {
+        if (!trail || size[0] !== canvas.width || size[1] !== canvas.height) build(g);
+        const dt = Math.min(0.05, last ? (t - last) / 1000 : 0.016); last = t; idle += dt;
+        let a = prev, b = pointer, strength = 1;
+        // No pointer for three seconds (or a touch screen): a slow brush draws a loop, so the reveal is discovered.
+        if (idle > 3 && !pointer) { ghost += dt * 0.5; b = [0.5 + 0.28 * Math.cos(ghost), 0.55 + 0.22 * Math.sin(ghost * 1.7)]; strength = 0.6; }
+        a ??= b;
+        paint(a || [-9, -9], b || [-9, -9], b ? strength : 0);
+        prev = b;
+        show();
+      },
+      poster: (g) => {                                                  // the engraving with one still opening on the hands
+        build(g);
+        paint([0.42, 0.42], [0.58, 0.48], 1); paint([0.42, 0.42], [0.58, 0.48], 1);
+        show();
+      },
+      restore: () => { trail = null; },
+      fallback: '#reveal-fallback',
+    });
+  });
+})();
+</script>
+</body>
+</html>

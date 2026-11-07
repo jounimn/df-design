@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Object that travels between sections: example</title>
+<style>
+  :root { --face-display: Georgia, "Times New Roman", serif; --ground: #0c0d11; --ink: #ecebe6; --muted: #a09e95; --hint: #d9b26a; }
+  * { box-sizing: border-box; }
+  html { background: var(--ground); color: var(--ink); }
+  body { margin: 0; font: 400 18px/1.55 var(--face-display); }
+  a { color: var(--ink); }
+  a:focus-visible { outline: 2px solid var(--hint); outline-offset: 3px; }
+  /* One canvas fixed behind the whole page; every section keeps an empty slot where the object comes to rest. */
+  #stone { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  #stone-fallback:not([hidden]) { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; }
+  section { position: relative; z-index: 1; min-height: 100svh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6vw; align-items: center; padding: 10vh 8vw; }
+  section:nth-of-type(even) .text { order: 2; }
+  .slot { aspect-ratio: 1; width: min(100%, var(--size, 420px)); justify-self: center; }
+  h1 { font: 400 clamp(44px, 6vw, 84px)/1 var(--face-display); letter-spacing: -0.03em; margin: 0 0 18px; }
+  h2 { font: 400 clamp(30px, 3.5vw, 46px)/1.05 var(--face-display); letter-spacing: -0.02em; margin: 0 0 12px; }
+  .text p { margin: 0; max-width: 30rem; color: var(--muted); }
+  footer { position: relative; z-index: 1; padding: 10vh 8vw 30vh; color: var(--muted); }
+  @media (max-width: 760px) { section { grid-template-columns: minmax(0, 1fr); } section:nth-of-type(even) .text { order: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    /* The object does not travel: it is drawn once, still, in the first slot. */
+    #stone { position: absolute; top: 0; height: 100svh; }
+  }
+</style>
+</head>
+<body>
+<!-- df-design · waive dead-half · the right half of the first screen is the slot where the drawn stone rests; the fixed canvas fills it -->
+<canvas id="stone" aria-hidden="true"></canvas>
+
+<section>
+  <div class="text"><h1>One stone, four rooms</h1><p>The same cut stone comes with you down the page. In each section it settles into its place beside the words, turned to show something new.</p></div>
+  <div class="slot" data-anchor data-turn="0" style="--size:460px"><img id="stone-fallback" src="stone-poster.jpg" alt="A faceted stone of pale gold" hidden></div>
+</section>
+<section>
+  <div class="text"><h2>The facets</h2><p>Twenty flat faces, each catching the room's light at its own angle. Here the stone turns a quarter and comes closer.</p></div>
+  <div class="slot" data-anchor data-turn="1.6" style="--size:340px"></div>
+</section>
+<section>
+  <div class="text"><h2>The weight</h2><p>Small on the page, it still reads as one object: it never fades out and in again, it moves.</p></div>
+  <div class="slot" data-anchor data-turn="3.1" style="--size:220px"></div>
+</section>
+<section>
+  <div class="text"><h2>The last room</h2><p>It ends where it is largest, and stays.</p></div>
+  <div class="slot" data-anchor data-turn="4.4" style="--size:520px"></div>
+</section>
+<footer><p>A test page for the travelling-object card. <a href="../">Other examples</a></p></footer>
+
+<script src="canvas-loop.js"></script>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const canvas = document.getElementById('stone');
+const anchors = [...document.querySelectorAll('[data-anchor]')];
+const css = getComputedStyle(document.documentElement);
+
+let renderer = null;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch { /* fallback */ }
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+camera.position.z = 10;
+camera.updateMatrixWorld();                                        // place() unprojects before the first render
+if (renderer) scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+const stone = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0),
+  new THREE.MeshStandardMaterial({ color: new THREE.Color(css.getPropertyValue('--hint')), metalness: 0.7, roughness: 0.22, flatShading: true }));
+scene.add(stone);
+
+// Where a slot is, in the world: its centre on the screen, unprojected onto the plane z = 0, and its width as a scale.
+const ndc = new THREE.Vector3(), dir = new THREE.Vector3();
+function place(el) {
+  const r = el.getBoundingClientRect();
+  ndc.set(((r.left + r.width / 2) / innerWidth) * 2 - 1, -((r.top + r.height / 2) / innerHeight) * 2 + 1, 0.5).unproject(camera);
+  dir.copy(ndc).sub(camera.position).normalize();
+  const pos = camera.position.clone().addScaledVector(dir, -camera.position.z / dir.z);
+  const worldPerPx = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.position.z) / innerHeight;
+  return { pos, scale: (r.width * worldPerPx) / 2.6, turn: +el.dataset.turn };
+}
+
+// The scroll position between two slots: 0 when the first is centred on the screen, 1 when the next one is.
+// The pose is mixed between the two, then a damped follow carries the stone there: one continuous move, no fade.
+function pose() {
+  const mid = innerHeight / 2, centres = anchors.map((el) => { const r = el.getBoundingClientRect(); return r.top + r.height / 2; });
+  let i = 0;
+  while (i < anchors.length - 2 && centres[i + 1] < mid) i++;
+  const a = place(anchors[i]), b = place(anchors[i + 1]);
+  const t = THREE.MathUtils.clamp((mid - centres[i]) / Math.max(1, centres[i + 1] - centres[i]), 0, 1);
+  const e = t * t * (3 - 2 * t);                                   // ease the hand-over, not the scroll
+  return { pos: a.pos.lerp(b.pos, e), scale: a.scale + (b.scale - a.scale) * e, turn: a.turn + (b.turn - a.turn) * e, lift: Math.sin(Math.PI * t) };
+}
+
+let width = 0, height = 0, last = 0;
+const cur = { pos: new THREE.Vector3(), scale: 1, turn: 0 };
+function render(t, still) {
+  if (canvas.width !== width || canvas.height !== height) {
+    width = canvas.width; height = canvas.height;
+    renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix();
+  }
+  const p = pose();
+  const dt = still ? 1 : Math.min(0.05, last ? (t - last) / 1000 : 1); last = t;
+  const k = 1 - Math.exp(-7 * dt);                                  // frame-rate independent follow
+  cur.pos.lerp(p.pos, k); cur.scale += (p.scale - cur.scale) * k; cur.turn += (p.turn - cur.turn) * k;
+  stone.position.copy(cur.pos).z += p.lift * 1.2;                   // it rises towards the viewer in the middle of a move
+  stone.scale.setScalar(cur.scale);
+  stone.rotation.set(0.4 + cur.turn * 0.3, cur.turn + (still ? 0 : t * 0.00025), 0.15);
+  renderer.render(scene, camera);
+}
+
+dfCanvasLoop(canvas, {
+  context: 'webgl2',
+  maxDpr: 1.5,
+  draw: (t) => render(t, false),
+  poster: () => render(0, true),
+  restore: (gl) => gl.viewport(0, 0, canvas.width, canvas.height),
+  fallback: '#stone-fallback',
+});
+</script>
+</body>
+</html>
