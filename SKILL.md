@@ -196,7 +196,7 @@ heavier tier, or the images weigh more than the first message assumed.
 | Building it | `references/recipes-design.md` / `references/recipes-motion.md` (`both`: design first) |
 | Icons (mandatory), illustration, textures | `references/icons-and-assets.md` |
 | Stock photographs: asking, sources, search, treatment, weight; cutting out the subject | `references/images.md` |
-| Drawn assets: doodles, annotations, spot illustrations, a drawn icon set, in the identity's own line; characters built anatomy first; key art generated locally and forced into the brief's inks (`scripts/ink-pass.mjs`) | `references/drawn-assets.md` |
+| Drawn assets: doodles, annotations, spot illustrations, a drawn icon set, in the identity's own line; characters built anatomy first; key art generated locally and forced into the brief's inks (`scripts/ink-pass.mjs`); 3D characters rendered in ink; water, smoke and sparks drawn frame by frame | `references/drawn-assets.md` |
 | The YOLO reference sites, scene by scene, read before probing them again | `references/yolo-references.md` |
 | An illustration-led identity with no concept art from the author: the concept bible (story spine, character, form and style sheets), written before any art and carried through the build | `references/illustration-concept.md` |
 | Looking at it | `references/verification.md` |
@@ -249,7 +249,10 @@ The rules that govern every stage:
   `check-motion` reports it as built below the chosen tier. The flagship
   sites are analysed in `references/yolo-references.md`; read it before
   probing them again. In a scroll story every scene change is a designed
-  cut that keeps moving (`recipes-motion.md` §16).
+  cut that keeps moving (`recipes-motion.md` §16); a drawn story's grammar
+  (depth planes, a shape carried across each cut, the ink-out, the focus
+  field, hold beats, the ending as a scene, everything preloaded, drawn
+  effects) is §17–§26, with its runtime in `templates/scroll-story.js`.
 - **Icons always; stock images only with the author's yes.** Every image
   must be free for commercial use, need no credit line, and carry no
   watermark in the file that ships. In `motion` and `both`, icons and
