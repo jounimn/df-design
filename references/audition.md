@@ -199,7 +199,7 @@ are fast-tier CSS, not from heavy libraries.
 
 The technique cards are the way in from this table: plain words first, the code behind. Each tier has its own file of cards, with what the visitor sees, which identities it suits, what it costs and the recipe. This is a menu for the tier message; the author still chooses only a tier.
 
-The number beside a technique is the motion code of a production page that shows it, probed in headless Chromium (`benchmarks.md`). For a CSS or SVG technique it is the weight of the whole page, not of the effect, so a large number there does not make the effect expensive. The High ceiling is 340 KB.
+The number beside a technique is the motion code of a production page that shows it, probed in headless Chromium (`benchmarks.md`), or, where the pages that show it publish only recordings, of an example page built for its card and marked so (`docs/examples/motion-techniques/`). For a CSS or SVG technique it is the weight of the whole page, not of the effect, so a large number there does not make the effect expensive. The High ceiling is 340 KB.
 
 **[Fast](techniques/fast.md), 23 techniques:** CSS or SVG, no script the effect depends on.
 
@@ -214,20 +214,25 @@ The number beside a technique is the motion code of a production page that shows
 - [Glassmorphism](techniques/fast.md#glassmorphism): 0 KB
 - Not measured yet: [Scroll-linked](techniques/fast.md#scroll-linked), [Sticky narrative](techniques/fast.md#sticky-narrative), [Counters that mean something](techniques/fast.md#counters-that-mean-something), [Text that performs its sentence](techniques/fast.md#text-that-performs-its-sentence), [Image reveal through the identity's device](techniques/fast.md#image-reveal-through-the-identitys-device), [Particles](techniques/fast.md#particles), [Liquid morph](techniques/fast.md#liquid-morph), [Holographic](techniques/fast.md#holographic), [Neon glow](techniques/fast.md#neon-glow), [Wireframe 3D](techniques/fast.md#wireframe-3d), [Gradient mesh](techniques/fast.md#gradient-mesh), [Split-flap](techniques/fast.md#split-flap), [Retro VHS](techniques/fast.md#retro-vhs), [Halftone](techniques/fast.md#halftone)
 
-**[Medium](techniques/medium.md), 4 techniques:** a small script, a drawing area or GPU work. Each links the lighter Fast version, which is its fallback, or says why there is none.
+**[Medium](techniques/medium.md), 5 techniques:** a small script, a drawing area or GPU work. Each links the lighter Fast version, which is its fallback, or says why there is none.
 
 - [Particles](techniques/medium.md#particles): 139 KB
 - [ASCII art](techniques/medium.md#ascii-art): 0 KB (built from page text, with no drawing)
 - [Halftone](techniques/medium.md#halftone): 7 KB
 - [Glassmorphism](techniques/medium.md#glassmorphism): 0 to 282 KB
+- [Cursor-painted reveal](techniques/medium.md#cursor-painted-reveal): 11 KB (an example page built for the card, 2026-11-07)
 
-**[High](techniques/high.md), 8 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D and Rendered 3D, which say why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph, Rendered 3D and Halftone say "not measured".
+**[High](techniques/high.md), 12 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D, Rendered 3D, Fluid ink, Glass object, Reflective water floor and Object that travels between sections, which say why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph, Rendered 3D and Halftone say "not measured".
 
-- [Particles](techniques/high.md#particles): 340 KB, the ceiling itself
+- [Particles](techniques/high.md#particles): 340 KB, the ceiling itself; 11 KB for the version that re-forms by scroll (example page, 2026-11-07)
 - [Holographic](techniques/high.md#holographic): 340 KB, the ceiling itself
 - [Wireframe 3D](techniques/high.md#wireframe-3d): 180 KB
 - [Gradient mesh](techniques/high.md#gradient-mesh): 282 to 315 KB
 - [Clay 3D](techniques/high.md#clay-3d): 180 to 640 KB, the heavier above the ceiling
+- [Fluid ink](techniques/high.md#fluid-ink): 15 KB (example page, 2026-11-07)
+- [Glass object](techniques/high.md#glass-object): 148 KB (example page, 2026-11-07)
+- [Reflective water floor](techniques/high.md#reflective-water-floor): 151 KB (example page, 2026-11-07)
+- [Object that travels between sections](techniques/high.md#object-that-travels-between-sections): 144 to 173 KB (example page, 2026-11-07); with a modelled product of several MB it is the YOLO [Real-time 3D world](techniques/yolo.md#real-time-3d-world)
 - Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Rendered 3D](techniques/high.md#rendered-3d) (Blender, offline), [Halftone](techniques/high.md#halftone)
 
 **[YOLO](techniques/yolo.md), 6 techniques:** no ceiling, priced in MB of transfer, not in motion code (`benchmarks.md`, "YOLO, measured"). Each names its Floor fallback and links the nearest lower card where one exists. The number is the whole page after a full scroll. What the flagship sites show, scene by scene, and what makes each one absurd is in [yolo-references.md](yolo-references.md): a YOLO build reads it before probing them again, and adds to it what a new probe finds, with the date.
