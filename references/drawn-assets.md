@@ -8,7 +8,10 @@ the project, in the identity's own line, the same way the logo is
 the line from the brief, and how to check a set before it reaches a page;
 then, for a drawn story, how a living character is built (§6), how key art
 is generated on the project's own machine (§7) and how the ink pass forces
-any picture into the brief's inks (§8).
+any picture into the brief's inks (§8). When the identity is led by
+illustration and the author supplies no concept art, the concept bible
+(story spine, character, form and style sheets) is written first, in
+`illustration-concept.md`, and every drawing here is made from it.
 
 Library icon sets and stock illustration are in `icons-and-assets.md` and
 `images.md`. A drawing never replaces a photograph or the product

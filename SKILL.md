@@ -198,6 +198,7 @@ heavier tier, or the images weigh more than the first message assumed.
 | Stock photographs: asking, sources, search, treatment, weight; cutting out the subject | `references/images.md` |
 | Drawn assets: doodles, annotations, spot illustrations, a drawn icon set, in the identity's own line; characters built anatomy first; key art generated locally and forced into the brief's inks (`scripts/ink-pass.mjs`) | `references/drawn-assets.md` |
 | The YOLO reference sites, scene by scene, read before probing them again | `references/yolo-references.md` |
+| An illustration-led identity with no concept art from the author: the concept bible (story spine, character, form and style sheets), written before any art and carried through the build | `references/illustration-concept.md` |
 | Looking at it | `references/verification.md` |
 | Watermark: question, layer, preview and final | `references/watermark.md` |
 | Selling-positioning: logo, positioning, mockups, slideshow, export | `references/selling-positioning.md` |
