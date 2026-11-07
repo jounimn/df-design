@@ -3,7 +3,7 @@
 Working implementations, each traced to a site that ships it. Every value
 here was read off a production page — see `benchmarks.md` for the method.
 The techniques themselves are cards, one file per tier: [fast](techniques/fast.md) (23 cards),
-[medium](techniques/medium.md) (4), [high](techniques/high.md) (7) and [yolo](techniques/yolo.md) (6). Open the file of the tier the
+[medium](techniques/medium.md) (5), [high](techniques/high.md) (12) and [yolo](techniques/yolo.md) (6). Open the file of the tier the
 author chose, then the card for the effect. Each card says what it is, which identities it suits, what it
 costs the visitor and how to build it. This file keeps the rules that apply to all of them.
 
@@ -238,9 +238,33 @@ designed cut, chosen for what the beat means, and the list says why:
 | Panel break | the frame cracks into panels that fly apart, each carrying a piece of the aftermath | an impact; the story breaks |
 | Page turn | the page lifts and turns over onto the next scene | a decision; the story turns |
 | Reveal | fog, smoke or darkness opens on what was hidden | a discovery |
+| Pixel-block cut | the outgoing frame breaks into a grid of blocks that clear in a random order onto the next | a digital, screen or game world; a reset |
 
 A fade between two pictures is not on the list. A cut used twice in a row
 needs a reason.
+
+The pixel-block cut is the one cut on the list that needs no drawing: a grid
+of blocks in the outgoing section's colour over the incoming one, each block
+cleared after its own random delay, in two steps so it reads as pixels and
+not as a dissolve. It was read on four template pages of the 2026-11-07
+catalogue and built in `docs/examples/motion-techniques/dom-recipes/page.html`:
+
+```css
+.blocks { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(16, 1fr); grid-template-rows: repeat(8, 1fr); pointer-events: none; }
+.blocks i { background: var(--paper); transition: opacity 0.18s steps(2, end), scale 0.18s steps(2, end); transition-delay: calc(var(--d) * 700ms); }
+.cut.open .blocks i { opacity: 0; scale: 0.6; }
+@media (prefers-reduced-motion: reduce) { .blocks i { transition: none; } }
+```
+
+```js
+blocks.innerHTML = Array.from({ length: 128 }, () => `<i style="--d:${Math.random().toFixed(3)}"></i>`).join('');
+// .open is added once, when the section is half on screen (an IntersectionObserver with threshold 0.5)
+```
+
+The blocks are made by the script, so without it there are none and the
+section shows at once. Bound to the scroll instead (`--p` from
+`dfStory.progress` against each block's delay) it plays backwards too, as
+the other cuts do in a story.
 
 **2. Continuous through the cut.** A cut is a span of the scroll, not a
 point, and inside it both scenes are rendered and moving:
@@ -460,6 +484,17 @@ the rest:
 ```css
 #carrier { transform: translateY(calc(var(--p) * -60%)) scaleY(calc(1 + var(--p) * 2.2)); transform-origin: 50% 100%; }
 ```
+
+**A 3D carrier.** When the carrier must turn while it travels (a product that
+shows a new face in each section), it is drawn in one canvas fixed behind the
+page, and each section keeps an empty slot in its layout where it comes to
+rest: the scroll picks the two slots it is between, their centres are
+unprojected into the scene, and a frame-rate independent damping follows the
+mixed pose. It lifts towards the viewer in the middle of the move, which is
+the opposite motion this section asks for. The recipe, measured, is the High
+card [Object that travels between sections](techniques/high.md#object-that-travels-between-sections);
+with a modelled product of several megabytes it belongs to the
+[Real-time 3D world](techniques/yolo.md#real-time-3d-world).
 
 ---
 
@@ -799,6 +834,59 @@ motion.
 
 ---
 
+## 27. Smooth scroll, and the native scroll under it
+
+Nearly every scroll-driven page of the template catalogue read on
+2026-11-07 sits on Lenis (darkroomengineering/lenis, MIT, about 4 KB
+compressed): the wheel's steps are eased into one glide, which makes a scrub,
+a morph or a camera path read as continuous. It is worth its weight only
+under one of those. On a page of text and reveals it is a preference imposed
+on every visitor's wheel, so the default is the browser's own scroll.
+
+Lenis keeps the document's real scroll position and only eases how it gets
+there, so anchors, the keyboard, find-in-page, `position: sticky` and CSS
+scroll timelines keep working. Keep it that way:
+
+- **Not under reduced motion.** Do not create it at all; the page then has
+  the native scroll, which is what the visitor asked for (§14).
+- **Native scroll is the source of truth.** Read positions from
+  `scrollY` or the section's rectangle, never from wheel deltas summed into a
+  story position (`build-threejs-scroll-worlds`, Meng To, MIT). A scrubbed
+  timeline then works the same with or without the library.
+- **One clock.** With GSAP, drive Lenis from GSAP's ticker and tell
+  ScrollTrigger on every Lenis scroll; without GSAP, one `requestAnimationFrame`
+  loop. Never both.
+- **Refresh after layout changes:** fonts, images and late sections move the
+  triggers; call `ScrollTrigger.refresh()` after load.
+- **No trapped wheel:** never `preventDefault` the wheel to build your own
+  scroll, never a fake scrollbar, and nothing nested inside that scrolls on
+  its own unless it opts out (`data-lenis-prevent`).
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && window.Lenis) {
+    const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+    // Without GSAP: one loop.
+    const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+    // With GSAP ScrollTrigger instead of the loop above (the cinematic-gsap-lenis-motion-system skill, Meng To, MIT):
+    //   lenis.on('scroll', ScrollTrigger.update);
+    //   gsap.ticker.add((time) => lenis.raf(time * 1000));
+    //   gsap.ticker.lagSmoothing(0);
+  }
+</script>
+```
+
+If the script fails to load, the `if` is false and the page scrolls natively;
+nothing else on the page may depend on Lenis existing. Pin the version you
+tested. Built and checked in `docs/examples/motion-techniques/dom-recipes/page.html`:
+the page passes `check-motion --tier fast` with Lenis on it, because the
+content does not need it, and the wheel recording reached the end with no
+stalls.
+
+---
+
 ## Checklist before calling motion done
 
 - [ ] One signature curve, named, used for ~80% of transitions
@@ -816,4 +904,5 @@ motion.
 - [ ] Every hold beat can be tapped, held from the keyboard or scrolled past (§22); the ending is a scene with a restart (§23)
 - [ ] Images are decoded, uploaded and the shaders compiled before the first cut, behind a progress figure that tells the truth, with the text readable meanwhile (§24)
 - [ ] Liquids, smoke and sparks are drawn frame loops on twos, not shader effects (§25); under reduced motion the whole story is its stills (§26)
+- [ ] Smooth scroll only where a scrub needs it, never under reduced motion, and the page works the same without it (§27)
 - [ ] **The rendered page has been looked at** — see `verification.md`
