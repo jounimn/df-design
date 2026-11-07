@@ -114,6 +114,16 @@ Gate "EXPLORE" passed; 190 steps to the footer.
 
 ---
 
+## A template catalogue, read 2026-11-07
+
+Not a flagship site: a catalogue of 59 paid and free WebGL landing-page templates (getlayers.ai/templates), read from its 83 preview recordings on 2026-11-07, tiled into contact sheets and looked at. Its pages publish recordings only, so nothing in it could be probed; the moves taken from it were rebuilt on example pages with original content and measured there (`docs/examples/motion-techniques/`). No asset, text or picture of the catalogue is kept in the repository.
+
+- **The house pattern.** One fixed WebGL canvas behind the page carrying one signature move (a particle cloud that re-forms by scroll, an object of glass, ink over a photograph, a mirror floor, an object that travels down the page), and a restrained page layer over it: a thin sans with a serif accent, glass pills, hairlines, small mono labels, a 0 to 100 preloader counter, blur-in headings, smooth scroll.
+- **A bar for the signature move, a tell for the rest.** The signature moves are well built and are now cards (below). The page layer is the same on nearly every template: twelve open every heading with the same blur-in, eleven count a preloader from 0 to 100 over a page that is already there. That is the generated-page look of 2026 that the gates and the finish review exist to catch; take the move, not the chrome.
+- **Most of it is not YOLO.** Measured on the rebuilt pages, the signature moves weigh 11 to 173 KB of motion code, under the 340 KB High ceiling: they are High techniques. A template becomes YOLO when its move carries modelled products or worlds of several megabytes.
+
+---
+
 ## Where each technique lives in df-design
 
 The moves above, mapped to the recipe that builds them and to the installed skills whose code or rules were adapted into it (all MIT; credited in the README, licences in `licenses/`). No skill was copied in whole; where a skill had nothing on a move, the recipe was written from the recording.
@@ -132,5 +142,12 @@ The moves above, mapped to the recipe that builds them and to the installed skil
 | 3D characters that look drawn (santioni's monk; lusion's astronaut) | `drawn-assets.md` §9 | `blender-stylized-npr`, `blender-character-rigging`, `blender-animation`, `blender-rendering`, `blender-export-pipelines`, `threejs-materials` |
 | A live world that does not hitch (igloo, lusion, client-zero) | `techniques/yolo.md`, Real-time 3D world | `threejs-performance`, `threejs-loaders`, `threejs-textures`, `blender-game-optimization` |
 | Reduced motion for the whole story (none of the eight passes it) | §26 | `gsap-core` (matchMedia), `animation-principles` accessible motion and motion sickness |
+| A particle cloud that re-forms by scroll (the template catalogue) | `techniques/high.md`, Particles, "Re-forming by scroll" | `particle-system` (iart.ai: per-point seed attribute, size attenuation, additive points), `build-threejs-scroll-worlds` (damping), `recipes-motion.md` §16 (the spring); the multi-target layout, the per-point delay and the sine-curl field written from the recordings |
+| Ink over a photograph (the template catalogue) | `techniques/high.md`, Fluid ink | PavelDoGreat/WebGL-Fluid-Simulation (the solver's passes and constants, MIT), `shader-dev` (MiniMax: half-float targets, decay by multiplying) |
+| A picture painted open by the pointer (the template catalogue) | `techniques/medium.md`, Cursor-painted reveal | `shader-dev` (feedback decay and its brightness budget); the segment stamp and the torn edge written from the recordings |
+| An object of clear glass bending the word behind it (the template catalogue) | `techniques/high.md`, Glass object | `threejs-materials` (physical transmission), `build-threejs-scroll-worlds` (keep transmission rare); the opaque-background fix found on the example page |
+| A mirror floor with rings (the template catalogue) | `techniques/high.md`, Reflective water floor | `threejs-*` (Reflector addon), `shader-dev` (the height-field ripple, as the heavier option); the analytic rings written for the example page |
+| One object carried down the page between slots (the template catalogue) | `techniques/high.md`, Object that travels between sections, and §18 | `build-threejs-scroll-worlds` (native scroll as the source, anchor progress, `1 - exp(-λ·dt)`), `animation-vocabulary` (Emil Kowalski: shared element transition) |
+| The page layer: blur to focus, reading fill, scramble, odometer, the wordmark between planes, the sticky stack, the pixel cut, the ring, smooth scroll (the template catalogue) | `techniques/fast.md` (Text that performs its sentence, Counters, Scroll-linked, Sticky narrative, Marquee), §16, §27 | `cinematic-gsap-lenis-motion-system` (Meng To: the Lenis wiring, blur radius and word stagger), `animation-vocabulary` (the names: stagger, number ticker); the rest written from the recordings |
 
 `comic-book-style` (arjun988) was read and gave nothing beyond what `drawn-assets.md` already says (two or three tone bands, strong contours, restrained screentone).
