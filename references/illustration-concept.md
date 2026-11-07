@@ -31,8 +31,19 @@ A treatment, then a beat table.
   neighbouring beats share a ground; the hint is a full ground only at the
   climax. The cuts follow `recipes-motion.md` §16.
 
-| # | Beat | Set | Leaves by | Why | Ground |
-|---|---|---|---|---|---|
+| # | Beat | Set | Leaves by | Why | Carries across | Ground |
+|---|---|---|---|---|---|---|
+
+- **Carries across:** the one shape that survives the cut and what it is on
+  each side (the table that becomes a pillar, the cloud edge that becomes the
+  ground), or `none` and why (`recipes-motion.md` §18).
+- **The planes of each set:** listed under the table, back to front, each
+  with its depth and its own motion (cloud drift, a cloth edge, the floor
+  sliding), so the set is drawn or generated already split
+  (`recipes-motion.md` §17).
+- **The beats the reader performs** are marked in the table (hold, tap),
+  with what the hold does and what scrolling past it does (`recipes-motion.md`
+  §22).
 
 ## 2. Character sheets
 
@@ -81,6 +92,13 @@ One sheet for the story's object, and one for each recurring set and prop:
 - **The hint rule:** the hint's places, and nowhere else.
 - **Texture:** hatching follows the form; screentone only in skies, fog and
   flat walls; no gradients, no glow.
+- **The focus field:** its colour for this project (usually the hint) and the
+  beats where it stands behind the subject (`recipes-motion.md` §20).
+- **The effects:** each liquid, smoke or spark loop, its frame count and rate
+  (on twos), and the plane it sits on (`drawn-assets.md` §10).
+- **The 3D look:** the band count, the shadow tint, the contour width and the
+  ink-pass settings that make a rendered figure match the drawn sets
+  (`drawn-assets.md` §9).
 
 ## 5. Carry-through
 
