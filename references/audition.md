@@ -187,7 +187,7 @@ serves the identity. Unnecessary cost is always wrong.
 | Tier | Typically | Budget sense |
 |---|---|---|
 | **[Fast expensive loading](techniques/fast.md)** | CSS only (gradients, masks, clip-path, blend modes, `@keyframes`, scroll-driven animations), SVG, system fonts or one or two subset webfonts, small vanilla JS | Adds roughly nothing past the fonts; works without JS |
-| **[Medium expensive loading](techniques/medium.md)** | Several webfonts, a small motion library (GSAP core, Motion One, Lenis), Lottie for a few illustrations, heavy optimised imagery, `backdrop-filter` across panels | Tens of KB of JS, or noticeable image weight and GPU work |
+| **[Medium expensive loading](techniques/medium.md)** | Several webfonts, a small motion library (GSAP core, Motion from motion.dev, Lenis), Lottie for a few illustrations, heavy optimised imagery, `backdrop-filter` across panels | Tens of KB of JS, or noticeable image weight and GPU work |
 | **[High expensive loading](techniques/high.md)** | WebGL / Three.js / shader scenes, 3D models rendered live or offline in Blender, physics, background video, large Lottie or Rive sets, canvas particle systems | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
 | **[YOLO](techniques/yolo.md)** | Real-time 3D worlds, pre-rendered 3D films, scroll-scrubbed image sequences, illustrated scroll stories, sound, physics | No ceiling. Measured on eight flagship sites: 5.6 to 26.7 MB of transfer after a full scroll (median 13.8 MB), 376 to 976 KB of script. Still owes the Floor: reduced motion, a lighter path, the content readable without it, no sound before the visitor asks; `check-motion --tier yolo` proves it |
 
@@ -230,7 +230,7 @@ The number beside a technique is the motion code of a production page that shows
 - [Clay 3D](techniques/high.md#clay-3d): 180 to 640 KB, the heavier above the ceiling
 - Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Rendered 3D](techniques/high.md#rendered-3d) (Blender, offline), [Halftone](techniques/high.md#halftone)
 
-**[YOLO](techniques/yolo.md), 6 techniques:** no ceiling, priced in MB of transfer, not in motion code (`benchmarks.md`, "YOLO, measured"). Each names its Floor fallback and links the nearest lower card where one exists. The number is the whole page after a full scroll.
+**[YOLO](techniques/yolo.md), 6 techniques:** no ceiling, priced in MB of transfer, not in motion code (`benchmarks.md`, "YOLO, measured"). Each names its Floor fallback and links the nearest lower card where one exists. The number is the whole page after a full scroll. What the flagship sites show, scene by scene, and what makes each one absurd is in [yolo-references.md](yolo-references.md): a YOLO build reads it before probing them again, and adds to it what a new probe finds, with the date.
 
 - [Scroll-scrubbed image sequence](techniques/yolo.md#scroll-scrubbed-image-sequence): 26.7 MB, 25.1 MB of it before the first view
 - [Pre-rendered 3D film](techniques/yolo.md#pre-rendered-3d-film): 17.7 to 23.1 MB, 1.3 to 8.3 MB before the first view

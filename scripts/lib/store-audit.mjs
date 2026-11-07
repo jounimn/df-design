@@ -117,6 +117,15 @@ export function auditStore(root, { today = new Date() } = {}) {
     } else add('warn', 'benchmarks', 'no per-site table found (header "| Site | Display face |")');
   } else add('warn', 'benchmarks', 'no references/benchmarks.md');
 
+  // 2b. Research kept as text (references/yolo-references.md and any other file that says "recorded live on <date>"):
+  // a reference analysis ages like a measurement, so the date it was recorded is reported, and warned past its shelf life.
+  for (const f of fs.existsSync(refs) ? fs.readdirSync(refs).filter((x) => x.endsWith('.md')) : []) {
+    const m = /\brecorded live on (\d{4}-\d{2}-\d{2})/i.exec(read(path.join(refs, f)));
+    if (!m) continue;
+    const d = daysSince(m[1], today);
+    add(d > STALE_DAYS ? 'warn' : 'note', 'research', `${f}: recorded live on ${m[1]} (${d} days ago)${d > STALE_DAYS ? '; re-record the sites before a build leans on it' : ''}`);
+  }
+
   // 3. Section references and paths ---------------------------------------------------------------------------------
   const docs = [path.join(root, 'SKILL.md'), path.join(root, 'README.md'), ...fs.existsSync(refs) ? fs.readdirSync(refs).filter((f) => f.endsWith('.md')).map((f) => path.join(refs, f)) : []].filter((p) => fs.existsSync(p));
   const sectionsOf = new Map();

@@ -64,6 +64,15 @@ test('a virtual-scroll page, where scrollTo does nothing, is driven by the wheel
   written(cap);
 });
 
+test('input that moves nothing before the page moves again is reported as a stall', T, async () => {
+  const cap = await captureMotion(browser, `${server.url}/motion-stall.html`, { out: path.join(root, 'stall') });
+  assert.equal(cap.reachedEnd, true, cap.endReason);
+  assert.equal(cap.stalls.length, 1, JSON.stringify(cap.stalls));
+  assert.equal(cap.stalls[0].steps, 3, 'three swallowed wheel events, each also tried with PageDown and Space');
+  const smooth = await captureMotion(browser, `${server.url}/motion-virtual.html`, { out: path.join(root, 'no-stall') });
+  assert.deepEqual(smooth.stalls, [], 'a page that answers every step has none');
+});
+
 test('a page that swallows the wheel is driven by the keys instead', T, async () => {
   const cap = await captureMotion(browser, `${server.url}/motion-keys.html`, { out: path.join(root, 'keys') });
   assert.equal(cap.reachedEnd, true, cap.endReason);

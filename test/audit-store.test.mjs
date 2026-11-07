@@ -82,6 +82,18 @@ test('a measurement past its shelf life is a warning, not an error', () => {
   assert.equal(r.ok, true, 'staleness never fails the audit');
 });
 
+test('a reference analysis kept as text is aged by the date it was recorded live', () => {
+  const s = store();
+  try {
+    fs.writeFileSync(path.join(s.root, 'references', 'fresh.md'), '# f\n\nEvery site was recorded live on 2026-10-20.\n');
+    fs.writeFileSync(path.join(s.root, 'references', 'old.md'), '# o\n\nRecorded live on 2026-03-01.\n');
+    const r = auditStore(s.root, { today: TODAY });
+    assert.ok(msgs(r, 'note').some((m) => /fresh\.md: recorded live on 2026-10-20 \(9 days ago\)/.test(m)));
+    assert.ok(msgs(r, 'warn').some((m) => /old\.md: recorded live on 2026-03-01 .*re-record/.test(m)));
+    assert.equal(r.ok, true);
+  } finally { s.cleanup(); }
+});
+
 test('the CLI runs on this repository, reports, and exits 0 unless --strict finds an error', () => {
   const r = spawnSync(process.execPath, [CLI, REPO], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stdout + r.stderr);

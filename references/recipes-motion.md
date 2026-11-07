@@ -3,7 +3,7 @@
 Working implementations, each traced to a site that ships it. Every value
 here was read off a production page — see `benchmarks.md` for the method.
 The techniques themselves are cards, one file per tier: [fast](techniques/fast.md) (23 cards),
-[medium](techniques/medium.md) (4) and [high](techniques/high.md) (7). Open the file of the tier the
+[medium](techniques/medium.md) (4), [high](techniques/high.md) (7) and [yolo](techniques/yolo.md) (6). Open the file of the tier the
 author chose, then the card for the effect. Each card says what it is, which identities it suits, what it
 costs the visitor and how to build it. This file keeps the rules that apply to all of them.
 
@@ -213,6 +213,118 @@ with the icon rule below.
 
 ---
 
+## 16. Scene changes in a scroll story: designed, animated, continuous
+
+On a page that tells a story by scroll (the YOLO [Illustrated scroll story](techniques/yolo.md#illustrated-scroll-story),
+a [Real-time 3D world](techniques/yolo.md#real-time-3d-world), a long
+[Sticky narrative](techniques/fast.md#sticky-narrative)), the cuts are the
+storytelling. The reference: santionispirits.com, whose Notturno
+Experience goes from scene to scene through drawn cuts (an ink wipe, a
+portal that fills the frame, smoke of hatching) and never a fade, while the
+camera keeps moving (`yolo-references.md`). Two failures this section is
+written against, both seen in a build that passed every gate: transitions
+that were a static zoom on a frozen picture and a hard swap at the half,
+and a camera that eased into a full stop at every keyframe, so the episode
+played as a slideshow with pauses.
+
+**1. A transition list beside the scene list.** Every scene change gets one
+designed cut, chosen for what the beat means, and the list says why:
+
+| Cut | What happens | Use it when |
+|---|---|---|
+| Match cut on a shape | the last shape of one scene grows, turns and becomes the first shape of the next (a pencil stroke becomes a crack in the sky) | the two scenes are the same thing in two forms |
+| Push through an object | the camera flies into a lens, a hole or a portal and comes out of it into the next scene | the next scene is inside, or beyond, the object |
+| Ink wipe | a ragged blot grows from the scene's light or its subject and the next scene is inside it | something floods or takes over |
+| Panel break | the frame cracks into panels that fly apart, each carrying a piece of the aftermath | an impact; the story breaks |
+| Page turn | the page lifts and turns over onto the next scene | a decision; the story turns |
+| Reveal | fog, smoke or darkness opens on what was hidden | a discovery |
+
+A fade between two pictures is not on the list. A cut used twice in a row
+needs a reason.
+
+**2. Continuous through the cut.** A cut is a span of the scroll, not a
+point, and inside it both scenes are rendered and moving:
+
+- the outgoing camera keeps its speed into the cut, and the incoming
+  camera starts at that speed, not at rest;
+- the characters and the ambient motion (fog, water, particles) keep moving
+  in both scenes for the whole span;
+- the outgoing and incoming scenes overlap in motion: no frame where one
+  has stopped and the other has not started, no black hold, no zoom into a
+  frozen frame;
+- inside a scene the camera passes through its keys on one smooth curve; it
+  does not ease out and back in at each one.
+
+**3. Scroll is time, with eased velocity.** Map the scroll to one position
+on the episode's timeline, and let the rendered position follow it with a
+critically damped spring, so it eases but does not stop while the reader
+scrolls. Pass the camera through its keys on a Catmull-Rom curve instead of
+easing every segment.
+
+```js
+// One timeline for the whole episode: scroll sets the target, a damped spring carries the rendered time.
+const story = document.querySelector('[data-story]');
+let target = 0, time = 0, speed = 0;
+const toTime = () => {
+  const r = story.getBoundingClientRect();
+  return Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - innerHeight)));
+};
+addEventListener('scroll', () => { target = toTime(); }, { passive: true });
+
+// Catmull-Rom through the keys: the camera passes each key without stopping on it.
+function along(keys, t) {             // keys: [[t, value], ...] sorted by t, at least two
+  let i = keys.findIndex((k) => k[0] > t);
+  if (i === -1) return keys[keys.length - 1][1];
+  if (i === 0) return keys[0][1];
+  const k = (j) => keys[Math.max(0, Math.min(keys.length - 1, j))];
+  const [t1, p1] = k(i - 1), [t2, p2] = k(i), p0 = k(i - 2)[1], p3 = k(i + 1)[1];
+  const u = (t - t1) / (t2 - t1), u2 = u * u, u3 = u2 * u;
+  return 0.5 * (2 * p1 + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u2 + (-p0 + 3 * p1 - 3 * p2 + p3) * u3);
+}
+
+// Each cut owns a span [a, b] of the timeline; inside it both scenes draw, and the cut's own progress drives
+// the mask (the blot, the shards, the fold), never a switch at the half.
+function frame(dt) {
+  const k = 60, d = 2 * Math.sqrt(k);  // stiffness and critical damping: no overshoot, no stop
+  speed += (k * (target - time) - d * speed) * dt; time += speed * dt;
+  for (const cut of cuts) {
+    if (time < cut.a || time > cut.b) continue;
+    const p = (time - cut.a) / (cut.b - cut.a);
+    cut.from.draw(time);              // both scenes keep their own motion through the span
+    cut.to.draw(time);
+    cut.composite(p);                 // the designed transition, as a mask over the two renders
+    return;
+  }
+  sceneAt(time).draw(time);
+}
+```
+
+With `prefers-reduced-motion: reduce` none of this runs: each scene is its
+resting still with its text in flow (§14). GSAP's ScrollTrigger with a
+numeric `scrub` gives the same eased follow; so does Motion's `scroll()`
+(motion.dev, MIT) fed into a spring.
+
+**4. Characters that move through the cut.** A drawn character can hold a
+pose; it cannot turn or walk through a cut without an animator's frames.
+For fluid movement, the characters are 3D: an anatomical base mesh with a
+rig and IK poses (`drawn-assets.md` §6), toon and ink shaded with a Line Art
+contour so they carry the world's line, rendered in Blender 5.2 as image
+sequences or drawn live in three.js, and composited into the drawn or
+generated ink world. The key art stays for the sets and the close-ups; the
+3D figures are what moves continuously across a cut. A figure that reads as
+a mannequin beside the drawn sets goes back to modelling and shading; it
+does not go on the page.
+
+**5. The review watches the recording.** Record the page with
+`scripts/capture-motion.mjs` and read `stalls` in `capture.json`: input
+that moved nothing before the page moved again. On a scroll story every
+stall is a finding unless it is a hold the visitor performs. Then look at
+each cut on the contact sheets, three frames in: both scenes in motion, the
+mask advancing, nothing frozen. Rebuild after every change to the camera or
+the cuts and record again: a fix to one cut can stop the next one.
+
+---
+
 ## Checklist before calling motion done
 
 - [ ] One signature curve, named, used for ~80% of transitions
@@ -225,4 +337,5 @@ with the icon rule below.
 - [ ] `tabular-nums` on any animating figure
 - [ ] The motion plan includes the icons, and the images when approved (§15); each move restates something from the identity
 - [ ] Image reveals play once, after decode, animating only transform, opacity, filter, clip-path or mask
+- [ ] In a scroll story, every scene change is a designed cut from the transition list, both scenes move through it, and the recording shows no stall (§16)
 - [ ] **The rendered page has been looked at** — see `verification.md`
