@@ -44,7 +44,7 @@ statement about the Floor.
 **Scope.** `--scope app` (a dashboard, an admin, a tool someone works in)
 skips the marketing-page gates: `three-tiles`, `vh-hero`,
 `stock-second-action`, `invented-proof`, `one-face`, `safe-display-face`,
-`named-look`, `fold`, `dead-half`, `word-budget`. `--scope component`
+`named-look`, `named-look-dark`, `fold`, `dead-half`, `word-budget`. `--scope component`
 skips the page-level ones. Everything else binds, the Floor first.
 
 **Tailwind and components.** The static tier reads HTML and CSS. A
@@ -92,7 +92,9 @@ and the two are tested to agree.
 | `gradient-text` | Reflex | M | Gradient text in any other hue | Solid ink; weight or a display face | 2b |
 | `literal-colour` | Floor | M | A colour literal outside the token block | Lift it into the tokens (`recipes-design.md` §2) | 48 |
 | `named-look` | Reflex | M | Cream paper (L 88 or over, hue 55 to 105), a high-contrast serif display and a terracotta accent (hue 15 to 60) | Move one axis: the accent first, the paper second, the display last (`recipes-design.md` §7) | 65 |
+| `named-look-dark` | Reflex | M | The catalogue's dark twin: a near-black neutral ground, one coral or orange accent (hue 25 to 65), a sans display, and a white pill button or mono labels | Move one axis: the ground first, then the accent, then the button shape (`recipes-design.md` §7) | 65 |
 | `glow` | Reflex | M/J | A zero-offset chromatic glow shadow, or a blurred colour blob behind text | Elevation by lightness; shadows with offset and blur | 29 |
+| `glass-over-nothing` | Reflex | R/J | A frosted panel (a backdrop blur) over a flat backdrop: hidden for a moment, what is behind it spreads under 14 levels of 255 in luminance | Glass only over moving or detailed matter ([Glassmorphism](techniques/fast.md#glassmorphism)); over a flat ground, a plain surface one step lighter | - |
 | `uniform-radius` | Reflex | M | One large radius on everything | The measured CTA median is 6px; one radius per nesting level, sharp where the identity is sharp | F7 |
 | accent footprint | Reflex | J | Accent past about 5% of any viewport without a reason in the brief: solid fills, large accent headings, full-bleed accent bands | One loud colour, spent once (`recipes-design.md` §2) | 23 |
 | pure absolutes | Reflex | J | `#000` and `#fff` as ink and paper on a page with an anchor hue; zero-chroma greys | Bias the neutral toward the accent's hue | 7, 22 |
@@ -171,6 +173,10 @@ and the two are tested to agree.
 | `focus-ring` | Floor | R | Tabbing reaches an element with no visible focus state | Same, measured by tabbing | 26a |
 | `focus-fades` | Floor | M | A focus ring that transitions in | Instant | 15 |
 | `autoplay-unmuted` | Floor | M | A video autoplaying without `muted` | `autoplay muted loop playsinline` | 28a |
+| `wheel-hijack` | Floor | R | The page does not scroll, the wheel advances its content, and Page Down, the arrows and Space do not: measured against the same wait with no input | Native scroll as the only state: a tall track, a pinned stage, keys and buttons that scroll to each step ([Stepped showcase](techniques/medium.md#stepped-showcase)) | - |
+| `border-beam` | Reflex | M | A conic gradient turned for ever by a keyframe (`rotate`, or an animated angle inside the gradient) round a border or behind a mask; 19 of the catalogue's 548 parts | A border that says something (a state, a selection), still; moving light belongs to the one signature move | - |
+| `animation-storm` | Reflex | R | More than 150 animations running at once, or 100 or more canvas contexts asked for (the catalogue's pages reached 308 and 106) | One signature move and one ambient loop; the rest still | - |
+| `preloader-over-painted` | Reflex | R/J | A counter on a full-screen fixed layer counts (three values or more) and lifts at least half a second after the headline and the first screen's pictures were ready under it | No loader over a ready page; a title sequence only where real progress drives it and it can be skipped (`recipes-motion.md` §24) | - |
 | hover on everything | Reflex | J | The same lift or scale on every card; an image scaling on hover; a hover state on a non-interactive element | One signal per element, on the container, never on the image | 11 |
 | bounce | Reflex | J | Overshoot easing on UI state | Exponential ease-out; the signature curve in `recipes-motion.md` | 12 |
 | the loop | Floor | J | Auto-rotating or looping content past 5 seconds with no pause on hover and focus and no visible pause control | `patterns.md`, "A loop that can pause" (WCAG 2.2.2) | 18 |
@@ -183,6 +189,8 @@ and the two are tested to agree.
 | `emoji-icon` | Floor | M | An emoji standing in for an icon | The one icon set the identity chose (`icons-and-assets.md`), or the word alone | 30a |
 | `decorative-svg` | Floor | M | An inline `<svg>` with neither `aria-hidden="true"` nor a label | Hide it or name it | 33 |
 | `img-alt` | Floor | M | An `<img>` without `alt`, or without a source | `alt=""` when decorative, a description otherwise | 76 |
+| `placeholder-image` | Reflex | M/J | A picture from a placeholder service (picsum, placehold, pravatar and the like), or one picture standing in across three or more sections. A gradient block standing in for a picture is the judged "empty picture" below: a script cannot tell it from a designed gradient | The author's pictures, approved stock (`images.md`), or type where no picture exists yet | 19 |
+| brand as sample | Floor | J | A real company's name, product, packaging or artwork as the sample content of a page that is not theirs: impersonation, and a page that cannot ship. A script cannot tell an invented name from a real one | Invent a plausible, specific subject; a real brand only as the named client, through `brand-truth.md` | - |
 | `broken-image` | Floor | R | An image that does not load | The real file at the path the page uses | 76 |
 | `doc-basics` | Finish | M | No `lang`, no `<title>`, no viewport meta, no description | Add them | F23 |
 | `heading-skip` | Finish | M | A heading level skipped | One level at a time | F21 |

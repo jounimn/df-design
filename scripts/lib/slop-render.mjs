@@ -6,7 +6,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { launchBrowser, settle } from './browser.mjs';
 import { GATES } from './slop-static.mjs';
-import { captureMotion, movingSignals } from './motion-capture.mjs';
+import { captureMotion, movingSignals, decodePng } from './motion-capture.mjs';
 
 const WIDTHS = [320, 390, 768, 1024, 1440, 1920];
 const FOLD = { width: 1280, height: 800 };
@@ -210,6 +210,9 @@ async function checkPage(browser, target, dir, report, screenshots) {
     for (const k of bare.slice(0, 6)) report('focus-ring', 'FAIL', 0, `no visible focus state on ${k}`);
     if (bare.length > 6) report('focus-ring', 'FAIL', 0, `${bare.length - 6} more focusable elements with no visible focus state`);
 
+    // glass over nothing: each frosted panel hidden for a moment, and what is behind it photographed
+    for (const g of await glassBehind(page)) report('glass-over-nothing', 'REFLEX', 0, `${g.what} blurs a flat backdrop (luminance spread ${g.spread} of 255 behind it)`);
+
     moving = await movingSignals(page);
     const shotFull = path.join(dir, 'full-1440.png');
     await page.screenshot({ path: shotFull, fullPage: true });
@@ -247,7 +250,10 @@ async function checkPage(browser, target, dir, report, screenshots) {
     await context.close();
   }
 
-  // 6. The phone, full page.
+  // 6. Motion on, as a visitor without the reduced-motion setting sees it: storms, a loader over a ready page, the wheel.
+  await motionGates(browser, target, report);
+
+  // 7. The phone, full page.
   {
     const { page, context } = await open(browser, target.url, { viewport: PHONE });
     await scrollThrough(page);
@@ -257,4 +263,148 @@ async function checkPage(browser, target, dir, report, screenshots) {
     await context.close();
   }
   return moving;
+}
+
+// --- Gates from the component catalogue read on 2026-11-08 (references/yolo-references.md) ---------------------------
+
+// Luminance spread of a screenshot: the 98th percentile minus the 2nd, so a stray pixel does not count.
+function spreadOf(buf) {
+  const { width, height, channels, pixels } = decodePng(buf);
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < width * height; i++) {
+    const o = i * channels;
+    hist[channels >= 3 ? Math.round(0.2126 * pixels[o] + 0.7152 * pixels[o + 1] + 0.0722 * pixels[o + 2]) : pixels[o]]++;
+  }
+  const at = (q) => { let acc = 0; for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= q * width * height) return v; } return 255; };
+  return at(0.98) - at(0.02);
+}
+
+// Each frosted panel (a backdrop blur) is hidden for a moment and what it would blur is photographed. A spread under
+// 14 levels of 255 is a flat ground: the glass has nothing to bend, and reads as a grey box with a border.
+async function glassBehind(page) {
+  const panels = await page.evaluate(() => {
+    const out = [];
+    for (const el of document.querySelectorAll('body *')) {
+      const cs = getComputedStyle(el);
+      if (!/blur\(/.test(cs.backdropFilter || cs.webkitBackdropFilter || '') || cs.visibility === 'hidden' || cs.display === 'none') continue;
+      const r = el.getBoundingClientRect();
+      if (r.width * r.height < 4000) continue;
+      el.setAttribute('data-df-glass', String(out.length));
+      out.push({ i: out.length, what: `<${el.tagName.toLowerCase()}${typeof el.className === 'string' && el.className ? ` class="${el.className.split(/\s+/)[0]}"` : ''}>` });
+      if (out.length >= 6) break;
+    }
+    return out;
+  }).catch(() => []);
+  const flat = [];
+  for (const p of panels) {
+    const box = await page.evaluate((i) => {
+      const el = document.querySelector(`[data-df-glass="${i}"]`);
+      el.scrollIntoView({ block: 'center' });
+      el.style.setProperty('visibility', 'hidden', 'important');
+      const r = el.getBoundingClientRect();
+      const x = Math.max(0, r.left), y = Math.max(0, r.top);
+      return { x, y, width: Math.min(innerWidth, r.right) - x, height: Math.min(innerHeight, r.bottom) - y };
+    }, p.i);
+    await page.waitForTimeout(60);
+    if (box.width >= 8 && box.height >= 8) {
+      const spread = spreadOf(await page.screenshot({ clip: box }));
+      if (spread < 14) flat.push({ what: p.what, spread });
+    }
+    await page.evaluate((i) => document.querySelector(`[data-df-glass="${i}"]`).style.removeProperty('visibility'), p.i);
+  }
+  await page.evaluate(() => scrollTo(0, 0));
+  return flat;
+}
+
+// Installed before the page's own scripts: counts wheel listeners and canvas contexts, and watches the middle of the
+// viewport for a counter on a fixed layer that covers it, and for the moment the page under it was ready.
+function gateProbe() {
+  const g = (window.__dfGate = { wheel: 0, contexts: 0, numbers: [], firstSeen: 0, lastSeen: 0, readyAt: 0 });
+  const add = EventTarget.prototype.addEventListener;
+  EventTarget.prototype.addEventListener = function (type, fn, opts) { if (type === 'wheel' || type === 'mousewheel') g.wheel++; return add.call(this, type, fn, opts); };
+  const gc = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (...a) { g.contexts++; return gc.apply(this, a); };
+  const fixedAncestor = (el) => { for (let n = el; n && n !== document.body; n = n.parentElement) if (getComputedStyle(n).position === 'fixed') return n; return null; };
+  const t0 = performance.now();
+  const poll = () => {
+    const now = performance.now() - t0;
+    if (now > 7000) return;
+    if (document.body) {
+      const layer = document.elementsFromPoint(innerWidth / 2, innerHeight / 2).map(fixedAncestor).find((n) => {
+        if (!n) return false;
+        const cs = getComputedStyle(n), r = n.getBoundingClientRect();
+        return r.width * r.height >= innerWidth * innerHeight * 0.85 && +cs.opacity > 0.5 && cs.visibility !== 'hidden';
+      });
+      const m = layer && /(?:^|\D)(\d{1,3})\s*%?(?:\D|$)/.exec(layer.innerText || '');
+      if (m) {
+        if (!g.firstSeen) g.firstSeen = now;
+        g.lastSeen = now;
+        if (g.numbers[g.numbers.length - 1] !== m[1]) g.numbers.push(m[1]);
+      }
+      // Ready underneath: the headline laid out and showing, and every picture in the first screen decoded.
+      const h1 = document.querySelector('h1');
+      if (!g.readyAt && h1 && !fixedAncestor(h1)) {
+        const r = h1.getBoundingClientRect(), cs = getComputedStyle(h1);
+        const imgs = [...document.images].filter((i) => { const b = i.getBoundingClientRect(); return b.bottom > 0 && b.top < innerHeight && b.width > 0; });
+        if (r.width > 0 && +cs.opacity > 0.5 && cs.visibility !== 'hidden' && imgs.every((i) => i.complete)) g.readyAt = now;
+      }
+    }
+    setTimeout(poll, 100);
+  };
+  poll();
+}
+
+// A 32 x 20 grid of mean luminance: enough to tell a page that changed from one that did not.
+async function signature(page) {
+  const { width, height, channels, pixels } = decodePng(await page.screenshot({ type: 'png' }));
+  const cells = new Float32Array(32 * 20), counts = new Uint32Array(32 * 20);
+  for (let y = 0; y < height; y += 2) for (let x = 0; x < width; x += 2) {
+    const o = (y * width + x) * channels, k = Math.floor((y / height) * 20) * 32 + Math.floor((x / width) * 32);
+    cells[k] += channels >= 3 ? 0.2126 * pixels[o] + 0.7152 * pixels[o + 1] + 0.0722 * pixels[o + 2] : pixels[o]; counts[k]++;
+  }
+  return cells.map((v, k) => v / Math.max(1, counts[k]));
+}
+const changed = (a, b) => a.reduce((n, v, k) => n + (Math.abs(v - b[k]) > 16 ? 1 : 0), 0) / a.length;
+
+async function motionGates(browser, target, report) {
+  const context = await browser.newContext({ viewport: LAPTOP, reducedMotion: 'no-preference' });
+  await context.addInitScript(gateProbe);
+  try {
+    const page = await context.newPage();
+    const ok = await page.goto(target.url, { waitUntil: 'load', timeout: 45000 }).then(() => true, () => false);
+    if (!ok) return;
+    await page.waitForTimeout(7200);
+    const s = await page.evaluate(() => ({ ...window.__dfGate, anims: document.getAnimations().length,
+      scrollable: (document.scrollingElement || document.documentElement).scrollHeight > innerHeight + 2 })).catch(() => null);
+    if (!s) return;
+
+    if (s.anims > 150 || s.contexts >= 100) report('animation-storm', 'REFLEX', 0, s.anims > 150 ? `${s.anims} animations running at once` : `${s.contexts} canvas contexts asked for`);
+
+    // A counter that counted (three values or more) over a page that was ready half a second before it went away.
+    if (s.numbers.length >= 3 && s.readyAt && s.lastSeen - Math.max(s.readyAt, s.firstSeen) >= 500) {
+      report('preloader-over-painted', 'REFLEX', 0, `a counter (${s.numbers[0]} to ${s.numbers[s.numbers.length - 1]}) covered the page until ${(s.lastSeen / 1000).toFixed(1)} s; the headline and first pictures were ready at ${(s.readyAt / 1000).toFixed(1)} s`);
+    }
+
+    // The wheel: only on a page that does not scroll and listens to the wheel. Keys on one fresh load, the wheel on
+    // another; each against the same wait with no input, so an ambient loop is not taken for an answer.
+    if (!s.scrollable && s.wheel > 0) {
+      const trial = async (act) => {
+        await page.goto(target.url, { waitUntil: 'load', timeout: 45000 });
+        await page.waitForTimeout(1500);
+        const a = await signature(page);
+        await page.waitForTimeout(900);
+        const b = await signature(page);
+        await act();
+        await page.waitForTimeout(900);
+        const c = await signature(page);
+        return { base: changed(a, b), moved: changed(b, c) };
+      };
+      const keys = await trial(async () => { await page.mouse.click(4, 4).catch(() => {}); for (const k of ['PageDown', 'ArrowDown', 'ArrowRight', 'Space']) { await page.keyboard.press(k); await page.waitForTimeout(150); } });
+      const wheel = await trial(async () => { await page.mouse.move(LAPTOP.width / 2, LAPTOP.height / 2); for (let i = 0; i < 3; i++) { await page.mouse.wheel(0, 400); await page.waitForTimeout(150); } });
+      const answered = (t) => t.moved > Math.max(0.08, t.base * 3 + 0.03);
+      if (answered(wheel) && !answered(keys)) report('wheel-hijack', 'FAIL', 0, `the page does not scroll; the wheel changed ${Math.round(wheel.moved * 100)} % of the picture and PageDown, the arrows and Space changed ${Math.round(keys.moved * 100)} %`);
+    }
+  } finally {
+    await context.close();
+  }
 }

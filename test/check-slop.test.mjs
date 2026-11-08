@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { lintStatic, collectFiles, GATES } from '../scripts/lib/slop-static.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -80,6 +80,37 @@ test('cream paper, a high-contrast serif and a terracotta accent is the named lo
   assert.match(nl.evidence, /cream|L 9\d/i);
 });
 
+test('the catalogue look: its dark twin of the named look, the border beam and stand-in pictures', () => {
+  const r = run('catalogue.html');
+  const [dark] = find(r, 'named-look-dark');
+  assert.ok(dark, 'named-look-dark should fire');
+  assert.equal(dark.grade, 'REFLEX');
+  assert.match(dark.evidence, /near-black.*coral.*pill/);
+  const [beam] = find(r, 'border-beam');
+  assert.ok(beam, 'border-beam should fire');
+  assert.match(beam.evidence, /\.beam::before.*@keyframes beam/);
+  const pictures = find(r, 'placeholder-image').map((f) => f.evidence);
+  assert.ok(pictures.some((e) => /picsum\.photos/.test(e)), `a placeholder service: ${pictures}`);
+  assert.ok(pictures.some((e) => /dark-figure\.jpg.*3 sections/.test(e)), `one picture in three sections: ${pictures}`);
+  for (const f of ['clean.html', 'slopped.html', 'named-look.html']) {
+    const other = run(f).findings.filter((x) => ['named-look-dark', 'border-beam', 'placeholder-image'].includes(x.gate));
+    assert.deepEqual(other, [], `${f} trips none of the catalogue gates`);
+  }
+});
+
+test('the catalogue gates read a spinner that is not a border, an icon used everywhere and a cream page as nothing', () => {
+  const page = (css, body) => lintStatic([{ file: 'x.html', text: `<!doctype html><html lang="en"><head><title>t</title><meta name="viewport" content="width=device-width"><meta name="description" content="d">
+<style>:root{--ink:#222;--paper:#fdfbf7;--accent:#ff6a3d;--font-body:Georgia,serif}html,body{overflow-x:clip}body{color:var(--ink);background:var(--paper);font-family:var(--font-body)} a:focus-visible{outline:2px solid var(--ink)}${css}</style></head><body>${body}</body></html>` }]);
+  // A conic dial that turns once, not for ever.
+  const once = page('.dial{background:conic-gradient(var(--accent) 40%,var(--paper) 0);animation:turn 1s ease-out 1}@keyframes turn{to{transform:rotate(1turn)}}@media (prefers-reduced-motion: reduce){.dial{animation:none}}', '<div class="dial"></div>');
+  assert.deepEqual(find(once, 'border-beam'), []);
+  // The same small icon in three sections is an icon, not a stand-in picture.
+  const icons = page('', '<section><img src="pin.png" width="24" height="24" alt=""></section><section><img src="pin.png" width="24" height="24" alt=""></section><section><img src="pin.png" width="24" height="24" alt=""></section>');
+  assert.deepEqual(find(icons, 'placeholder-image'), []);
+  // A light page with a coral accent is not the dark twin.
+  assert.deepEqual(find(once, 'named-look-dark'), []);
+});
+
 test('a waiver reason under 24 characters is rejected', () => {
   const r = lintStatic([{ file: 'x.html', text: `<!doctype html><html lang="en"><head><title>t</title><meta name="viewport" content="width=device-width">
 <!-- df-design · waive eyebrow · because -->
@@ -152,6 +183,40 @@ test('the render tier passes the good page with nothing to fix', { timeout: 1800
     assert.deepEqual(renderGates(r, 'FAIL'), [], JSON.stringify(r.findings.filter((f) => f.grade === 'FAIL'), null, 1));
     assert.deepEqual(renderGates(r, 'REFLEX'), [], JSON.stringify(r.findings.filter((f) => f.grade === 'REFLEX'), null, 1));
     assert.deepEqual(r.motion, [], 'a still page gets no motion capture unless asked');
+  } finally {
+    await browser.close();
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('the render tier names the catalogue tells only a browser sees: a counter over a ready page, a storm, glass over nothing', { timeout: 180000 }, async () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'df-slop-'));
+  const browser = await launchBrowser();
+  try {
+    const r = await renderCheck({ pages: [path.join(FIX, 'catalogue-render.html')], out, browser });
+    const reflex = new Set(renderGates(r, 'REFLEX'));
+    for (const g of ['preloader-over-painted', 'animation-storm', 'glass-over-nothing']) assert.ok(reflex.has(g), `expected REFLEX ${g}; got ${[...reflex]}`);
+    assert.match(r.findings.find((f) => f.gate === 'preloader-over-painted').evidence, /counter \(0 to 100\).*ready at/);
+    assert.match(r.findings.find((f) => f.gate === 'animation-storm').evidence, /\d{3} animations/);
+    assert.match(r.findings.find((f) => f.gate === 'glass-over-nothing').evidence, /class="glass".*flat/);
+  } finally {
+    await browser.close();
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test('a page that does not scroll and answers only the wheel fails; the same page with keys passes', { timeout: 240000 }, async () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'df-slop-'));
+  const browser = await launchBrowser();
+  try {
+    const url = pathToFileURL(path.join(FIX, 'wheel-hijack.html')).href;
+    const bad = await renderCheck({ urls: [url], out, browser });
+    const [hijack] = bad.findings.filter((f) => f.gate === 'wheel-hijack');
+    assert.ok(hijack, `wheel-hijack should fail: ${JSON.stringify(bad.findings)}`);
+    assert.equal(hijack.grade, 'FAIL');
+    assert.match(hijack.evidence, /does not scroll.*wheel changed \d+ %.*Space changed 0 %/);
+    const keyed = await renderCheck({ urls: [`${url}?keys=1`], out, browser });
+    assert.deepEqual(keyed.findings.filter((f) => f.gate === 'wheel-hijack'), [], 'the keys answer too: no hijack');
   } finally {
     await browser.close();
     fs.rmSync(out, { recursive: true, force: true });
