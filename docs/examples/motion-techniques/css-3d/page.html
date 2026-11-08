@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Example page for the CSS 3D objects technique card: a coin built from faces and rim slices, with a ring of words orbiting through it, in CSS alone.">
+<title>CSS 3D objects: example</title>
+<style>
+  :root { --face-display: "Trajan Pro", "Times New Roman", serif; --face-text: Georgia, "Times New Roman", serif;
+    --ground: #20262b; --ink: #ece4d2; --muted: #aab0aa; --hint: #e7b65c;
+    --bronze: #9a6a35; --bronze-lit: #d9a35b; --bronze-dark: #4f3218; --coin: 260px; --rim: 14px; }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  html { background: var(--ground); color: var(--ink); }
+  body { margin: 0; font: 400 18px/1.55 var(--face-text); }
+  a { color: var(--ink); }
+  a:focus-visible, .still:focus-within { outline: 2px solid var(--hint); outline-offset: 3px; }
+  .hero { min-height: 100svh; display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); align-items: center; gap: 4vw; padding: 8vh 7vw; overflow: clip; }
+  h1 { font: 400 clamp(48px, 6.6vw, 104px)/1 var(--face-display); letter-spacing: 0.01em; margin: 0 0 18px; }
+  .copy p { margin: 0 0 20px; color: var(--muted); max-width: 30rem; }
+  .still { display: inline-flex; gap: 10px; align-items: center; cursor: pointer; padding: 6px 0; }
+  .still input { width: 20px; height: 20px; accent-color: var(--hint); }
+
+  /* The scene: one perspective, one 3D context, so the ring's words pass in front of and behind the coin. */
+  .scene { perspective: 1100px; height: min(70svh, 560px); display: grid; place-items: center; }
+  .world { position: relative; width: var(--coin); height: var(--coin); transform-style: preserve-3d; transform: rotateX(-14deg) rotateZ(-6deg); }
+  .coin, .ring { position: absolute; inset: 0; transform-style: preserve-3d; }
+  .coin { animation: turn 10s linear infinite; }
+  .face { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; display: grid; place-items: center;
+    background: radial-gradient(circle at 34% 30%, var(--bronze-lit), var(--bronze) 48%, var(--bronze-dark));
+    box-shadow: inset 0 0 0 10px var(--bronze-dark), inset 0 0 0 12px var(--bronze-lit); color: var(--bronze-dark);
+    font: 700 54px/1 var(--face-display); letter-spacing: 0.04em; }
+  .front { transform: translateZ(calc(var(--rim) / 2)); }
+  .back { transform: rotateY(180deg) translateZ(calc(var(--rim) / 2)); font-size: 22px; }
+  /* The milled edge: 40 thin slices stood round the circle, each turned to face outward. */
+  .rim i { position: absolute; left: 50%; top: 50%; width: var(--rim); height: calc(var(--coin) * 0.0805); margin: calc(var(--coin) * -0.04025) 0 0 calc(var(--rim) / -2);
+    background: repeating-linear-gradient(0deg, var(--bronze-dark) 0 2px, var(--bronze) 2px 4px);
+    transform: rotateZ(calc(var(--i) * 9deg)) translateY(calc(var(--coin) / -2)) rotateY(90deg); }
+  .ring { animation: orbit 22s linear infinite; }
+  .ring span { position: absolute; left: 50%; top: 50%; width: 220px; margin: -16px 0 0 -110px; text-align: center; white-space: nowrap;
+    font: 400 26px/32px var(--face-display); letter-spacing: 0.12em; color: var(--ink);
+    transform: rotateY(calc(var(--i) * 45deg)) translateZ(230px); }
+  @keyframes turn { to { transform: rotateY(360deg); } }
+  @keyframes orbit { from { transform: rotateY(0deg); } to { transform: rotateY(-360deg); } }
+  /* Held still by the visitor, by hover or focus, or by the system setting: the coin rests turned, showing its edge. */
+  .hero:has(.still input:checked) :is(.coin, .ring), .scene:hover :is(.coin, .ring) { animation-play-state: paused; }
+  main { padding: 10vh 7vw; min-height: 110svh; max-width: 46rem; color: var(--muted); }
+  @media (max-width: 760px) { .hero { grid-template-columns: minmax(0, 1fr); } :root { --coin: 200px; } .ring span { transform: rotateY(calc(var(--i) * 45deg)) translateZ(180px); } }
+  @media (prefers-reduced-motion: reduce) { .coin { animation: none; transform: rotateY(-32deg); } .ring { animation: none; } }
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="copy">
+    <h1>Milled edges</h1>
+    <p>The coin circle meets on Thursdays in the back room of the library. Bring one coin and its story; the edge tells you more than the face.</p>
+    <label class="still"><input type="checkbox"> Hold the coin still</label>
+  </div>
+  <div class="scene" aria-hidden="true">
+    <div class="world">
+      <div class="coin">
+        <div class="rim"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><i style="--i:5"></i><i style="--i:6"></i><i style="--i:7"></i><i style="--i:8"></i><i style="--i:9"></i><i style="--i:10"></i><i style="--i:11"></i><i style="--i:12"></i><i style="--i:13"></i><i style="--i:14"></i><i style="--i:15"></i><i style="--i:16"></i><i style="--i:17"></i><i style="--i:18"></i><i style="--i:19"></i><i style="--i:20"></i><i style="--i:21"></i><i style="--i:22"></i><i style="--i:23"></i><i style="--i:24"></i><i style="--i:25"></i><i style="--i:26"></i><i style="--i:27"></i><i style="--i:28"></i><i style="--i:29"></i><i style="--i:30"></i><i style="--i:31"></i><i style="--i:32"></i><i style="--i:33"></i><i style="--i:34"></i><i style="--i:35"></i><i style="--i:36"></i><i style="--i:37"></i><i style="--i:38"></i><i style="--i:39"></i></div>
+        <div class="face front">1926</div>
+        <div class="face back">THURSDAYS</div>
+      </div>
+      <div class="ring"><span style="--i:0">FACE</span><span style="--i:1">EDGE</span><span style="--i:2">WEIGHT</span><span style="--i:3">STRIKE</span><span style="--i:4">FACE</span><span style="--i:5">EDGE</span><span style="--i:6">WEIGHT</span><span style="--i:7">STRIKE</span></div>
+    </div>
+  </div>
+</section>
+<main>
+  <p>A test page for the CSS 3D objects card. The coin is two faces and forty slices in one 3D context; the ring of words is eight words stood round a circle in the same context, so they pass in front of the coin and behind it. No script on the page.</p>
+  <p><a href="../">Other examples</a></p>
+</main>
+</body>
+</html>

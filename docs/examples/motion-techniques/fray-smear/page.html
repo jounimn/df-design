@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Example page for the images that fray and smear technique card: a strip of photographs that unravels into threads at its edges, with a lens that smears what it passes over.">
+<title>Images that fray and smear: example</title>
+<style>
+  :root { --face-display: Rockwell, "Courier New", serif; --face-text: Georgia, "Times New Roman", serif;
+    --ground: #1c1814; --paper: #efe4cf; --ink: #f4ecdc; --muted: #b9ad96; --hint: #d9b46a; }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  html { background: var(--ground); color: var(--ink); }
+  body { margin: 0; font: 400 18px/1.55 var(--face-text); }
+  a { color: var(--ink); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--hint); outline-offset: 3px; }
+  header { padding: 12vh 7vw 6vh; max-width: 60rem; }
+  h1 { font: 700 clamp(40px, 6vw, 88px)/1 var(--face-display); letter-spacing: -0.02em; margin: 0 0 16px; }
+  header p { margin: 0; color: var(--muted); max-width: 34rem; }
+  .strip { position: relative; height: clamp(320px, 52svh, 560px); margin: 0 0 4vh; }
+  .strip canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* Without the canvas: the three loaves in a row whose cut ends fade (the Fast edge fade). */
+  .row { display: flex; gap: 2vw; justify-content: center; height: 100%; padding: 0 4vw; overflow: clip;
+    -webkit-mask-image: linear-gradient(90deg, transparent, var(--ground) 12%, var(--ground) 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, var(--ground) 12%, var(--ground) 88%, transparent); }
+  .row img { height: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 4px; }
+  .woven .row { visibility: hidden; }
+  .woven:has(canvas[data-df-loop="fallback"]) .row { visibility: visible; }
+  .controls { padding: 0 7vw; }
+  button { font: 600 16px/1 var(--face-text); color: var(--ground); background: var(--paper); border: 0; border-radius: 4px; padding: 12px 16px; cursor: pointer; }
+  button:hover { background: var(--hint); }
+  main { padding: 10vh 7vw; min-height: 110svh; max-width: 46rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Three loaves, one oven</h1>
+  <p>The week's breads pass by on a strip that comes apart into threads where it leaves the frame and is woven again where it comes in. A lens goes over them and smears what it crosses.</p>
+</header>
+<section class="strip" id="strip" aria-label="The week's three breads">
+  <div class="row">
+    <img src="massa.jpg" alt="Hands kneading a ball of dough">
+    <img src="forma.jpg" alt="A tin loaf fresh from the oven">
+    <img src="miolo.jpg" alt="Slices of rye bread showing the crumb">
+  </div>
+  <canvas id="loom" aria-hidden="true"></canvas>
+</section>
+<div class="controls"><button type="button" id="pause" aria-pressed="false">Pause the strip</button></div>
+<main>
+  <p>A test page for the images that fray and smear card. The strip is one picture made of the three photographs; the threads and the lens are one pass over it. Without the canvas the three photographs stand in a row.</p>
+  <p><a href="../">Other examples</a></p>
+</main>
+
+<script src="canvas-loop.js"></script>
+<script>
+(() => {
+  const strip = document.getElementById('strip');
+  const canvas = document.getElementById('loom');
+  const imgs = [...strip.querySelectorAll('.row img')];
+  const pause = document.getElementById('pause');
+  const css = getComputedStyle(document.documentElement);
+
+  // Idle autopilot (recipes-motion.md §28): the lens wanders on a Lissajous path until the hand arrives.
+  function autopilot(el, { idle = 3000, speed = 0.45 } = {}) {
+    const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    let hand = null, last = -1e9, phase = 0;
+    if (fine) {
+      el.addEventListener('pointermove', (e) => { const r = el.getBoundingClientRect(); hand = [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; last = performance.now(); });
+      el.addEventListener('pointerleave', () => { hand = null; });
+    }
+    return (now, dt) => {
+      if (hand && now - last < idle) return hand;
+      phase += dt * speed;
+      return [0.5 + 0.33 * Math.sin(phase), 0.5 + 0.28 * Math.sin(phase * 2.0 + 0.5)];
+    };
+  }
+  const steer = autopilot(strip);
+
+  const VS = `#version 300 es
+  in vec2 aPos; void main() { gl_Position = vec4(aPos, 0.0, 1.0); }`;
+  const FS = `#version 300 es
+  precision highp float; out vec4 o;
+  uniform sampler2D uAtlas; uniform vec2 uRes, uLens, uVel; uniform float uShift, uStrip, uCardH, uThread, uRadius, uTime;
+  uniform vec3 uGround, uPaper;
+  float hash(float n) { return fract(sin(n * 91.7) * 43758.5453); }
+  // The strip at a pixel: x runs along the strip (wrapping), y across the card band.
+  vec4 strip(vec2 px) {
+    float top = (uRes.y - uCardH) * 0.5;
+    vec2 uv = vec2(mod(px.x + uShift, uStrip) / uStrip, (px.y - top) / uCardH);
+    if (uv.y < 0.0 || uv.y > 1.0) return vec4(0.0);
+    return texture(uAtlas, vec2(uv.x, 1.0 - uv.y));
+  }
+  void main() {
+    vec2 px = gl_FragCoord.xy;
+    // Threads: near either edge each row of pixels slides on its own, and only thin rows are kept.
+    float side = px.x / uRes.x * 2.0 - 1.0;
+    float edge = smoothstep(0.55, 1.0, abs(side));
+    float row = floor(px.y / uThread);
+    float pull = (hash(row) * 0.8 + 0.2 + 0.25 * sin(row * 0.37 + uTime * 1.3)) * edge * edge * uRes.x * 0.22;
+    vec2 at = px + vec2(sign(side) * pull, 0.0);
+    vec4 c = strip(at);
+    float keep = mix(1.0, step(0.45, fract(px.y / uThread)) * step(hash(row + 3.1), 1.15 - edge), smoothstep(0.0, 0.25, edge));
+    c *= keep;
+    // The lens: inside the circle the picture is sampled along the lens's own velocity, so it smears the way it moves.
+    vec2 lens = vec2(uLens.x, 1.0 - uLens.y) * uRes;
+    float d = length(px - lens);
+    if (d < uRadius) {
+      vec4 acc = vec4(0.0);
+      vec2 from = lens + (px - lens) * 0.86;                // a little magnified
+      for (int i = 0; i < 12; i++) acc += strip(from - uVel * (float(i) / 11.0 - 0.5));
+      c = mix(acc / 12.0, c, smoothstep(uRadius - 2.0, uRadius, d));
+    }
+    float rim = smoothstep(uRadius - 2.5, uRadius - 1.0, d) * (1.0 - smoothstep(uRadius - 1.0, uRadius + 0.5, d));
+    vec3 tone = mix(uGround, uPaper, c.r);                  // the greyscale photographs inked in the page's two colours
+    o = vec4(mix(mix(uGround, tone, c.a), uPaper, rim * 0.6), 1.0);
+  }`;
+
+  // A token read once per value: parsing a colour through a canvas every frame costs a frame on a slow machine.
+  const colours = new Map();
+  const rgb = (v) => { if (!colours.has(v)) { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = v; c.fillRect(0, 0, 1, 1); const out = [...c.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((x) => x / 255); colours.set(v, out); } return colours.get(v); };
+  let gl, prog, u, quad, tex, geo = null, shift = 0, last = 0, paused = false;
+  let lens = [0.5, 0.5], vel = [0, 0];
+
+  // The three photographs laid in one strip at the size they are drawn, with a gap and a round corner each.
+  function atlas() {
+    const cardH = Math.round(canvas.height * 0.86), cardW = Math.round(cardH * 0.8), gap = Math.round(cardH * 0.08);
+    const a = document.createElement('canvas'); a.width = (cardW + gap) * imgs.length * 2; a.height = cardH;
+    const g = a.getContext('2d');
+    for (let i = 0; i < imgs.length * 2; i++) {
+      const im = imgs[i % imgs.length], x = i * (cardW + gap) + gap / 2;
+      g.save(); g.beginPath(); g.roundRect(x, 0, cardW, cardH, cardH * 0.012); g.clip();
+      const s = Math.max(cardW / im.naturalWidth, cardH / im.naturalHeight);
+      g.drawImage(im, x + (cardW - im.naturalWidth * s) / 2, (cardH - im.naturalHeight * s) / 2, im.naturalWidth * s, im.naturalHeight * s);
+      g.restore();
+    }
+    return { a, cardH, stripW: a.width };
+  }
+
+  function build(g) {
+    gl = g;
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+    gl.bindAttribLocation(prog, 0, 'aPos'); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    u = {}; for (let i = 0; i < gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS); i++) { const n = gl.getActiveUniform(prog, i).name; u[n] = gl.getUniformLocation(prog, n); }
+    quad = gl.createVertexArray(); gl.bindVertexArray(quad); gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    tex = gl.createTexture(); geo = null;
+  }
+  function draw(t) {
+    if (!geo || geo.h !== canvas.height) {                    // the atlas follows the drawn size
+      const { a, cardH, stripW } = atlas(); geo = { h: canvas.height, cardH, stripW };
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, a);
+    }
+    const s = canvas.width / canvas.clientWidth;
+    gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(prog); gl.bindVertexArray(quad);
+    gl.uniform2f(u.uRes, canvas.width, canvas.height); gl.uniform2f(u.uLens, ...lens);
+    gl.uniform2f(u.uVel, vel[0] * s, -vel[1] * s); gl.uniform1f(u.uShift, shift * s);
+    gl.uniform1f(u.uStrip, geo.stripW); gl.uniform1f(u.uCardH, geo.cardH); gl.uniform1f(u.uThread, 3 * s);
+    gl.uniform1f(u.uRadius, Math.min(canvas.height * 0.3, 120 * s)); gl.uniform1f(u.uTime, t);
+    gl.uniform3f(u.uGround, ...rgb(css.getPropertyValue('--ground'))); gl.uniform3f(u.uPaper, ...rgb(css.getPropertyValue('--paper')));
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(u.uAtlas, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    strip.classList.add('woven');
+  }
+
+  Promise.all(imgs.map((i) => i.decode())).then(() => {
+    dfCanvasLoop(canvas, {
+      context: 'webgl2',
+      maxDpr: 1.5,
+      draw: (t, g) => {
+        if (!prog) build(g);
+        const dt = Math.min(0.05, last ? (t - last) / 1000 : 0.016); last = t;
+        if (!paused) {
+          shift += dt * 42;                                   // 42 px a second
+          const target = steer(t, dt), k = 1 - Math.exp(-dt * 4);
+          const next = [lens[0] + (target[0] - lens[0]) * k, lens[1] + (target[1] - lens[1]) * k];
+          // The smear is the lens's velocity in CSS pixels, eased so it lengthens and settles rather than flickers.
+          const v = [(next[0] - lens[0]) * canvas.clientWidth / dt * 0.12, (next[1] - lens[1]) * canvas.clientHeight / dt * 0.12];
+          vel = [vel[0] + (v[0] - vel[0]) * 0.2, vel[1] + (v[1] - vel[1]) * 0.2];
+          lens = next;
+        }
+        draw(t / 1000);
+      },
+      poster: (g) => { if (!prog) build(g); shift = 160; lens = [0.5, 0.5]; vel = [70, 0]; draw(0); },
+      restore: () => { prog = null; },
+      fallback: '.row',
+    });
+  });
+
+  pause.addEventListener('click', () => {
+    paused = !paused;
+    pause.setAttribute('aria-pressed', String(paused));
+    pause.textContent = paused ? 'Play the strip' : 'Pause the strip';
+  });
+})();
+</script>
+</body>
+</html>
