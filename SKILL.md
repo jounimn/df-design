@@ -248,8 +248,14 @@ The rules that govern every stage:
   a real-time 3D scene); a page under the High ceiling is a high build, and
   `check-motion` reports it as built below the chosen tier. The flagship
   sites are analysed in `references/yolo-references.md`; read it before
-  probing them again. In a scroll story every scene change is a designed
-  cut that keeps moving (`recipes-motion.md` §16); a drawn story's grammar
+  probing them again. On a High or YOLO build the signature move is made of
+  the page's own content (its headline, its pictures, its product) in the
+  identity's own art direction, never a move lifted with its demo's look:
+  that is what the strongest pieces of the catalogues read in November 2026
+  share, and what their commodity parts lack. Every cursor-driven effect
+  walks an idle path until the hand arrives (`recipes-motion.md` §28).
+  In a scroll story every scene change is a designed cut that keeps
+  moving (`recipes-motion.md` §16); a drawn story's grammar
   (depth planes, a shape carried across each cut, the ink-out, the focus
   field, hold beats, the ending as a scene, everything preloaded, drawn
   effects) is §17–§26, with its runtime in `templates/scroll-story.js`.
@@ -473,6 +479,8 @@ is an acceptable sentence. "Done" without having looked is not.
 | "They chose an audition, so go straight to assets" | Offer `selling-positioning` first: now, at the end, or skip. `selling-positioning.md` §1. |
 | "An icon per feature item will carry the section" | Three columns, three circled icons, three paragraphs is the template tell. None of the thirty measured sites do it. |
 | "A hero, three features, a call to action and a footer" | The stock anatomy of a software page, applied to a bakery. Build from the visitor's job: where real sites in the category put the action, the sections that are the category's own, how they end. `anatomy.md`. |
+| "The demo used a real brand, so the example can too" | A real company's name, product or artwork is never sample content: invent a plausible subject. A real brand only as the named client, through `brand-truth.md`. |
+| "Take the catalogue's effect as it ships" | Take the move, not the kit: the effect is rebuilt from the page's own headline and pictures in the identity's art direction; the kit's dark ground, coral accent and white pills are the `named-look-dark` gate (`yolo-references.md`). |
 | "I know Stripe's purple" | A brand colour recalled from training data is a named failure: memory hex = fail. Probe or fetch the real values. `brand-truth.md`. |
 | "An eyebrow above every heading gives the sections structure" | The eyebrow is the commonest tell of a generated page. Delete the line and read the page: if nothing was lost but a name for what comes next, it was an eyebrow. Keep one only where it carries a fact or a real sequence, and say so on the record. `gates.md` §5. |
 | "Trusted by 10,000 teams reads well" | Never an invented metric, testimonial, logo wall or case-study count. The author's number with its source, or nothing. `gates.md`. |

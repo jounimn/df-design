@@ -4,6 +4,8 @@ YOLO loading: the no-savings tier, for the flagship experience of a company with
 
 Each card names its Floor fallback under "Lighter version", and links the nearest card of a lower tier where one exists. Every cost below comes from the YOLO probes of 2026-11-03 ([benchmarks](../benchmarks.md#yolo-measured-2026-11-03)): one run per site, headless Chrome at 1440x900 on an Intel UHD GPU. On this tier media, not script, is what makes a page heavy: the heaviest page by transfer, 26.7 MB, carried 9 KB of motion code.
 
+**Own art direction, own material.** A card here is a move, not a look. The strongest pieces of the two catalogues read in November 2026 each had their own art direction and made the effect out of the page's own content: the headline refracted, the section's photographs frayed, the product's labels turned in depth. Their commodity parts wore one house look and ran the effect on a demo's stock picture ([yolo-references.md](../yolo-references.md#a-component-catalogue-read-2026-11-08)). Build the move from what the page already says and shows, in the identity's colours and type; a move copied with its demo's look is the kit again, and the gates name the kit (`named-look-dark`, `border-beam`).
+
 | Technique | What the visitor sees | Suits |
 |---|---|---|
 | [Scroll-scrubbed image sequence](#scroll-scrubbed-image-sequence) | A product film that the scroll bar plays forwards and backwards | Packaged products with a hero object |
@@ -223,6 +225,11 @@ No lighter version: the weight and the throw are the technique, and no lower car
 ### For the builder
 
 Rapier, cannon-es or matter-js stepped in the render loop, with a sleeping threshold so the loop stops when nothing moves. Under reduced motion, place the objects at rest and do not start the loop.
+
+- **The engines:** matter-js (liabru/matter-js, MIT) for 2D piles and drags; cannon-es (MIT) or Rapier (`@dimforge/rapier3d-compat`, Apache-2.0; its repository has moved, check before pinning a version) for 3D. Loaded, not vendored; their weight counts toward the first view.
+- **A pile that falls in** (the component catalogue read on 2026-11-08, a studio page of glossy toy blocks): bodies dropped from above the fold onto the hero's floor, at most a few dozen, each one a drawn object with its own physics box; the pile is the scene's poster under reduced motion.
+- **Exploded by scroll:** a model whose 58 parts come apart as the page scrolls (the same studio page). No physics needed: each part has a start and an end transform and the section's progress, through a spring, interpolates between them; the High [Wireframe 3D](high.md#wireframe-3d) card has the exploded view in line art.
+- **A pendulum rack:** garments on a rail, each a damped pendulum (angle'' = -g/L sin(angle) - c angle'), the hovered one swinging round to face the visitor. In the style sheet with a script of a few lines, it is a [CSS 3D objects](fast.md#css-3d-objects) piece with a spring; it needs no engine.
 
 #### Where the cost was measured
 

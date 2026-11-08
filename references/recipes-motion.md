@@ -2,8 +2,8 @@
 
 Working implementations, each traced to a site that ships it. Every value
 here was read off a production page — see `benchmarks.md` for the method.
-The techniques themselves are cards, one file per tier: [fast](techniques/fast.md) (23 cards),
-[medium](techniques/medium.md) (5), [high](techniques/high.md) (12) and [yolo](techniques/yolo.md) (6). Open the file of the tier the
+The techniques themselves are cards, one file per tier: [fast](techniques/fast.md) (25 cards),
+[medium](techniques/medium.md) (9), [high](techniques/high.md) (15) and [yolo](techniques/yolo.md) (6). Open the file of the tier the
 author chose, then the card for the effect. Each card says what it is, which identities it suits, what it
 costs the visitor and how to build it. This file keeps the rules that apply to all of them.
 
@@ -764,6 +764,26 @@ document.documentElement.dataset.ready = '';
 - The tier message states the first-view weight: with everything preloaded,
   it is the whole experience.
 
+**A title sequence over the load.** The component catalogue of 2026-11-08
+has loaders that are short films: a word list stepping under a halftone burst
+before a hard cut to the logo, a word that fills while statues rise in front
+and behind it, a countdown whose digits are built from tiles. Eleven
+templates of 2026-11-07 and two pages of the catalogue count 0 to 100 over a
+page that had already painted; that is the `preloader-over-painted` gate. A
+title sequence earns its seconds only when:
+
+- **real progress drives it** (the three jobs above: fetch and decode, upload,
+  compile), and it ends when they end, never on a timer that outlasts them;
+- **it can be skipped** (a visible button, Escape and a click), and a return
+  visit in the same session skips it;
+- **it never blocks what is ready** (`choreograph`, Emil Kowalski, MIT: an
+  animation never holds back a button the visitor is reaching for), so the
+  text of the page is under it and readable to assistive technology the
+  whole time (§24's "Text is not behind the loader");
+- **under reduced motion it is one still frame** with the progress as text;
+  when the sequence is the explanation, jump between its frames instead of
+  animating between them.
+
 ---
 
 ## 25. Water, smoke and sparks are drawn, frame by frame
@@ -885,6 +905,64 @@ the page passes `check-motion --tier fast` with Lenis on it, because the
 content does not need it, and the wheel recording reached the end with no
 stalls.
 
+## 28. Cursor-driven techniques: the idle autopilot
+
+A technique that answers the pointer (a lens, a lamp, a trail, a hole in a
+cloud, a glint on glass) shows nothing until a hand moves. The visitor who
+reads before moving, the phone that has no hover, the recording and the
+thumbnail all see a still. Every cursor-driven card therefore owes an
+**idle autopilot**: a slow path that drives the same variables as the pointer.
+The rule was read from the component catalogue of 2026-11-08, whose lenses,
+x-ray magnifiers and trails wander on their own until the pointer arrives
+(`yolo-references.md`).
+
+- **One set of variables.** The autopilot writes the pointer's own position
+  (and strength, radius or velocity), and the effect never knows which one
+  drove it. Ease the drawn value after the target (`1 - exp(-dt * k)`), so the
+  hand-over in either direction never jumps.
+- **A Lissajous path,** two sines at an irrational ratio (1 : 1.618), slow
+  (a loop every 20 to 30 s), kept inside the subject: it never repeats a
+  straight line and never parks.
+- **The hand takes over at the first `pointermove`,** and the path resumes
+  after about 3 s with no movement, from where the hand left it.
+- **Touch gets the path only.** A coarse pointer (`(hover: hover) and
+  (pointer: fine)` false) never drives it; a finger on the page is scrolling.
+- **Off under reduced motion.** The poster stands; nothing walks by itself
+  (§14). `templates/canvas-loop.js` already draws only the poster there.
+- **It is ambient, so it obeys the loop rule.** It runs only on screen and
+  in a visible tab; where it moves content and not decoration (a lens over
+  text), it pauses with the page's pause control (`patterns.md`, "A loop that
+  can pause"). The `animaxxing-webgl` skill (John Polacek, MIT) keeps its
+  image lens still with no mouse over it: right for a lens that distorts
+  something the visitor is reading. The path is for effects that are the
+  picture, not for effects over the copy.
+- **Timing from the attention loops of `choreograph`** (Emil Kowalski, MIT):
+  wait a beat before the first run (2 to 3 s), stop the moment the visitor
+  interacts, and resume only after the effect has settled from the hand.
+
+```js
+// Idle autopilot: returns the target in 0..1 (y down). Ease toward it in the frame loop.
+function autopilot(el, { idle = 3000, speed = 0.25 } = {}) {
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  let hand = null, last = -1e9, phase = 0;
+  if (fine) {
+    el.addEventListener('pointermove', (e) => { const r = el.getBoundingClientRect(); hand = [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; last = performance.now(); });
+    el.addEventListener('pointerleave', () => { hand = null; });
+  }
+  return (now, dt) => {
+    if (hand && now - last < idle) return hand;
+    phase += dt * speed;
+    return [0.5 + 0.32 * Math.sin(phase), 0.5 + 0.26 * Math.sin(phase * 1.618 + 0.7)];
+  };
+}
+// In the loop:  const t = steer(now, dt), k = 1 - Math.exp(-dt * 5);  lamp = lamp.map((v, i) => v + (t[i] - v) * k);
+```
+
+Built into every cursor-driven example page: `cursor-reveal`, `glass-light`,
+`glass-letters`, `fray-smear` and `dither` in `docs/examples/motion-techniques/`.
+The wheel recording of `check-slop --render` and a thumbnail then show the
+effect working.
+
 ---
 
 ## Checklist before calling motion done
@@ -905,4 +983,6 @@ stalls.
 - [ ] Images are decoded, uploaded and the shaders compiled before the first cut, behind a progress figure that tells the truth, with the text readable meanwhile (§24)
 - [ ] Liquids, smoke and sparks are drawn frame loops on twos, not shader effects (§25); under reduced motion the whole story is its stills (§26)
 - [ ] Smooth scroll only where a scrub needs it, never under reduced motion, and the page works the same without it (§27)
+- [ ] Every cursor-driven effect has an idle autopilot: a slow path until the hand moves, back after about 3 s, the path only on touch, off under reduced motion (§28)
+- [ ] A loader is a title sequence only where real progress drives it and it can be skipped; no counter over a page that is already painted (§24)
 - [ ] **The rendered page has been looked at** — see `verification.md`

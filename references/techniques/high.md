@@ -1,6 +1,8 @@
 # High techniques
 
-High expensive loading: heavy script, large media, and main-thread and GPU cost, so it needs a fallback. The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. Each card here links its lighter version, in [medium.md](medium.md) or [fast.md](fast.md), except Clay 3D, Rendered 3D and the four cards added from the 2026-11-07 template research (Fluid ink, Glass object, Reflective water floor, Object that travels between sections), which say why there is none. Those four, and the scroll morph in Particles, were measured on example pages built for them (`docs/examples/motion-techniques/`), because the pages that show them publish only recordings.
+High expensive loading: heavy script, large media, and main-thread and GPU cost, so it needs a fallback. The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. Each card here links its lighter version, in [medium.md](medium.md) or [fast.md](fast.md), except Clay 3D, Rendered 3D and the four cards added from the 2026-11-07 template research (Fluid ink, Glass object, Reflective water floor, Object that travels between sections), which say why there is none, as do the three added from the component catalogue read on 2026-11-08 (Glass letters, Images that fray and smear, Type on geometry). Those seven, and the scroll morph in Particles, were measured on example pages built for them (`docs/examples/motion-techniques/`), because the pages that show them publish only recordings.
+
+**Own art direction, own material.** A card here is a move, not a look. The strongest pieces of the two catalogues read in November 2026 each had their own art direction and made the effect out of the page's own content: the headline refracted, the section's photographs frayed, the product's labels turned in depth. Their commodity parts wore one house look and ran the effect on a demo's stock picture ([yolo-references.md](../yolo-references.md#a-component-catalogue-read-2026-11-08)). Build the move from what the page already says and shows, in the identity's colours and type; a move copied with its demo's look is the kit again, and the gates name the kit (`named-look-dark`, `border-beam`).
 
 | Technique | What the visitor sees | Suits |
 |---|---|---|
@@ -16,6 +18,9 @@ High expensive loading: heavy script, large media, and main-thread and GPU cost,
 | [Glass object](#glass-object) | A body of clear glass that bends the word behind it as it turns | Luxury, hardware and brand marks |
 | [Reflective water floor](#reflective-water-floor) | A dark pool that mirrors the scene and ripples where it is touched | Night, calm and luxury scenes |
 | [Object that travels between sections](#object-that-travels-between-sections) | One object that comes down the page and settles beside each section | Product pages told section by section |
+| [Glass letters](#glass-letters) | The headline cast in clear glass, the photograph bent through it | Short words over a picture of their subject |
+| [Images that fray and smear](#images-that-fray-and-smear) | A strip of photographs that unravels into threads at its edges, under a smearing lens | Pictures that are the product, shown as a run |
+| [Type on geometry](#type-on-geometry) | Names written along a ribbon tied in a knot, turning in depth | Lists of names that belong to an object |
 
 ## Particles
 
@@ -150,6 +155,8 @@ The count is the main lever on cost: try halving it before anything else. `resto
 - **A per-point delay.** Each point carries its own number (the `aSeed` attribute of the `particle-system` skill, iart.ai, MIT); the shader turns the section's progress `f` into `smoothstep(d, d + 0.55, f)` with `d = seed * 0.45`, so the change ripples through the cloud instead of moving as one block.
 - **Turbulence between shapes.** A field with no sinks (the curl of a sine potential: three cosines, no noise texture), added with a strength that peaks halfway between two shapes and is calm on each, so the cloud swirls without clumping. Curl noise from simplex noise reads richer and costs three noise samples per point per frame; the sine field held 400,000 points at 16.7 ms on an integrated GPU.
 - **Scroll as eased time.** The section's progress sets a target and a critically damped spring carries the drawn morph to it (`recipes-motion.md` §16): it eases, never stops dead, never overshoots into the next shape.
+
+**From a photograph, with a hole the pointer punches.** The catalogue's liquid sculpture: a photograph sampled into points, each point drawn in the picture's colour at its home, and the pointer pushing a hole through them that springs shut. Sample once on a small copy of the image (the `imageShape` of the `animaxxing-webgl` skill, John Polacek, MIT: draw it into a 240 px canvas, `getImageData`, keep a point per pixel past a threshold; the image must be same-origin or CORS-readable). In the vertex shader push each point away from the pointer by `normalize(p - m) * pow(max(0.0, R - length(p - m)) / R, 2.0) * k`, with `k` a uniform eased toward 1 while the hand moves and back to 0 when it rests, so the hole closes with a spring and not a cut. The pointer is the eased pointer of `recipes-motion.md` §28, idle path included. Not built on an example page here.
 
 ```js
 // The layout: per point, shell xyz, ring xyz, helix xyz, disc xyz, seed. One buffer, five attributes.
@@ -509,6 +516,19 @@ dfCanvasLoop(canvas, {
 ```
 
 Lines are one pixel wide whatever the screen, so they stay fine on a sharp display. Pass your own geometry to `EdgesGeometry` to draw any model as wire; its second argument is the angle below which an edge is dropped, so a smooth model shows only its silhouette creases. The library's weight counts as the page's motion code: see the Clay 3D card.
+
+**An exploded view, and a scan front.** Two moves of the component catalogue read on 2026-11-08, both for a model with parts. *Exploded:* give each part its own `EdgesGeometry` and an outward direction (its centre minus the model's), and set `part.position = base + dir * k * explode(p)`, where `p` is the section's progress through a spring (`recipes-motion.md` §16) and `explode` rises and falls once, so the lens comes apart and goes back together as the page scrolls past. *Scan front* (the `build-wireframe-scan-reveal` skill, Meng To, MIT): the solid and a temporary wire cage made from the same geometry share one world-space origin and radius; the solid discards fragments beyond the front minus a lag, so the cage arrives first and the surface fills in behind it:
+
+```glsl
+// Solid: unscanned beyond the front, with a lag and two long sine terms so the front is not a perfect circle.
+float wob = sin(vWorld.y * .011 + vWorld.x * .007) * 36.0 + sin(vWorld.z * .021 + vWorld.y * .013) * 17.0;
+if (uScanOn > .5 && distance(vWorld, uOrigin) > uRadius - 520.0 + wob) discard;
+// Cage (additive, depthWrite false): a rim riding the front and a fading trail behind it.
+float d = distance(vWorld, uOrigin);
+float a = (exp(-pow((d - uRadius) / 135.0, 2.0)) * 1.6 + smoothstep(uRadius, uRadius - 950.0, d) * .34) * uWire;
+```
+
+The skill's landed numbers, in its scene's units: 3.4 s, the radius eased by `1 - (1 - t)^1.35` to the scene's diagonal x 1.3 + 900, the cage on over the first 6 % and burnt off over the last 28 %, then removed and its geometry and material disposed (hidden by opacity it still costs a draw). Start the front outside the silhouette, low and to one side: a centred origin reads as a loading ring. Under reduced motion show a composed still at 62 % of the radius, cage and solid both visible, with a replay button that resets it. Neither move was built on an example page here; the skill itself says not to claim a cost without profiling the cage pass, so profile it on the page that uses it.
 
 - **Poster frame:** `render(0)`: both lattices at their start rotation.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the loop draws the poster once and never calls `draw`.
@@ -1103,6 +1123,7 @@ The page, with the word drawn into a texture in code and the loop wiring, is `do
 - **The first failure is milky glass:** with a transparent word and a transparent canvas the object rendered as frosted white plastic. The transmission texture holds only opaque objects and the background, so give the scene a background colour and cut text out with `alphaTest`.
 - **What sits behind is part of the design.** The word, the type size and the gap between the word and the glass decide what the visitor sees bent; the page's real heading stays HTML, outside the drawing.
 - **A model instead of a torus:** a GLB with Draco or meshopt geometry adds its own weight to the 148 KB; keep it under the 340 KB ceiling, or the page is a [Real-time 3D world](yolo.md#real-time-3d-world).
+- **The word itself in glass:** when the headline is the object, the [Glass letters](#glass-letters) card bends the page's own photograph through the type, in one pass and 11 KB, with no library.
 - **Cost:** transmission draws the scene twice. Cap the loop at `maxDpr: 1.5`, keep one transmissive object per view (the `build-threejs-scroll-worlds` skill, Meng To, MIT: "keep transmission surfaces rare and small"), and on a software renderer (under 2 frames a second here) draw the poster instead.
 - **Poster frame:** the glass at its rest angle. Save it once as the fallback picture: reduced motion on, wait for `canvas.dataset.dfPoster === 'done'`, screenshot the canvas. **Reduced motion:** the poster, and the pointer does not tilt it.
 - **Checks:** `node scripts/check-motion.mjs <page> --tier high`; lose and restore the context and confirm the glass comes back (`restore` resets the viewport, as in the [Clay 3D](high.md#clay-3d) card).
@@ -1252,3 +1273,168 @@ The page is `docs/examples/motion-techniques/travel-object/page.html`. The dampi
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - docs/examples/motion-techniques/travel-object/page.html, the example page built for this card, served compressed over http and probed 2026-11-07: motion code 144 KB (three.js r170 and RoomEnvironment from jsDelivr, compressed; `check-motion` counted 173 KB), 157 KB in all; Intel UHD GPU through ANGLE (Direct3D11), median frame 16.7 ms, slowest 5 % 16.8 ms; SwiftShader (software) about 23 frames a second; reduced motion honoured, fallback without WebGL, readable without scripts; `check-motion --tier yolo` reported it built below the chosen tier (185 KB in all, under the 340 KB High ceiling); the wheel recording reached the end with no stalls.
+
+## Glass letters
+
+### What it is
+
+The page's own headline cast in thick clear glass: the photograph behind it shows through the letters, bent by their bevels, with dark edges and a glint that follows the pointer.
+
+### Suits
+
+A short word that names the subject, over a picture of the subject: [Luxury typography](../identities/print-craft.md#luxury-typography), [Mega-type / typographic poster](../identities/print-craft.md#mega-type--typographic-poster), [Hotel / boutique travel](../identities/industry.md#hotel--boutique-travel), [Liquid Glass (Apple 2025)](../identities/digital.md#liquid-glass-apple-2025). One word, two at most: a sentence in glass is unreadable.
+
+### What it costs the visitor
+
+Measured on the example page built for this card (2026-11-08): 11 KB of motion code and 127 KB in all, 120 KB of it the photograph. It held 60 frames a second (16.6 ms, 17.7 ms for the slowest 5 %) on an Intel UHD GPU, full screen at 1440 x 900. With no usable graphics chip it drew 24 frames in 4 seconds, about 6 a second: there, show the still.
+
+### Lighter version
+
+No lighter version: the play is the picture bent through the type, and nothing flat bends it. The fallback is the headline set solid over the photograph, which the page shows without the script and when the drawing cannot run; [Glass object](high.md#glass-object) is the same idea with a modelled body in front of a word instead of the word itself.
+
+### For the builder
+
+The headline stays HTML: the script reads its font, size and box, draws it into a texture twice (blurred in red, a rounded height; sharp in green, where the glass is), and turns the text clear once the glass has drawn. One pass then bends the photograph through the slope of the height:
+
+```glsl
+vec4 ty = texture(uType, vUv);                                     // r: height, g: inside the glass
+float hx = texture(uType, vUv + vec2(uPx.x, 0)).r - texture(uType, vUv - vec2(uPx.x, 0)).r;
+float hy = texture(uType, vUv + vec2(0, uPx.y)).r - texture(uType, vUv - vec2(0, uPx.y)).r;
+vec3 n = normalize(vec3(-hx * 6.0, -hy * 6.0, 1.0));
+vec2 bend = n.xy * 0.09;
+vec3 seen = vec3(scene(vUv + bend * 1.06).r, scene(vUv + bend).g, scene(vUv + bend * 0.94).b);   // a slight colour split
+vec3 l = normalize(vec3((lamp - vUv) * vec2(uPx.y / uPx.x, 1.0), 0.35));
+float spec = pow(max(dot(reflect(-l, n), vec3(0, 0, 1)), 0.0), 60.0);
+float fres = pow(1.0 - n.z, 1.5);                                  // steep edges go dark, as thick glass does
+o = vec4(mix(back, seen * (1.05 - fres * 1.6) + spec * 0.9, ty.g), 1.0);
+```
+
+```css
+.glass-on h1 { color: transparent; }                                          /* still the text that is read and selected */
+.glass-on:has(canvas[data-df-loop="fallback"]) h1 { color: var(--ink); }     /* the drawing failed: the type comes back */
+```
+
+The page is `docs/examples/motion-techniques/glass-letters/page.html`.
+
+- **The page's own content is the material:** the word is the headline and what shows through it is the section's own photograph. That is what the strongest pieces of the catalogue read on 2026-11-08 share (`yolo-references.md`); a stock gradient behind generic glass is the template.
+- **Match the page's type exactly:** read `getComputedStyle(h1)` and the box from `getBoundingClientRect()`, redraw on resize and after `document.fonts.ready`, and keep the headline on one line (`white-space: nowrap`) so one baseline is enough.
+- **The glint** follows the pointer through an eased value and, idle, walks a slow path across the word: the autopilot of `recipes-motion.md` §28.
+- **The picture behind must move a little** (here a 1 % drift), or the glass is a still. Leave a margin round the picture so the drift never shows its edge.
+- **A slow machine:** about 6 frames a second here. Read the renderer once (`WEBGL_debug_renderer_info`, or ask the context with `failIfMajorPerformanceCaveat: true`) and draw the poster on a software renderer.
+- **Shatter, for a YOLO page:** the letters pre-cut into Voronoi shards that the pointer pushes apart and a spring pulls home. It needs the shards as geometry (one mesh per shard, or one instanced mesh), a spring per shard and the same refraction per shard; it was read from a recording and not built here.
+- **Poster frame:** the glass with the glint at rest. **Reduced motion:** the poster. **Checks:** `node scripts/check-motion.mjs <page> --tier high`; with scripting off the headline must read over the photograph.
+
+#### Where the cost was measured
+
+Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- docs/examples/motion-techniques/glass-letters/page.html, the example page built for this card, served compressed over http and probed 2026-11-08: motion code 11 KB, 127 KB in all (photograph 120 KB); Intel UHD GPU through ANGLE (Direct3D11), median frame 16.6 ms, slowest 5 % 17.7 ms; SwiftShader (software) 24 frames in 4 s at 1440 x 900; reduced motion honoured, pauses off screen, fallback without WebGL; the wheel recording reached the end with no stalls.
+
+## Images that fray and smear
+
+### What it is
+
+A strip of photographs that comes apart into threads where it leaves the frame and is woven again where it comes in, with a lens passing over it that smears the pictures the way it moves.
+
+### Suits
+
+Pictures that are the product, shown as a run: [Fashion e-commerce experimental](../identities/industry.md#fashion-e-commerce-experimental), [Photographer portfolio](../identities/industry.md#photographer-portfolio), [Glitch art](../identities/digital.md#glitch-art), [Bakery / food shop](../identities/industry.md#bakery--food-shop) when the weave is the bread's own crumb.
+
+### What it costs the visitor
+
+Measured on the example page built for this card (2026-11-08): 11 KB of motion code and 164 KB in all, 156 KB of it the three photographs. It held 60 frames a second (16.7 ms, 16.8 ms for the slowest 5 %) on an Intel UHD GPU, and drew 61 frames in 4 seconds, about 15 a second, with no usable graphics chip.
+
+### Lighter version
+
+No lighter version: the threads are the pictures pulled apart pixel row by pixel row, which needs the drawing. The fallback is the three photographs in a row whose cut ends fade, the Fast [Edge fade](fast.md#edge-fade).
+
+### For the builder
+
+The photographs are laid once into one strip texture at the size they are drawn; one pass reads the strip with a moving offset. Near either edge each row of pixels slides on its own and only thin rows are kept; inside a circle at the eased pointer the strip is read twelve times along the lens's own velocity:
+
+```glsl
+float side = px.x / uRes.x * 2.0 - 1.0;
+float edge = smoothstep(0.55, 1.0, abs(side));
+float row = floor(px.y / uThread);                                    // a thread is 3 CSS pixels tall
+float pull = (hash(row) * 0.8 + 0.2 + 0.25 * sin(row * 0.37 + uTime * 1.3)) * edge * edge * uRes.x * 0.22;
+vec4 c = strip(px + vec2(sign(side) * pull, 0.0));
+c *= mix(1.0, step(0.45, fract(px.y / uThread)) * step(hash(row + 3.1), 1.15 - edge), smoothstep(0.0, 0.25, edge));
+if (length(px - lens) < uRadius) {                                    // the lens: smeared along its velocity, a little magnified
+  vec4 acc = vec4(0.0);
+  vec2 from = lens + (px - lens) * 0.86;
+  for (int i = 0; i < 12; i++) acc += strip(from - uVel * (float(i) / 11.0 - 0.5));
+  c = acc / 12.0;
+}
+```
+
+The page is `docs/examples/motion-techniques/fray-smear/page.html`.
+
+- **The strip is the page's own pictures,** inked in the page's two colours; the catalogue's version runs a stock art pack, which is the template, not the move.
+- **The smear is the lens's velocity, eased** (a fifth of the change a frame), so it lengthens and settles instead of flickering; at rest the lens is a plain magnifier.
+- **The lens walks on its own** until the hand arrives and three seconds after it leaves (`recipes-motion.md` §28); a touch screen gets the walk only. The `animaxxing-webgl` skill (John Polacek, MIT) keeps its hover lens still unless a mouse is over it: that is right for a lens over content, and the reason this one stays a decoration over a strip that is also shown without it.
+- **A strip that moves is a loop:** a visible "Pause the strip" button stops it and the lens (WCAG 2.2.2).
+- **Images must be readable by the drawing:** same origin, or served with `Access-Control-Allow-Origin` and `crossorigin="anonymous"` (`animaxxing-webgl`).
+- **Scroll velocity instead of a pointer:** feed the scroll's speed into the same velocity and the strip bends as the page moves (the scroll wave of `animaxxing-webgl`), straightening when it stops.
+- **Poster frame:** the strip part-way, the lens at the middle with a short smear. **Reduced motion:** the poster. **Checks:** `node scripts/check-motion.mjs <page> --tier high`; at 320 px the hidden row must not push the page sideways (the first build did, until the row was clipped).
+
+#### Where the cost was measured
+
+Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- docs/examples/motion-techniques/fray-smear/page.html, the example page built for this card, served compressed over http and probed 2026-11-08: motion code 11 KB, 164 KB in all (photographs 156 KB); Intel UHD GPU through ANGLE (Direct3D11), median frame 16.7 ms, slowest 5 % 16.8 ms; SwiftShader (software) 61 frames in 4 s at 1440 x 900; reduced motion honoured, pauses off screen, fallback without WebGL; the wheel recording reached the end with no stalls.
+
+## Type on geometry
+
+### What it is
+
+Words carried round a three-dimensional shape: the names written along a ribbon tied in a knot, sliding along it while the knot turns, readable in front and mirrored and faint behind.
+
+### Suits
+
+A list of names that belong to an object or a motion: [Kinetic typography](../identities/digital.md#kinetic-typography), [Nautical and coastal](../identities/cultural.md#nautical-and-coastal), [Music festival / events](../identities/industry.md#music-festival--events), [Type specimen / foundry](../identities/print-craft.md#type-specimen--foundry).
+
+### What it costs the visitor
+
+Measured on the example page built for this card (2026-11-08): 11 KB of motion code and 8 KB of page in all, with no image and no library. It held 60 frames a second (16.7 ms, 16.7 ms for the slowest 5 %) on an Intel UHD GPU, and drew 71 frames in 4 seconds, about 18 a second, with no usable graphics chip.
+
+### Lighter version
+
+No lighter version: words on a curved surface in depth need the drawing. The cheap answer is a ring of words in the style sheet alone, standing round an object in the same depth: the Fast [CSS 3D objects](fast.md#css-3d-objects) card.
+
+### For the builder
+
+No library: the ribbon is built in about thirty lines. A trefoil knot gives the centre line; each point gets a frame by carrying the last normal along (no flips), the ribbon's width turns once per loop, and the words are one strip of texture the ribbon's length repeats six times:
+
+```js
+const P = (t) => { const r = Math.cos(3 * t) + 2; return [r * Math.cos(2 * t) * 0.32, r * Math.sin(2 * t) * 0.32, -Math.sin(3 * t) * 0.32]; };
+let N = [0, 0, 1];
+for (let i = 0; i <= n; i++) {
+  const t = (i / n) * Math.PI * 2, c = P(t), T = norm(sub(P(t + 1e-3), P(t - 1e-3)));
+  N = norm(sub(N, T.map((x) => x * dot(N, T))));                    // parallel transport
+  const B = cross(T, N), twist = t * 3 + 0.4;
+  const d = [0, 1, 2].map((k) => Math.cos(twist) * N[k] + Math.sin(twist) * B[k]);
+  for (const side of [-1, 1]) { pos.push(...c.map((x, k) => x + side * d[k] * width / 2)); nrm.push(...cross(T, d)); uv.push((i / n) * 6, side < 0 ? 1 : 0); }
+}
+```
+
+```glsl
+float ink = texture(uWords, vec2(vUv.x + uSlide, vUv.y)).a;                         // the words slide along the rope
+if (!gl_FrontFacing) ink = texture(uWords, vec2(-vUv.x - uSlide, vUv.y)).a * 0.6;   // read from behind, fainter
+o = vec4(mix(mix(uRope * light, uLetter, ink), uGround, smoothstep(2.9, 4.9, vDepth) * 0.75), 1.0);
+```
+
+The page is `docs/examples/motion-techniques/type-geometry/page.html`.
+
+- **One texture, drawn once:** the words in the display face into a 2048 x 128 strip, stretched to fill it exactly so it tiles, with mipmaps and anisotropic filtering, or the far turns shimmer. `troika-three-text` (MIT) sets real glyphs in a three.js scene and suits text that changes; it was not measured here.
+- **Six repeats along the knot,** not nine: at nine the letters were squeezed thin.
+- **The far turns fade into the page** (the ground colour by depth), which is the depth cue that keeps the knot readable as one object.
+- **The words are decoration;** the page's text says the same thing in HTML. The drawing is `aria-hidden`, with a still of the knot as the fallback.
+- **A loop that can pause:** "Stop the rope" (WCAG 2.2.2).
+- **A text tube through an object** (the catalogue's word ring orbiting a jellyfish) is the same strip on a cylinder round the object; in the style sheet alone it is the Fast card's ring.
+- **Poster frame:** the knot at a fixed time. **Reduced motion:** the poster. **Checks:** `node scripts/check-motion.mjs <page> --tier high`.
+
+#### Where the cost was measured
+
+Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- docs/examples/motion-techniques/type-geometry/page.html, the example page built for this card, served compressed over http and probed 2026-11-08: motion code 11 KB, 8 KB in all; Intel UHD GPU through ANGLE (Direct3D11), median frame 16.7 ms, slowest 5 % 16.7 ms; SwiftShader (software) 71 frames in 4 s at 1440 x 900; reduced motion honoured, pauses off screen, fallback without WebGL; the wheel recording reached the end with no stalls.
