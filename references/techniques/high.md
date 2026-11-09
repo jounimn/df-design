@@ -692,6 +692,8 @@ No lighter version: clay is a lit, rounded solid you can turn, and no flat CSS o
 
 This recipe runs. It uses three.js with a matcap material: the colour of each point is read from a small picture by the direction the surface faces, so there are no lights, no shadows and no environment map to load, and the picture is drawn in code, so there is no image to download. The lump is a sphere pushed in and out by sine waves, with its normals computed from the lumpy shape, so it shades smooth with no seam. The renderer is created first so that the library decides the context's options; the loop then asks for the same context. The poster is one fixed-time frame, the fallback is a picture of it, and the loop pauses the drawing off screen and under reduced motion. Pin the library version you tested (this ran on r170) and copy `three.module.min.js` from the package's `build/` folder next to the page.
 
+**Concept first** when the lumps become an object or a character (a clay mascot, the product shaped in clay): its concept is approved, its look specified, its turnarounds checked by the author and its layer sheet drawn before it is modelled ([illustration-concept.md §0](../illustration-concept.md#0-concept-first)). An abstract lump drawn by the recipe above needs none.
+
 ```html
 <div class="stage" style="position:relative;height:420px">
   <canvas id="clay" style="width:100%;height:100%"></canvas>
@@ -1093,6 +1095,8 @@ This is not [Glassmorphism](medium.md#glassmorphism), which blurs a flat panel o
 
 three.js `MeshPhysicalMaterial` with `transmission: 1`: the renderer draws the opaque scene behind the object into a texture and samples it through the surface, bent by `ior` and `thickness`; `dispersion` splits the colours at the edges, a little `iridescence` gives the thin-film sheen. The environment that the glass reflects is generated in code (`RoomEnvironment`), so there is no HDR file to download. Pin the library version you tested (r170).
 
+**Concept first** when the solid is a model (a bottle, a product, a mark in glass) rather than the torus: its concept is approved, its look specified, its turnarounds checked by the author and its layer sheet drawn before it is modelled ([illustration-concept.md §0](../illustration-concept.md#0-concept-first)).
+
 ```js
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -1233,6 +1237,8 @@ No lighter version: the object is drawn in 3D so it can turn while it travels. W
 ### For the builder
 
 One canvas fixed behind the whole page and one object in it. Every section keeps an empty slot in its layout (`data-anchor`) where the object comes to rest; the scroll decides which two slots it is between, and how far.
+
+**Concept first:** the object is modelled only after its concept is approved, its look specified, its turnarounds checked by the author (every side the sections show) and its layer sheet drawn ([illustration-concept.md §0](../illustration-concept.md#0-concept-first)).
 
 ```js
 // Where a slot is in the world: its centre on screen, unprojected onto the plane z = 0, its width as a scale.

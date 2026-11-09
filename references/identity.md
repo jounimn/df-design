@@ -209,6 +209,15 @@ scroll".
 Keep a short **research log**: what was kept, what was rejected, one line of
 reason each. The log is what makes the direction defensible.
 
+**References for a concept.** When a High or YOLO build will model 3D or
+draw layered illustration, research carries on past the identity, before
+any concept option is made (`illustration-concept.md` §0): real
+illustrations close to each scene, character and object (comics, picture
+books, concept art, illustrated sites), shortlisted and rejected in the
+same log, each kept one with its source URL and licence. They are linked,
+never copied into the project, and each concept option names the ones it
+draws on.
+
 The target is a direction you would score 100/100: critical and appealing.
 That does not mean complex. A simple identity scores 100 when its
 simplicity is intentional, coherent and fit for the subject.
