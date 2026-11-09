@@ -38,7 +38,9 @@ When the target already exists, the note can also say how deep to go:
 Before a redesign starts, `scripts/check-kept.mjs record` writes down every
 link, field, form, handler, test hook and script the page has; after it,
 `check` fails the redesign if any went missing without a reason on the
-record (`references/redesign.md`).
+record (`references/redesign.md`). When a new identity replaces an old one,
+`map` holds the migration map against the source: every old token, face and
+theme block decided, each KEEP approved, nothing replaced left in the code.
 
 Then every run opens with two answers, declared before anything else happens
 (a third question, whether the work will be sold and so needs a watermark,
@@ -213,7 +215,7 @@ flowchart LR
     end
     subgraph Gates["Gate checks"]
         CSL["scripts/check-slop.mjs<br/>static tier · render tier"]
-        CKP["scripts/check-kept.mjs<br/>record · check"]
+        CKP["scripts/check-kept.mjs<br/>record · check · map"]
         CPT["scripts/capture.mjs"]
         CUT["scripts/cutout.mjs<br/>remove-bg · detect · mask"]
         DRW["scripts/draw.mjs<br/>check · roughen · sheet"]
@@ -513,7 +515,7 @@ npm test        # 483 tests in 31 files, node:test, no network — a local fixtu
 | `scripts/check-auditions.mjs` | Checks that an audition step landed: pages exist and render cleanly at 1440 and 390, icons present, and images only under the author's answer and the licence rules. Writes each candidate's full page at rest and its motion capture side by side. |
 | `scripts/audit-store.mjs` | Reads every store as a whole and reports drift a write gate cannot see: index rows without entries, duplicate identities, a Seen-at with no site, aggregate medians the per-site table no longer supports, `§` references to sections that moved, measurements past their shelf life. Never mutates. |
 | `scripts/check-slop.mjs` | Names the mechanical tells of a generated page. Static tier: HTML and CSS, zero dependencies. `--render`: the fold, horizontal scroll, focus by tabbing, the measure, broken images, scripting off, glass over a flat ground, and with motion on a storm of animations, a counter over a page that is already painted, and a wheel that steps a page no key can; writes the screenshots the look needs. Exit 1 on a FAIL or an open REFLEX. |
-| `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. |
+| `scripts/check-kept.mjs` | `record` what a page says and does; `check` a redesign against it and fail when a link, field, form, handler, test hook or script is gone without a reason on the record. Writes `compare.html`. `map` checks a new identity's migration map against the source. |
 | `scripts/capture.mjs` | Screenshots of the real product at desktop and phone, one element or the full page, or a running desktop app over CDP. Prints a ready `<img>` per file. |
 | `scripts/capture-motion.mjs` | The motion capture: a video of the page driven by the wheel (keys as the fallback) to its true end, past any gate given as `--click`; contact sheets of the whole run, stills where the picture settled, and `capture.json` with the steps, the input that moved it, the stalls (input that moved nothing before the page moved again) and whether it reached the end. Used by `probe --motion`, `check-auditions` and `check-slop --render`. |
 | `scripts/draw.mjs` | Drawn assets: `check` a set for one line and one palette, `roughen` clean geometry into a seeded hand-drawn line, `sheet` the set on the brief's ground, inverted and at 24px. |

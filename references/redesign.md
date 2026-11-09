@@ -23,10 +23,20 @@ already answers it:
 | **polish** | the system and the layout | only what a gate names: the tells, contrast, states, motion, tokens | *polish*, *keep our look*, *only fix what looks generated* |
 | **restyle** | the layout | the system: colour, type, radius, shadow, motion, the controls | *keep the layout*, *restyle*, *reskin*, *only the colours and type* |
 | **full** | the content and the wiring | the system and the composition: structure, hero, sections, chrome | *redesign*, *rebrand*, *make it ours*: the default when the target exists and nothing narrows it |
+| **element** | the project's identity, everywhere but the one element | one piece the author saw: a button, a background, a component, and only the tokens and assets it brings | *just that button*, *I want the background from B*, *add this card* |
 
 Ask in the author's words ("Should I keep your layout and change the look,
 or rebuild the page around your content?"), and record the answer in the
-status line as `redesign=<audit|polish|restyle|full>`.
+status line as `redesign=<audit|polish|restyle|full|element>`.
+
+**A new identity meeting an old one.** When an identity (auditioned,
+chosen, or handed over) is going into a project that already has one, and
+the note does not say how far, ask before anything else is read: *"Should
+the new identity replace the current one everywhere, or do you only want
+the [button / background] you saw, with the rest left as it is?"* Replace
+is restyle or full and owes the migration map (§4); the one piece is
+`element` and owes the element brief (§4). Asking is cheaper than guessing:
+a half-replaced identity is the failure this question exists for.
 
 The depths do not blend. A polish that finds the concept wrong says so and
 recommends the full run; it never smuggles one in. The red flag in
@@ -133,6 +143,76 @@ Then the brief's usual lines, as far as the depth reaches: Grammar at
 restyle and full; Surfaces and the per-surface specs with their job
 (`anatomy.md`) at full only. At polish the brief stops after Files.
 
+### The migration map: a new identity replacing an old one
+
+At restyle and full, when the brief brings a new identity into a project
+that has one, the Files line points to a **migration map**
+(`docs/identity-migration.md`). The author approves it with the brief, and
+no file changes before. A brief that lists only the new values leaves the
+old ones to whoever builds: they survive in the surfaces nobody opened, in
+a theme block nobody named, in a button three screens still write by hand.
+The map has five parts:
+
+1. **Inventory.** What the old identity is made of, read from the files,
+   with paths: custom properties and every theme block (`.dark`,
+   `[data-theme=…]`), the faces and where they load, colour literals outside
+   the tokens, radii, shadows, each control's recipe and the files that
+   write it by hand, the shell (nav, rail, footer), icons, motion, and the
+   tests that assert an old value. A stylesheet only one surface loads is
+   listed with that surface: shared vocabulary parked there never reaches
+   the rest.
+2. **The map,** one row per inventory item:
+
+   ```markdown
+   | Legacy | Where | Decision | New | Reason |
+   |---|---|---|---|---|
+   | `--brand: 174 177 255` | src/index.css:212 | REPLACE | `--brand: 1 7 176` | |
+   | `Inter` | index.html:9, tailwind.config.ts:14 | REPLACE | `Archivo` (display), `IBM Plex Mono` (figures) | |
+   | `[data-theme="cockpit"]` | src/layouts/AppLayout.tsx:31 | REMOVE | — | no block defines its tokens |
+   | `[data-theme="admin"]` | src/index.css:190 | KEEP | — | the admin's density was drawn for it; approved 2026-10-14 |
+   ```
+
+   Decision is REPLACE, REMOVE or KEEP, never blank. **Nothing is kept by
+   default or by omission:** a KEEP is the author's decision, with its
+   reason and the date they approved it, and a surface outside the step 0
+   scope is a KEEP whose reason says so. The Legacy cell puts in backticks
+   the literal a search finds (the old value, class, selector or font
+   name), not a name the new identity reuses.
+3. **Steps,** in order: the one token file (`recipes-design.md` §2), the
+   faces, the controls in their one home (`patterns.md`; no screen writes a
+   control's classes by hand), the shell, then each surface. Each step
+   names its files, the rows it settles, the assets it adds, and its
+   acceptance check: a search that returns nothing, a gate, a capture. A
+   test that asserts an old value is repointed in the step that changes
+   it, and the assertions are counted before and after: a guard deleted is
+   a theme left unguarded.
+4. **Conflicts.** Each KEEP that meets the new identity: where they touch,
+   what the clash looks like (an old theme block re-colouring the new
+   button, the old face in the new nav), and how it is resolved: the KEEP
+   is fenced to its own selector, re-valued from the new tokens, or turned
+   back to REPLACE with the author.
+5. **Done:** every step checked, `check-kept map` at 0 FAIL (§6), then the
+   gates and captures on every surface the map reaches, and the
+   consistency check with its blind test (`identity.md` §10).
+
+### The element brief: `element`
+
+The one piece the author saw, and nothing else. The brief stops after
+these lines:
+
+```markdown
+Redesign:  element · the solid button from audition B
+Source:    auditions/b.html:212 .btn--solid · face, fill, radius, the eight states
+Brings:    each token and asset it needs, new or mapped onto the project's own (--brand-blue → --accent)
+Where:     the components and pages it goes into, with paths
+Untouched: the rest of the identity: no shared token re-valued, no face, theme block or other control changed
+```
+
+A token the element needs that would re-colour anything else is a question
+for the author, not an edit (`SKILL.md`, step 0, the Build row).
+`check-kept record` before and `check` after, on each page it lands on,
+shows nothing else moved.
+
 ---
 
 ## 5. Build
@@ -185,6 +265,19 @@ restyle and full; Surfaces and the per-surface specs with their job
    The reason is a clause (12 characters or more). The run also writes
    `compare.html`, the before and after screenshots side by side: give the
    author its path.
+
+   With a migration map (§4), the map against the source, every source
+   folder the old identity lives in:
+
+   ```bash
+   node scripts/check-kept.mjs map docs/identity-migration.md src/
+   ```
+
+   `FAIL map` for a row with no decision, a KEEP without a reason the
+   author approved, a REPLACE with nothing in its New cell, a REPLACE or
+   REMOVE literal still in the code (`file:line`), or a custom property the
+   source defines and the map never names. A new token belongs in the New
+   cell of the row it replaces.
 2. `check-slop --render` to 0 FAIL, every REFLEX fixed or waived
    (`gates.md` §6).
 3. The project's own checks, where it has them: the type check, the build,
@@ -202,6 +295,7 @@ restyle and full; Surfaces and the per-surface specs with their job
    After      Floor 0 · Reflex 1 waived (eyebrow: the step labels are a real sequence)
    Kept       14/14 links · 5/5 fields · 9/9 handlers · 11/11 headings · every figure
    Changed    the system and the composition: structure, hero, sections, chrome
+   Map        41 rows · 33 replace · 5 remove · 3 keep (each approved) · 0 FAIL map
    Dropped    none
    Yours      2 claims kept as found ("50,000+ teams", the Acme quote) · 4 lines reworded, listed below
    Compare    captures/kept/home/compare.html

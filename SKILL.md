@@ -95,15 +95,20 @@ folder of pages or a component tree that is already designed is the
 material, and the first message asks how deep to go, in the author's words:
 **audit** (a report, nothing changed), **polish** (only what looks
 generated), **restyle** (keep the layout, change the system) or **full**
-(keep the content and the wiring, change the rest). Read it from the note
+(keep the content and the wiring, change the rest), or **element** (one
+piece the author saw, a button or a background, and the old identity
+otherwise stays). Read it from the note
 when it already says ("keep the layout" is a restyle; "tell me what is
-wrong" is an audit). The depths, the record of what the page says and does,
-and what each depth keeps: `references/redesign.md`.
+wrong" is an audit). When a new identity goes into a project that has one
+and the note does not say whether it replaces the old one or adds one
+piece, ask that, in one line. The depths, the record of what the page says
+and does, what each depth keeps, and the migration map a replaced identity
+owes: `references/redesign.md`.
 
 Once path and mode are known (and the watermark answered or defaulted to
 none), record them as one status line:
 
-`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> load=<fast|medium|high|yolo|custom> selling=<now|end|skip> tier=<fast|medium|high|yolo> redesign=<audit|polish|restyle|full> — <conditions from step 0, one line>`
+`df-design: path=<audition|design> mode=<motion|design|both> scope=<surfaces in play> watermark=<none|text:"…"|image+text:"…"> load=<fast|medium|high|yolo|custom> selling=<now|end|skip> tier=<fast|medium|high|yolo> redesign=<audit|polish|restyle|full|element> — <conditions from step 0, one line>`
 
 `redesign=` appears only when the target exists (question 4).
 
@@ -495,3 +500,4 @@ is an acceptable sentence. "Done" without having looked is not.
 | "The linter passed, so it looks designed" | The script settles the mechanical gates. The judged gates, the two reviews and the look are still owed. `gates.md` §3, `reviews.md`. |
 | "I'll tidy the old page's links while I rebuild it" | A redesign keeps every link, field, form, handler and test hook, or puts the loss on the record. `check-kept` fails when one goes missing. `redesign.md`. |
 | "They said redesign, so tokens and type on the same layout" | That is a restyle. Say the depth back to the author: audit, polish, restyle or full. `redesign.md` §1. |
+| "The new identity is in the brief; whatever the old one had can stay where nobody asked" | A replaced identity owes a migration map: every old token, face, theme block and control mapped to REPLACE, REMOVE or KEEP, each KEEP approved by the author. `check-kept map` fails on what is left or unnamed. `redesign.md` §4. |

@@ -351,7 +351,7 @@ surface are the usual failures.
 | Each audition, before it is shown (`audition.md` §3) | `check-slop <auditions/> --render` beside `check-auditions`; a candidate that fails the Floor is fixed before the author compares |
 | Each surface, after the build, before the verification gate | `check-slop --render` until 0 FAIL and every REFLEX fixed or waived; then the judged gates in §3 and §5 from the screenshots it wrote |
 | Before any 3D model, procedural scene or layered illustration is built | The concept first gate (§3) from the concept ledger: the piece's row approved, look specified, turnarounds checked, layer sheet drawn (`illustration-concept.md` §0) |
-| A redesign | `check-kept record` before, `check-kept check` after (`redesign.md`) |
+| A redesign | `check-kept record` before, `check-kept check` after (`redesign.md`); with a migration map, `check-kept map` to 0 FAIL before the handoff (`redesign.md` §4) |
 | The reviews (`reviews.md`) | The reviewer reads this file's §3 and §5 and the screenshots; never the CSS, which the script has already read |
 
 Nothing ships with an open `FAIL` or an open `REFLEX`. A Floor finding is

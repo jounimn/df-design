@@ -1,0 +1,7 @@
+:root {
+  --canvas: 10 12 25;
+  --brand: 1 7 176;
+  --brand-blue: 1 7 176;
+  font-family: "Archivo", sans-serif;
+}
+.btn { font-family: "IBM Plex Mono"; }

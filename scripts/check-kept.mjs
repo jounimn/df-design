@@ -6,15 +6,35 @@
 // queries; WARN for a heading, a figure, an image or an id. Something dropped on purpose goes on the record in the page:
 //   <!-- df-design · dropped mailto:desk@example.com, #team · the desk address is retired and the team section with it -->
 //   <!-- df-design · reworded "Rates" to "What it costs" · the plain label is the heading now -->
+//        node scripts/check-kept.mjs map <migration.md> <src dir|file>... [--json]
+// map holds a new identity's migration map against the source, no browser: FAIL for a row with no decision, a KEEP
+// without a reason the author approved, a REPLACE with no new equivalent, a REPLACE or REMOVE literal still in the code,
+// or a custom property the source defines and the map never names.
 // Exit code 0 = nothing lost that is not on the record; 1 = a FAIL; 2 = bad command line or no record.
 import fs from 'node:fs';
 import path from 'node:path';
 import { launchBrowser } from './lib/browser.mjs';
 import { recordPage, comparePages, compareHtml } from './lib/page-record.mjs';
+import { parseMap, checkMap } from './lib/migration-map.mjs';
 
-const USAGE = 'Usage: node scripts/check-kept.mjs record|check <page.html|url> [--dir captures/kept] [--json]';
+const USAGE = 'Usage: node scripts/check-kept.mjs record|check <page.html|url> [--dir captures/kept] [--json]\n       node scripts/check-kept.mjs map <migration.md> <src dir|file>... [--json]';
 const args = process.argv.slice(2);
 const verb = args.shift();
+if (verb === 'map') {
+  const json = args.includes('--json');
+  const [mapFile, ...targets] = args.filter((a) => a !== '--json');
+  if (!mapFile || !targets.length) { console.error(USAGE); process.exit(2); }
+  for (const p of [mapFile, ...targets]) if (!fs.existsSync(p)) { console.error(`no such file: ${p}`); process.exit(2); }
+  const rows = parseMap(fs.readFileSync(mapFile, 'utf8'));
+  if (!rows || !rows.length) { console.error(`no map in ${mapFile}: a table with Legacy, Where, Decision, New and Reason columns`); process.exit(2); }
+  const result = checkMap(rows, targets, { mapFile });
+  if (json) console.log(JSON.stringify(result, null, 1));
+  else {
+    for (const f of result.findings) { for (const item of f.items) console.log(`${f.grade.padEnd(5)} map · ${f.what}: ${item}`); console.log(`      → ${f.fix}`); }
+    console.log(`\n${result.summary}\n${result.ok ? 'every legacy item decided, nothing replaced is left' : `${result.findings.filter((f) => f.grade === 'FAIL').reduce((n, f) => n + f.items.length, 0)} FAIL map`}`);
+  }
+  process.exit(result.ok ? 0 : 1);
+}
 const opts = { target: null, dir: path.join('captures', 'kept'), json: false };
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
