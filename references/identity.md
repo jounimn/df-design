@@ -258,7 +258,7 @@ Images:        <author's answer on stock images; if yes: sources, treatment, whi
 Loading tier:  <fast / medium / high / yolo / custom, as chosen by the author (audition.md §4), and what justifies it; for yolo, also the measured weight in MB and the Floor fallback>
 Surfaces:      <every surface in scope: landing, app, admin, docs, 404...; name out-of-scope surfaces as untouched>
 Brand:         <only when a real brand is named: docs/brand-spec.md, the values fetched or probed, never recalled (brand-truth.md)>
-Redesign:      <only when the target exists: the depth, then the Before, Keeps and Files lines (redesign.md §4)>
+Redesign:      <only when the target exists: the depth, then the Before, Keeps and Files lines; a new identity replacing an old one adds the migration map, one element adds the element brief (redesign.md §4)>
 ```
 
 When more than one surface is in scope, keep a **surface ledger** under the
@@ -361,6 +361,7 @@ Run this across **every surface in scope** (step 0), on the rendered pages
 - [ ] **Motion:** reinforces the identity rather than decorating; reduced-motion honoured
 - [ ] **Density:** appropriate per surface, with the same rhythm underneath
 - [ ] **Technical surfaces:** admin, DevOps and error pages visibly the same product
+- [ ] **Legacy:** where a new identity replaced an old one, every map row decided, every KEEP approved, `check-kept map` at 0 FAIL (`redesign.md` §4)
 - [ ] **Loading:** the build stays within the tier the author chose; every library above the fast tier is justified in the brief
 - [ ] **References:** informed by them, not copied from them
 - [ ] **The blind test:** shown without URLs, filenames or context, would

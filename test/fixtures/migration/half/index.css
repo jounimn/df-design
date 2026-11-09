@@ -1,0 +1,9 @@
+:root {
+  --canvas: 10 12 25;
+  --brand: 174 177 255;
+  --surface: 32 36 62;
+  --tw-ring: 0 0 0;
+  font-family: "Inter", sans-serif;
+}
+[data-theme="cockpit"] { color: red; }
+.btn { font-family: "IBM Plex Mono"; }
