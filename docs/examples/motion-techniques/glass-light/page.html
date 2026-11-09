@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Example page for the glass over moving light technique card: reeded and beaded glass bending light that moves behind it.">
+<title>Glass over moving light: example</title>
+<style>
+  :root { --face-display: "Iowan Old Style", Palatino, "Book Antiqua", serif; --face-text: "Segoe UI", system-ui, sans-serif;
+    --ground: #06141a; --light: #7fe3d4; --ink: #e8f1ee; --muted: #9db3ad; --hint: #f4d27a; --shade: #000; }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  html { background: var(--ground); color: var(--ink); }
+  body { margin: 0; font: 400 18px/1.55 var(--face-text); }
+  a { color: var(--ink); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--hint); outline-offset: 3px; }
+  .hero { position: relative; min-height: 100svh; display: grid; align-content: end; padding: 10vh 8vw; overflow: clip; }
+  .hero canvas, .hero .fallback { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* Without a working canvas: the flutes as a still, light caught on each rib. */
+  .fallback { background:
+    repeating-linear-gradient(90deg, transparent 0 34px, color-mix(in srgb, var(--light) 16%, transparent) 46px, transparent 52px, color-mix(in srgb, var(--shade) 35%, transparent) 70px, transparent 72px),
+    radial-gradient(60% 50% at 62% 38%, color-mix(in srgb, var(--light) 28%, transparent), transparent 70%), var(--ground); }
+  .copy { position: relative; max-width: 34rem; }
+  h1 { font: 400 clamp(40px, 5.4vw, 76px)/1.02 var(--face-display); letter-spacing: -0.025em; margin: 0 0 16px; }
+  .copy p { margin: 0 0 20px; color: var(--muted); max-width: 30rem; }
+  button { font: 500 16px/1 var(--face-text); color: var(--ground); background: var(--ink); border: 0; border-radius: 4px; padding: 12px 16px; cursor: pointer; }
+  button:hover { background: var(--light); }
+  button:active { transform: translateY(1px); }
+  main { padding: 12vh 8vw; min-height: 120svh; max-width: 46rem; color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { button:active { transform: none; } }
+</style>
+</head>
+<body>
+<section class="hero" id="panel" aria-label="A panel of ribbed glass with light moving behind it">
+  <div class="fallback" id="glass-fallback" hidden></div>
+  <canvas id="glass" aria-hidden="true"></canvas>
+  <div class="copy">
+    <h1>Reeded glass, cut to the window</h1>
+    <p>Light moves behind the panel and every rib bends it its own way. Move the pointer and you carry a lamp behind the glass; leave it and the lamp walks on its own.</p>
+    <button type="button" id="mode" aria-pressed="false">Show the beaded panel</button>
+  </div>
+</section>
+<main>
+  <p>A test page for the glass over moving light card. The ribs and the beads are one picture each, drawn in one pass: the light behind them is never a photograph, and nothing on the page depends on it.</p>
+  <p><a href="../">Other examples</a></p>
+</main>
+
+<script src="canvas-loop.js"></script>
+<script>
+(() => {
+  const canvas = document.getElementById('glass');
+  const panel = document.getElementById('panel');
+  const button = document.getElementById('mode');
+  const css = getComputedStyle(document.documentElement);
+
+  // Idle autopilot (recipes-motion.md §28): a Lissajous path drives the lamp until the hand arrives,
+  // and again three seconds after it stops. A touch screen gets the path only.
+  function autopilot(el, { idle = 3000, speed = 0.22 } = {}) {
+    const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    let hand = null, last = -1e9, phase = 0.6;
+    if (fine) {
+      el.addEventListener('pointermove', (e) => { const r = el.getBoundingClientRect(); hand = [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; last = performance.now(); });
+      el.addEventListener('pointerleave', () => { hand = null; });
+    }
+    return (now, dt) => {
+      if (hand && now - last < idle) return hand;
+      phase += dt * speed;
+      return [0.55 + 0.3 * Math.sin(phase), 0.42 + 0.24 * Math.sin(phase * 1.618 + 0.9)];
+    };
+  }
+  const steer = autopilot(panel);
+
+  const VS = `#version 300 es
+  in vec2 aPos; void main() { gl_Position = vec4(aPos, 0.0, 1.0); }`;
+  // One pass: the light field behind, looked up through ribs (mode 0) or beads (mode 1).
+  const FS = `#version 300 es
+  precision highp float; out vec4 o;
+  uniform vec2 uRes, uLamp; uniform float uTime, uMode; uniform vec3 uGround, uLight;
+  // Thin bright lines that drift and bend: the light behind the glass.
+  float field(vec2 p, float t) {
+    float s = 0.0;
+    for (int i = 0; i < 4; i++) {
+      float f = float(i);
+      vec2 d = vec2(cos(f * 1.9 + 0.4), sin(f * 1.9 + 0.4));
+      float bend = sin(dot(p, vec2(d.y, -d.x)) * 1.7 + t * 0.21 + f) * 0.35;
+      s += pow(1.0 - abs(sin((dot(p, d) * 2.2 + bend + t * (0.09 + 0.04 * f)) * 3.14159)), 16.0);
+    }
+    return s;
+  }
+  vec3 light(vec2 p, vec2 lamp, float t) {
+    float near = exp(-dot(p - lamp, p - lamp) * 5.0);
+    return uLight * (field(p, t) * (0.32 + 1.4 * near) + near * 0.4);
+  }
+  void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * uRes) / uRes.y;
+    vec2 lamp = (uLamp - 0.5) * vec2(uRes.x / uRes.y, -1.0);
+    float t = uTime;
+    vec3 rib = vec3(0.0), bead = vec3(0.0);
+    if (uMode < 0.999) {
+      // Ribs: each one a half cylinder; its slope u pushes the lookup sideways. The ribs sway as an S.
+      float x = p.x * 9.0 + 0.45 * sin(p.y * 1.7 + t * 0.12);
+      float u = fract(x) * 2.0 - 1.0;
+      vec2 q = p + vec2(u * 0.14, 0.0);
+      // A slight colour split: red, green and blue bend by different amounts.
+      vec3 c = vec3(light(q + vec2(u * 0.006, 0.0), lamp, t).r, light(q, lamp, t).g, light(q - vec2(u * 0.006, 0.0), lamp, t).b);
+      float shade = 0.5 + 0.5 * (1.0 - u * u);
+      float spec = exp(-pow((u + 0.45) * 6.0, 2.0)) * 0.06;
+      float seam = smoothstep(0.93, 1.0, abs(u));
+      rib = (uGround + c) * shade * (1.0 - 0.75 * seam) + spec;
+    }
+    if (uMode > 0.001) {
+      // Beads: a hex grid of small spheres; inside each, the normal bends the lookup toward the centre.
+      vec2 s = vec2(1.0, 1.7320508) * 0.11;
+      vec2 a = mod(p, s) - 0.5 * s, b = mod(p - 0.5 * s, s) - 0.5 * s;
+      vec2 d = dot(a, a) < dot(b, b) ? a : b;
+      float r = length(d) / 0.052;
+      float z = sqrt(max(0.0, 1.0 - r * r));
+      vec2 q = p - d * (1.0 - z) * 1.6;
+      vec3 c = light(q, lamp, t);
+      float rim = smoothstep(0.82, 1.0, r) * (1.0 - smoothstep(1.0, 1.06, r));
+      vec3 inside = (uGround + c) * (0.45 + 0.55 * z) + rim * uLight * 0.25 + exp(-dot(d / 0.052 + vec2(0.35, -0.4), d / 0.052 + vec2(0.35, -0.4)) * 12.0) * 0.12;
+      vec3 gap = uGround * 0.6 + light(p, lamp, t) * 0.08;
+      bead = mix(inside, gap, smoothstep(0.98, 1.04, r));
+    }
+    // Quieter where the copy sits, lower left.
+    float hush = 0.4 + 0.6 * smoothstep(-0.2, 0.55, p.x + 0.6 * p.y);
+    o = vec4(mix(rib, bead, uMode) * hush, 1.0);
+  }`;
+
+  // A token read once per value: parsing a colour through a canvas every frame costs a frame on a slow machine.
+  const colours = new Map();
+  const rgb = (v) => { if (!colours.has(v)) { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = v; c.fillRect(0, 0, 1, 1); const out = [...c.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((x) => (x / 255) ** 2.2); colours.set(v, out); } return colours.get(v); };
+  let gl, prog, u, quad, mode = 0, modeTarget = 0, lamp = [0.55, 0.42], last = 0;
+
+  function build(g) {
+    gl = g;
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+    gl.bindAttribLocation(prog, 0, 'aPos'); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    u = {}; for (const n of ['uRes', 'uLamp', 'uTime', 'uMode', 'uGround', 'uLight']) u[n] = gl.getUniformLocation(prog, n);
+    quad = gl.createVertexArray(); gl.bindVertexArray(quad); gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  }
+  function draw(t) {
+    gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(prog); gl.bindVertexArray(quad);
+    gl.uniform2f(u.uRes, canvas.width, canvas.height); gl.uniform2f(u.uLamp, ...lamp);
+    gl.uniform1f(u.uTime, t); gl.uniform1f(u.uMode, mode);
+    gl.uniform3f(u.uGround, ...rgb(css.getPropertyValue('--ground'))); gl.uniform3f(u.uLight, ...rgb(css.getPropertyValue('--light')));
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+
+  const loop = dfCanvasLoop(canvas, {
+    context: 'webgl2',
+    maxDpr: 0.75,                                         // a soft picture: three quarters of the pixels is enough, and a slow GPU feels it
+    draw: (t, g) => {
+      if (!prog) build(g);
+      const dt = Math.min(0.05, last ? (t - last) / 1000 : 0.016); last = t;
+      const target = steer(t, dt);
+      const k = 1 - Math.exp(-dt * 6);                       // the lamp eases after the hand, so a hand-over never jumps
+      lamp = [lamp[0] + (target[0] - lamp[0]) * k, lamp[1] + (target[1] - lamp[1]) * k];
+      mode += (modeTarget - mode) * (1 - Math.exp(-dt * 5));
+      if (Math.abs(modeTarget - mode) < 0.002) mode = modeTarget;
+      draw(t / 1000);
+    },
+    poster: (g) => { if (!prog) build(g); draw(7.0); },        // one still: the lamp at rest behind the ribs
+    restore: () => { prog = null; },
+    fallback: '#glass-fallback',
+  });
+
+  button.addEventListener('click', () => {
+    modeTarget = modeTarget ? 0 : 1;
+    button.setAttribute('aria-pressed', String(Boolean(modeTarget)));
+    button.textContent = modeTarget ? 'Show the reeded panel' : 'Show the beaded panel';
+    if (canvas.dataset.dfLoop !== 'running' && prog) { mode = modeTarget; draw(7.0); }   // a still canvas switches at once
+  });
+})();
+</script>
+</body>
+</html>

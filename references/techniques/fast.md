@@ -27,6 +27,8 @@ Fast expensive loading: the page arrives at once and moves with CSS or SVG only,
 | [Split-flap](#split-flap) | Letters that flip into place like an airport board | Travel, timetables and retro hardware |
 | [Retro VHS](#retro-vhs) | A picture that looks played from an old tape | Nostalgia, music and game brands |
 | [Halftone](#halftone) | A picture or field built from dots that grow and shrink with tone | Print, music and campaign brands |
+| [CSS 3D objects](#css-3d-objects) | A coin, a box or a ring of words turning in real depth | Objects with a front, a back and an edge |
+| [Dither](#dither) | A photograph printed in two inks through a screen of dots | Low-tech, zine and newsprint brands |
 
 ## Ambient dot grid
 
@@ -410,6 +412,13 @@ let go. A mirror under the ring is the [Reflective water
 floor](high.md#reflective-water-floor) card. Built in
 `docs/examples/motion-techniques/dom-recipes/page.html`.
 
+**The ring as a sphere, and the drum you walk into.** Stand the panels on a
+sphere instead of a circle (spread by the golden angle) and light each by how
+much it faces you, or hang them inside a ring and move the camera from outside
+to the middle as the page scrolls: both need a few lines of script and are the
+Medium [CSS 3D objects](medium.md#css-3d-objects) card, measured on
+`docs/examples/motion-techniques/css-3d/sphere.html`.
+
 - **Poster frame:** the row at its start position.
 - **Reduced motion:** the blanket rule in `recipes-motion.md` §14 stops the slide; the row stays readable at rest.
 - **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; look at the rendered page with and without the reduced-motion setting (`verification.md`, "Probe, do not squint").
@@ -533,6 +542,10 @@ and it costs one cut-out picture and no script. Cut the subject out with
 the skill's own tool (`node scripts/cutout.mjs remove-bg photo.jpg
 --quality high`, `images.md`), look at the edge at 100 %, then save it as
 WebP: the example's PNG was 623 KB and its WebP 99 KB.
+When the planes are a modelled scene rather than photographs (a hill in
+front of the letters, a temple behind them, both lit), the wordmark stands at a
+depth inside the scene: that is the [Real-time 3D world](yolo.md#real-time-3d-world)
+card's job, not a page-layer recipe.
 
 ```html
 <section class="sandwich" aria-label="The word Forno behind a loaf">
@@ -1164,6 +1177,24 @@ A neon sign is a bright core and a coloured halo that falls off with distance, s
 
 It only works on a dark ground; on a light page the halo has nothing to glow against. If the sign flickers, keep it to a single slow dip, and never more than three flashes in any one second (WCAG 2.3.1, three flashes or below threshold). A glow that spills over neighbouring text lowers its contrast, so give the sign room.
 
+**A lightning edge.** The sign's tube as a crackling border: the perimeter of a card walked in short steps, each point pushed out along the normal by noise that changes a few times a second, stroked twice (wide and faint, then thin and bright) with `globalCompositeOperation = 'lighter'`. It needs a drawing loop, so it is Medium weight and not this tier; it was not measured here. Keep it to one element, never more than three flashes a second (WCAG 2.3.1), and still under reduced motion.
+
+```js
+function edge(ctx, w, h, t) {
+  const pts = [], step = 6, per = 2 * (w + h), tick = Math.floor(t * 12);   // twelve new shapes a second
+  for (let s = 0; s < per; s += step) {
+    const [x, y, nx, ny] = s < w ? [s, 0, 0, -1] : s < w + h ? [w, s - w, 1, 0] : s < 2 * w + h ? [w - (s - w - h), h, 0, 1] : [0, h - (s - 2 * w - h), -1, 0];
+    const k = (Math.sin(s * 0.13 + tick * 7.1) + Math.sin(s * 0.051 - tick * 3.3)) * 3;
+    pts.push([x + nx * k, y + ny * k]);
+  }
+  ctx.globalCompositeOperation = 'lighter';
+  for (const [width, alpha] of [[6, 0.25], [1.5, 1]]) {
+    ctx.lineWidth = width; ctx.globalAlpha = alpha; ctx.beginPath();
+    pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath(); ctx.stroke();
+  }
+}
+```
+
 - **Poster frame:** the glowing text at full opacity.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the rule above removes the dip and keeps the glow.
 - **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; look at the rendered page on the real dark ground (`verification.md`, "Probe, do not squint"), since the same shadow shows nothing on a light one.
@@ -1446,6 +1477,15 @@ Three small layers over one hero: scan lines drawn as a repeating gradient, a re
 
 Keep it slow: a band that jumps or a picture that flashes can trigger photosensitive reactions, and VHS needs only the suggestion of tape. Limit the overlay to the hero; over a whole page the lines fight the reading of body text. The band is pure decoration and carries no meaning, so it must never hide content.
 
+**Power-on.** The tube switched on: the picture arrives as a bright horizontal line that opens to full height, then settles in brightness. CSS only, played once on load; the catalogue's 404 page does it before its message.
+
+```css
+.crt { animation: crt-on 700ms steps(1, end) 1 both, crt-open 700ms cubic-bezier(0.2, 0.7, 0.2, 1) 1 both; }
+@keyframes crt-open { 0% { transform: scale(1, 0.004); } 45% { transform: scale(1, 0.004); } 100% { transform: none; } }
+@keyframes crt-on { 0% { filter: brightness(0); } 8% { filter: brightness(5); } 60% { filter: brightness(1.6); } 100% { filter: none; } }
+@media (prefers-reduced-motion: reduce) { .crt { animation: none; } }
+```
+
 - **Poster frame:** the lines and the fringe, with the band parked at 60 % of the frame height.
 - **Reduced motion:** the contract in `recipes-motion.md` §14; the rule above parks the band and keeps the rest.
 - **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; look at the rendered page with and without the reduced-motion setting and read the headline through the fringe (`verification.md`, "Probe, do not squint").
@@ -1507,3 +1547,108 @@ For a halftone that only fades (fixed dots over a flat colour), skip the contras
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - No site was measured at this tier. Cost not measured.
+
+## CSS 3D objects
+
+### What it is
+
+A real object built from flat faces and turned in depth by the style sheet alone: a coin with a milled edge, and a ring of words that orbits through it, passing in front of the coin and behind it.
+
+### Suits
+
+Objects with a front, a back and an edge worth showing: [Stamps, seals & ephemera](../identities/print-craft.md#stamps-seals--ephemera), [Museum / white-cube gallery](../identities/print-craft.md#museum--white-cube-gallery), [Vintage packaging / label](../identities/print-craft.md#vintage-packaging--label), [Kinetic typography](../identities/digital.md#kinetic-typography) for the ring of words.
+
+### What it costs the visitor
+
+Measured on the example page built for this card (2026-11-08): no script and 3 KB in all. It held 60 frames a second (16.7 ms, 17.4 ms for the slowest 5 %) on an Intel UHD GPU, and 60 with no usable graphics chip: 42 flat layers turned by the compositor.
+
+### For the builder
+
+Faces are boxes in one 3D context (`transform-style: preserve-3d` on every level between the perspective and the faces). The coin is two discs and forty slices of edge, each slice stood round the circle and turned to face out; the ring is eight words stood round a circle in the same context, so the depth sorts them against the coin without a line of script.
+
+```css
+.scene { perspective: 1100px; }
+.world, .coin, .ring { transform-style: preserve-3d; }
+.face { position: absolute; inset: 0; border-radius: 50%; backface-visibility: hidden; }
+.front { transform: translateZ(calc(var(--rim) / 2)); }
+.back { transform: rotateY(180deg) translateZ(calc(var(--rim) / 2)); }
+/* The milled edge: 40 slices, each as tall as a fortieth of the circumference (plus a hair, so no gap shows). */
+.rim i { position: absolute; left: 50%; top: 50%; width: var(--rim); height: calc(var(--coin) * 0.0805);
+  margin: calc(var(--coin) * -0.04025) 0 0 calc(var(--rim) / -2);
+  transform: rotateZ(calc(var(--i) * 9deg)) translateY(calc(var(--coin) / -2)) rotateY(90deg); }
+.ring span { position: absolute; left: 50%; top: 50%; transform: rotateY(calc(var(--i) * 45deg)) translateZ(230px); }
+.coin { animation: turn 10s linear infinite; }
+.ring { animation: orbit 22s linear infinite; }
+@keyframes turn { to { transform: rotateY(360deg); } }
+@keyframes orbit { from { transform: rotateY(0deg); } to { transform: rotateY(-360deg); } }
+.hero:has(.still input:checked) :is(.coin, .ring), .scene:hover :is(.coin, .ring) { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .coin { animation: none; transform: rotateY(-32deg); } .ring { animation: none; } }
+```
+
+The page is `docs/examples/motion-techniques/css-3d/page.html`. The catalogue read on 2026-11-08 had 34 pieces built this way (a puzzle cube with real slice turns, blinds of coloured slats, a depth card, a coin) and no card here named them.
+
+- **Shading is painted, not lit:** there is no light in CSS. Paint each face as it should look (a radial gradient on the coin's face, stripes on the edge); a script that sets a brightness per face from its angle is the Medium card.
+- **A loop that can pause:** a checkbox "Hold the coin still" pauses both with `:has()`, and hover pauses them; past five seconds of motion the pause is owed (`patterns.md`, WCAG 2.2.2). The page needs no script for it.
+- **Clip the stage** (`overflow: clip` on the section): the words at the sides of the ring pushed the first build 52 px past a 320 px screen. Clipping the section, not the 3D context, keeps the depth.
+- **Words read backwards behind the object.** That is the ring's honesty; set `backface-visibility: hidden` on the words for a ring that only shows its front half.
+- **Poster frame:** the coin at rest, turned to show its edge. **Reduced motion:** the rule above. **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; look at the rendered page at 320 and 1440, with and without the reduced-motion setting.
+
+#### Where the cost was measured
+
+Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- docs/examples/motion-techniques/css-3d/page.html, the example page built for this card, served compressed over http and probed 2026-11-08: no script, 3 KB in all; median frame 16.7 ms and slowest 5 % 17.4 ms on the Intel UHD GPU, 16.7 ms and 16.7 ms on SwiftShader; `check-motion --tier fast` passes (readable without JavaScript).
+
+## Dither
+
+### What it is
+
+A photograph printed in two colours of ink through a regular screen of dots, so every grey becomes a pattern, as an old printer or a 1-bit screen would show it.
+
+### Where it comes from
+
+Ordered dithering thresholds each pixel against a fixed matrix; the 4 x 4 matrix used here is Bryce Bayer's, published in 1973 ([Wikipedia, Ordered dithering](https://en.wikipedia.org/wiki/Ordered_dithering)).
+
+### Suits
+
+[Dithered / 1-bit low-tech](../identities/digital.md#dithered--1-bit-low-tech), [Punk / DIY zine](../identities/print-craft.md#punk--diy-zine), [Risograph](../identities/print-craft.md#risograph), [Archival newsprint](../identities/print-craft.md#archival-newsprint).
+
+### What it costs the visitor
+
+Measured on the example page built for this card (2026-11-08): no script, a 5 KB photograph and 7 KB in all. The page held 60 frames a second (16.7 ms, 16.8 ms for the slowest 5 %) on an Intel UHD GPU and with no usable graphics chip; nothing on it moves.
+
+### For the builder
+
+An SVG filter does the whole print: grey, a lift of the shadows, the Bayer screen tiled from a 12 x 12 picture, tone plus screen minus a half, and a two-step transfer that writes ink or paper. The photograph is small (320 px) and drawn three times its size with hard pixels, so each dot is one of its pixels.
+
+```html
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <filter id="bayer" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer result="grey"><feFuncR type="gamma" exponent="0.55"/><feFuncG type="gamma" exponent="0.55"/><feFuncB type="gamma" exponent="0.55"/></feComponentTransfer>
+    <feImage x="0" y="0" width="12" height="12" result="cell" href="data:image/svg+xml;utf8,…16 squares of 3 px, grey (n + 0.5) / 16…"/>
+    <feTile in="cell" result="screen"/>
+    <feComposite in="grey" in2="screen" operator="arithmetic" k2="1" k3="1" k4="-0.5" result="sum"/>
+    <feComponentTransfer in="sum">
+      <feFuncR type="discrete" tableValues="0.118 0.922"/><!-- ink, paper -->
+      <feFuncG type="discrete" tableValues="0.165 0.894"/>
+      <feFuncB type="discrete" tableValues="0.227 0.831"/>
+    </feComponentTransfer>
+  </filter>
+</svg>
+<img src="prism-small.jpg" width="320" height="213" style="width: 960px; max-width: 100%; image-rendering: pixelated; filter: url(#bayer)" alt="…">
+```
+
+The full screen, with the sixteen thresholds written out, is in `docs/examples/motion-techniques/dither/still.html`.
+
+- **Lift the shadows first:** a dark photograph printed straight came out as a block of ink; a gamma of 0.55 before the screen gave it its greys back.
+- **The two inks are numbers in the filter,** taken from the identity's ink and paper tokens; a token change must be copied there by hand.
+- **Dots stay one photograph pixel** only at exactly three times the size; below it (a phone) the screen and the pixels drift apart into a fine moiré. Acceptable on a phone, visible on a desktop: keep the desktop width exact.
+- **Moving fog, a lamp** that clears it: the Medium card, [Dither](medium.md#dither).
+- **Poster frame:** the print itself. **Reduced motion:** nothing moves. **Checks:** there is no canvas, so `check-motion.mjs` reports not applicable; look at the rendered page at 100 %, where the screen must be visible from reading distance.
+
+#### Where the cost was measured
+
+Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- docs/examples/motion-techniques/dither/still.html, the example page built for this card, served compressed over http and probed 2026-11-08: no script, 7 KB in all (photograph 5 KB); median frame 16.7 ms and slowest 5 % 16.8 ms on the Intel UHD GPU and on SwiftShader; `check-motion --tier fast` passes.

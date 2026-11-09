@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Example page for the glass letters technique card: the page's own headline cast in clear glass over its photograph.">
+<title>Glass letters: example</title>
+<style>
+  :root { --face-display: "Bodoni MT", Didot, "Book Antiqua", serif; --face-text: Georgia, "Times New Roman", serif;
+    --ground: #15130f; --stone: #d9cfbd; --ink: #f3eee4; --muted: #b5ab99; --hint: #e3a64f; }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  html { background: var(--ground); color: var(--ink); }
+  body { margin: 0; font: 400 18px/1.55 var(--face-text); }
+  a { color: var(--ink); }
+  a:focus-visible { outline: 2px solid var(--hint); outline-offset: 3px; }
+  .hero { position: relative; min-height: 100svh; display: grid; align-content: center; padding: 10vh 7vw; overflow: clip; }
+  .hero canvas, .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero img { filter: grayscale(1) brightness(.55); }
+  .copy { position: relative; }
+  h1 { font: 700 clamp(64px, 17vw, 260px)/1 var(--face-display); letter-spacing: -0.02em; margin: 0; white-space: nowrap; }
+  /* Once the glass has drawn, the headline's own text turns clear: it is still the text that is read and selected. */
+  .glass-on h1 { color: transparent; }
+  .glass-on:has(canvas[data-df-loop="fallback"]) h1 { color: var(--ink); }
+  .copy p { margin: 18px 0 0; color: var(--muted); max-width: 32rem; font-size: 20px; }
+  main { padding: 12vh 7vw; min-height: 120svh; max-width: 46rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<section class="hero" id="hero">
+  <img id="stone" src="stone.jpg" alt="Hand-laid limestone cobbles of a Lisbon square, seen from above">
+  <canvas id="glass" aria-hidden="true" hidden></canvas>
+  <div class="copy">
+    <h1 id="title">Calçada</h1>
+    <p>Lisbon's pavements are laid by hand, one stone at a time. The word is cast in glass and the square shows through it.</p>
+  </div>
+</section>
+<main>
+  <p>A test page for the glass letters card. The headline is the page's own text; the canvas reads its font, size and place, draws it as a height map and refracts the photograph through it. Without the canvas the headline is ordinary type over the photograph.</p>
+  <p><a href="../">Other examples</a></p>
+</main>
+
+<script src="canvas-loop.js"></script>
+<script>
+(() => {
+  const hero = document.getElementById('hero');
+  const canvas = document.getElementById('glass');
+  const title = document.getElementById('title');
+  const photo = document.getElementById('stone');
+  const css = getComputedStyle(document.documentElement);
+
+  // Idle autopilot (recipes-motion.md §28): the light that glints on the glass follows a slow path until the hand arrives.
+  function autopilot(el, { idle = 3000, speed = 0.3 } = {}) {
+    const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    let hand = null, last = -1e9, phase = 0;
+    if (fine) {
+      el.addEventListener('pointermove', (e) => { const r = el.getBoundingClientRect(); hand = [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; last = performance.now(); });
+      el.addEventListener('pointerleave', () => { hand = null; });
+    }
+    return (now, dt) => {
+      if (hand && now - last < idle) return hand;
+      phase += dt * speed;
+      return [0.5 + 0.38 * Math.sin(phase), 0.45 + 0.2 * Math.sin(phase * 1.618)];
+    };
+  }
+  const steer = autopilot(hero);
+
+  const VS = `#version 300 es
+  in vec2 aPos; out vec2 vUv; void main() { vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.0, 1.0); }`;
+  const FS = `#version 300 es
+  precision highp float; in vec2 vUv; out vec4 o;
+  uniform sampler2D uPhoto, uType; uniform vec2 uCover, uPx, uLamp; uniform float uTime; uniform vec3 uStone, uGround;
+  vec3 scene(vec2 uv) {                                  // the square behind the glass, drifting a little
+    uv += vec2(sin(uTime * 0.07), cos(uTime * 0.05)) * 0.012;
+    vec2 st = (uv - 0.5) * uCover * 0.95 + 0.5; st.y = 1.0 - st.y;   // 5 % margin, so the drift never shows an edge
+    return texture(uPhoto, clamp(st, 0.0, 1.0)).r * uStone;
+  }
+  void main() {
+    vec4 ty = texture(uType, vUv);                         // r: the word blurred (its height), g: the word sharp (its edge)
+    float hx = texture(uType, vUv + vec2(uPx.x, 0)).r - texture(uType, vUv - vec2(uPx.x, 0)).r;
+    float hy = texture(uType, vUv + vec2(0, uPx.y)).r - texture(uType, vUv - vec2(0, uPx.y)).r;
+    vec3 n = normalize(vec3(-hx * 6.0, -hy * 6.0, 1.0));
+    vec3 back = mix(uGround, scene(vUv), 0.4);            // outside the glass: the square, dimmed
+    // Inside: the square bent by the slope of the glass, red, green and blue bent a little apart.
+    vec2 bend = n.xy * 0.09;
+    vec3 seen = vec3(scene(vUv + bend * 1.06).r, scene(vUv + bend).g, scene(vUv + bend * 0.94).b);
+    vec2 lamp = vec2(uLamp.x, 1.0 - uLamp.y);
+    vec3 l = normalize(vec3((lamp - vUv) * vec2(uPx.y / uPx.x, 1.0), 0.35));
+    float spec = pow(max(dot(reflect(-l, n), vec3(0, 0, 1)), 0.0), 60.0);
+    float fres = pow(1.0 - n.z, 1.5);                      // steep edges go dark, as thick glass does
+    vec3 glass = seen * (1.05 - fres * 1.6) + spec * 0.9 + uStone * 0.06;
+    o = vec4(mix(back, glass, ty.g), 1.0);
+  }`;
+
+  let gl, prog, u, quad, texPhoto, texType, typeCanvas, lamp = [0.5, 0.45], last = 0, typeKey = '';
+
+  // A token read once per value: parsing a colour through a canvas every frame costs a frame on a slow machine.
+  const colours = new Map();
+  const rgb = (v) => { if (!colours.has(v)) { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = v; c.fillRect(0, 0, 1, 1); const out = [...c.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((x) => x / 255); colours.set(v, out); } return colours.get(v); };
+  const texture = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); return t; };
+
+  // The headline drawn where the page set it: its font, size and box, read from the page. Red is the word
+  // blurred (a rounded height), green the word sharp (where the glass is).
+  function drawType() {
+    const s = canvas.width / canvas.clientWidth, c = canvas.getBoundingClientRect(), r = title.getBoundingClientRect();
+    const st = getComputedStyle(title);
+    const key = [canvas.width, canvas.height, r.left - c.left, r.top - c.top, st.font].join('|');
+    if (key === typeKey) return false;
+    typeKey = key;
+    typeCanvas ??= document.createElement('canvas');
+    typeCanvas.width = canvas.width; typeCanvas.height = canvas.height;
+    const g = typeCanvas.getContext('2d');
+    g.clearRect(0, 0, typeCanvas.width, typeCanvas.height);
+    g.font = `${st.fontWeight} ${parseFloat(st.fontSize) * s}px ${st.fontFamily}`;
+    g.textBaseline = 'middle'; g.globalCompositeOperation = 'lighter';
+    const x = (r.left - c.left) * s, y = (r.top - c.top + r.height / 2) * s;
+    g.filter = `blur(${Math.round(parseFloat(st.fontSize) * s * 0.035)}px)`; g.fillStyle = '#f00'; g.fillText(title.textContent, x, y);
+    g.filter = 'none'; g.fillStyle = '#0f0'; g.fillText(title.textContent, x, y);
+    return true;
+  }
+
+  function build(g) {
+    gl = g;
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+    gl.bindAttribLocation(prog, 0, 'aPos'); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    u = {}; for (let i = 0; i < gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS); i++) { const n = gl.getActiveUniform(prog, i).name; u[n] = gl.getUniformLocation(prog, n); }
+    quad = gl.createVertexArray(); gl.bindVertexArray(quad); gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    texPhoto = texture(); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, photo);
+    texType = texture(); typeKey = '';
+  }
+  function draw(t) {
+    if (drawType()) { gl.bindTexture(gl.TEXTURE_2D, texType); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, typeCanvas); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); }
+    gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(prog); gl.bindVertexArray(quad);
+    const ca = canvas.width / canvas.height, ia = photo.naturalWidth / photo.naturalHeight;
+    gl.uniform2f(u.uCover, ...(ca > ia ? [1, ia / ca] : [ca / ia, 1]));
+    gl.uniform2f(u.uPx, 1.5 / canvas.width, 1.5 / canvas.height); gl.uniform2f(u.uLamp, ...lamp); gl.uniform1f(u.uTime, t);
+    gl.uniform3f(u.uStone, ...rgb(css.getPropertyValue('--stone'))); gl.uniform3f(u.uGround, ...rgb(css.getPropertyValue('--ground')));
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, texPhoto); gl.uniform1i(u.uPhoto, 0);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, texType); gl.uniform1i(u.uType, 1);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    hero.classList.add('glass-on');
+  }
+
+  Promise.all([photo.decode(), document.fonts.ready]).then(() => {
+    canvas.hidden = false;
+    dfCanvasLoop(canvas, {
+      context: 'webgl2',
+      maxDpr: 1.5,
+      draw: (t, g) => {
+        if (!prog) build(g);
+        const dt = Math.min(0.05, last ? (t - last) / 1000 : 0.016); last = t;
+        const target = steer(t, dt), k = 1 - Math.exp(-dt * 5);
+        lamp = [lamp[0] + (target[0] - lamp[0]) * k, lamp[1] + (target[1] - lamp[1]) * k];
+        draw(t / 1000);
+      },
+      poster: (g) => { if (!prog) build(g); lamp = [0.62, 0.3]; draw(0); },
+      restore: () => { prog = null; },
+      fallback: '#stone',
+    });
+  });
+})();
+</script>
+</body>
+</html>

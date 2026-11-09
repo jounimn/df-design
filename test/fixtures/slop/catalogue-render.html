@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="What only a browser sees of the catalogue look: a counter over a page that is ready, a storm of animations, glass over a flat ground.">
+<title>Catalogue tells, rendered</title>
+<style>
+  :root { --bg: #111317; --ink: #f2f2ee; --line: #2a2e35; --font-display: Georgia, serif; --font-body: Georgia, serif; }
+  html, body { overflow-x: clip; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); }
+  header { padding: 80px 64px; } h1 { font: 64px/1 var(--font-display); margin: 0; }
+  .glass { margin: 0 64px; width: 420px; height: 220px; padding: 24px; border: 1px solid var(--line); border-radius: 12px; backdrop-filter: blur(16px); }
+  .dots { display: flex; flex-wrap: wrap; gap: 4px; padding: 64px; }
+  .dots i { width: 6px; height: 6px; background: var(--line); animation: pulse 2s ease-in-out infinite alternate; }
+  @keyframes pulse { to { opacity: 0.2; } }
+  .loader { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); font: 120px/1 var(--font-display); }
+  a:focus-visible { outline: 2px solid var(--ink); }
+  @media (prefers-reduced-motion: reduce) { .dots i { animation: none; } }
+</style>
+</head>
+<body>
+<header><h1>Studio of nothing in particular</h1></header>
+<div class="glass"><p>A frosted card over the plain ground.</p></div>
+<div class="dots" id="dots" aria-hidden="true"></div>
+<div class="loader" id="loader" aria-hidden="true">0</div>
+<script>
+  const dots = document.getElementById('dots');
+  for (let k = 0; k < 220; k++) dots.append(document.createElement('i'));
+  // The counter runs to 100 over a page that was ready from the start, then lifts.
+  const loader = document.getElementById('loader'); let n = 0;
+  const tick = setInterval(() => { n = Math.min(100, n + 4); loader.textContent = n; if (n === 100) { clearInterval(tick); setTimeout(() => loader.remove(), 200); } }, 100);
+</script>
+</body>
+</html>

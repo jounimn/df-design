@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A page that does not scroll and steps through its panels on the wheel only. With ?keys the keyboard steps too.">
+<title>Wheel hijack</title>
+<style>
+  :root { --a: #1d3b2f; --b: #f0d36a; --c: #6a2333; --ink: #f4f1ea; --font-display: Georgia, serif; --font-body: Georgia, serif; }
+  html, body { margin: 0; height: 100%; overflow: clip; }
+  body { font-family: var(--font-body); color: var(--ink); }
+  .panel { position: fixed; inset: 0; display: grid; place-items: center; font: 72px/1 var(--font-display); }
+  .panel:nth-child(1) { background: var(--a); } .panel:nth-child(2) { background: var(--b); } .panel:nth-child(3) { background: var(--c); }
+  .panel[hidden] { display: none; }
+  a:focus-visible { outline: 2px solid var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="panel">First jar</h1>
+  <h2 class="panel" hidden>Second jar</h2>
+  <h2 class="panel" hidden>Third jar</h2>
+</main>
+<script>
+  const panels = [...document.querySelectorAll('.panel')];
+  let i = 0, wait = 0;
+  const show = (d) => { const now = Date.now(); if (now < wait) return; wait = now + 500; panels[i].hidden = true; i = (i + d + panels.length) % panels.length; panels[i].hidden = false; };
+  addEventListener('wheel', (e) => { e.preventDefault(); show(e.deltaY > 0 ? 1 : -1); }, { passive: false });
+  if (location.search.includes('keys')) addEventListener('keydown', (e) => { if (['ArrowDown', 'PageDown', ' ', 'ArrowRight'].includes(e.key)) show(1); });
+</script>
+</body>
+</html>

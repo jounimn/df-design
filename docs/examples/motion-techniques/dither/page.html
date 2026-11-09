@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Example page for the Medium dither card: a field of fog printed through an ordered dither, drifting, with a lamp the pointer carries.">
+<title>Dither: example</title>
+<style>
+  :root { --face-display: "Courier New", Courier, monospace; --face-text: Georgia, "Times New Roman", serif;
+    --paper: #e7e1d1; --ink: #1d2b3c; --muted: #4c5563; --hint: #b0442a; }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: clip; }
+  html { background: var(--paper); color: var(--ink); }
+  body { margin: 0; font: 400 18px/1.55 var(--face-text); }
+  a { color: var(--ink); }
+  a:focus-visible { outline: 2px solid var(--hint); outline-offset: 3px; }
+  .hero { position: relative; min-height: 100svh; display: grid; align-content: end; padding: 10vh 7vw; overflow: clip; }
+  .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+  .copy { position: relative; max-width: 36rem; background: var(--paper); padding: 22px 24px 24px; }
+  h1 { font: 700 clamp(36px, 4.6vw, 68px)/1.02 var(--face-display); letter-spacing: -0.03em; margin: 0 0 12px; }
+  .copy p { margin: 0; color: var(--muted); }
+  main { padding: 10vh 7vw; min-height: 110svh; max-width: 46rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<section class="hero" id="hero">
+  <canvas id="fog" aria-hidden="true"></canvas>
+  <div class="copy">
+    <h1>Fog in the channel, lifting later</h1>
+    <p>The night forecast for the coast, read at twenty to one. The fog drifts across the page in dots of one ink; carry the lamp over it, or leave it and the lamp sweeps on its own.</p>
+  </div>
+</section>
+<main>
+  <p>A test page for the Medium dither card. The fog is computed at one cell per seven pixels into a small buffer, thresholded through a 4 x 4 ordered dither and drawn up with hard pixels. Without the canvas the page is its paper.</p>
+  <p><a href="../">Other examples</a></p>
+</main>
+
+<script src="canvas-loop.js"></script>
+<script>
+(() => {
+  const hero = document.getElementById('hero');
+  const canvas = document.getElementById('fog');
+  const css = getComputedStyle(document.documentElement);
+  const CELL = 7;                                               // CSS pixels per dither cell
+  const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
+
+  // Idle autopilot (recipes-motion.md §28): the lamp sweeps a slow Lissajous path until the hand arrives.
+  function autopilot(el, { idle = 3000, speed = 0.28 } = {}) {
+    const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    let hand = null, last = -1e9, phase = 0;
+    if (fine) {
+      el.addEventListener('pointermove', (e) => { const r = el.getBoundingClientRect(); hand = [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; last = performance.now(); });
+      el.addEventListener('pointerleave', () => { hand = null; });
+    }
+    return (now, dt) => {
+      if (hand && now - last < idle) return hand;
+      phase += dt * speed;
+      return [0.6 + 0.3 * Math.sin(phase), 0.35 + 0.22 * Math.sin(phase * 1.618 + 1.1)];
+    };
+  }
+  const steer = autopilot(hero);
+
+  // Value noise, three octaves, from a table of 256 random values: no sin() per sample, so the whole field
+  // (one value per cell, about 20,000 a frame at 1440 wide) costs a few milliseconds of script.
+  const R = new Float32Array(256).map((_, i) => { const v = Math.sin(i * 127.1 + 0.5) * 43758.5453; return v - Math.floor(v); });
+  const P = new Uint8Array(512); { const p = [...Array(256).keys()]; let seed = 7; for (let i = 255; i > 0; i--) { seed = (seed * 16807) % 2147483647; const j = seed % (i + 1); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) P[i] = p[i & 255]; }
+  const noise = (x, y) => { const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy, ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+    const a = P[ix & 255] + (iy & 255), b = P[(ix + 1) & 255] + (iy & 255);
+    return R[P[a]] * (1 - ux) * (1 - uy) + R[P[b]] * ux * (1 - uy) + R[P[a + 1]] * (1 - ux) * uy + R[P[b + 1]] * ux * uy; };
+  const fbm = (x, y) => noise(x, y) * 0.55 + noise(x * 2.03, y * 2.03) * 0.3 + noise(x * 4.1, y * 4.1) * 0.15;
+
+  // A token read once per value: parsing a colour through a canvas every frame costs a frame on a slow machine.
+  const colours = new Map();
+  const rgb = (v) => { if (!colours.has(v)) { const c = document.createElement('canvas').getContext('2d'); c.fillStyle = v; c.fillRect(0, 0, 1, 1); const out = [...c.getImageData(0, 0, 1, 1).data.slice(0, 3)]; colours.set(v, out); } return colours.get(v); };
+  let small, sctx, img, lamp = [0.6, 0.35], last = 0;
+
+  function frame(ctx, t) {
+    const cols = Math.ceil(canvas.clientWidth / CELL), rows = Math.ceil(canvas.clientHeight / CELL);
+    if (!small || small.width !== cols || small.height !== rows) {
+      small = document.createElement('canvas'); small.width = cols; small.height = rows;
+      sctx = small.getContext('2d'); img = sctx.createImageData(cols, rows);
+    }
+    const ink = rgb(css.getPropertyValue('--ink')), paper = rgb(css.getPropertyValue('--paper'));
+    const d = img.data, aspect = cols / rows, drift = t * 0.05, lx = lamp[0] * aspect, ly = lamp[1];
+    for (let y = 0; y < rows; y++) {
+      const ny = y / rows;
+      for (let x = 0; x < cols; x++) {
+        const nx = (x / cols) * aspect;
+        // Fog: a band of noise sliding across, thicker toward the top right.
+        let fog = fbm(nx * 2.2 + drift, ny * 2.2 - drift * 0.4) * 1.1;
+        fog = fog * 0.75 + (1 - ny) * 0.15 + (nx / aspect) * 0.12 - 0.1;
+        // The lamp clears a soft hole.
+        const dx = nx - lx, dy = ny - ly;
+        fog -= Math.exp(-(dx * dx + dy * dy) * 22) * 0.55;
+        const on = fog > BAYER[(y & 3) * 4 + (x & 3)];             // ink where the fog beats the screen
+        const c = on ? ink : paper, i = (y * cols + x) * 4;
+        d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+      }
+    }
+    sctx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(small, 0, 0, canvas.width, canvas.height);
+  }
+
+  dfCanvasLoop(canvas, {
+    context: '2d',
+    maxDpr: 1,
+    draw: (t, ctx) => {
+      const dt = Math.min(0.05, last ? (t - last) / 1000 : 0.016); last = t;
+      const target = steer(t, dt), k = 1 - Math.exp(-dt * 4);
+      lamp = [lamp[0] + (target[0] - lamp[0]) * k, lamp[1] + (target[1] - lamp[1]) * k];
+      frame(ctx, t / 1000);
+    },
+    poster: (ctx) => frame(ctx, 12),
+  });
+})();
+</script>
+</body>
+</html>

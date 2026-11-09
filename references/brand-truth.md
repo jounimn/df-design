@@ -84,6 +84,23 @@ Proceed only on supplied or author-confirmed values; otherwise design
 without brand claims (no "brand blue", no company name in the palette
 comments).
 
+## A real brand is never sample content
+
+This file is for building **for** a brand the author named. The opposite case
+is a failure: a real company's name, product, packaging or artwork used as the
+sample content of a page that is not theirs (a demo, a template, an audition,
+an example page). It reads as impersonation, it puts a trademark on work the
+owner never approved, and the page cannot ship. The component catalogue read
+on 2026-11-08 (`yolo-references.md`) ships one such page, a real soft-drink
+brand's can and labels as the demo of a wheel-stepped showcase.
+
+When the brief has no subject of its own, invent one that is plausible and
+specific (a bakery, a coin club, a rope loft: the example pages in
+`docs/examples/motion-techniques/`), with original names, original copy and
+pictures under the rules of `images.md`. A real brand appears only when the
+author names it as the client, and then through the protocol above. This is a
+Floor clause judged at the finish review (`gates.md` §3, "brand as sample").
+
 ## What this protocol never does
 
 - Never fetches beyond the homepage and same-origin CSS; never runs remote

@@ -51,6 +51,10 @@ export const GATES = {
   'vh-hero': { tier: 'reflex', hallmark: '6a', tell: 'A height in vh', fix: 'dvh or svh, so the phone address bar does not cut the hero' },
   'bare-1fr-image-track': { tier: 'reflex', hallmark: '50', tell: 'An image-bearing grid track on bare 1fr', fix: '`minmax(0, 1fr)`' },
   'three-tiles': { tier: 'reflex', hallmark: '3', tell: 'Three equal icon-above-heading tiles', fix: 'None of the thirty measured sites do it: vary widths and heights, inline the icons' },
+  // From the component catalogue read on 2026-11-08 (references/yolo-references.md): its commodity layer, the generated look of 2026.
+  'named-look-dark': { tier: 'reflex', hallmark: '65', tell: 'A near-black neutral ground, one coral or orange accent, a sans display, and a white pill button or mono labels', fix: 'Move one axis: the ground first, then the accent, then the button shape (recipes-design.md §7)' },
+  'border-beam': { tier: 'reflex', hallmark: '-', tell: 'A conic gradient turned for ever by a keyframe, round a border or behind a mask', fix: 'A border that says something (a state, a selection), still; light that moves belongs to the one signature move' },
+  'placeholder-image': { tier: 'reflex', hallmark: '19', tell: 'A picture from a placeholder service, or one picture standing in across three or more sections', fix: "The author's pictures, approved stock (images.md), or type where no picture exists yet" },
   // Render tier (scripts/lib/slop-render.mjs): only a browser can settle these
   'fold': { tier: 'floor', hallmark: '44b', render: true, tell: "The hero's headline or primary action is not visible at 1280 x 800 without scrolling", fix: 'Pull the display clamp down, tighten leading, trim padding; the hero is the first screen' },
   'horizontal-scroll': { tier: 'floor', hallmark: '34', render: true, tell: 'The page scrolls sideways at some width between 320 and 1920', fix: '`overflow-x: clip` on html and body; tables, code and diagrams in their own `overflow-x: auto` container (recipes-design.md §6)' },
@@ -61,6 +65,10 @@ export const GATES = {
   'container-cap': { tier: 'reflex', hallmark: '44d', render: true, tell: 'At 1920 the gutters stay under 120px: the container is not capped and centred', fix: 'Cap the container (1360 to 1520) and centre it; at 1920 the gutters grow, the measure does not' },
   'dead-half': { tier: 'reflex', hallmark: '44c', render: true, tell: 'A hero whose content stops in the left half of a 1440 canvas with nothing on the right', fix: 'Fill it with the product, centre the composition, or frame the column in a band (recipes-design.md §6)' },
   'text-strain': { tier: 'reflex', hallmark: '75', render: true, tell: 'Running text rendered under 12px', fix: 'Body 16px at 1.5 to 1.65; labels one step smaller' },
+  'wheel-hijack': { tier: 'floor', hallmark: '-', render: true, tell: 'The page does not scroll, the wheel advances its content, and no key does', fix: 'Native scroll as the only state: a tall track and a pinned stage, keys and buttons that scroll to each step (techniques/medium.md, Stepped showcase)' },
+  'animation-storm': { tier: 'reflex', hallmark: '-', render: true, tell: 'More than 150 animations running at once, or 100 or more canvas contexts asked for', fix: 'One signature move and one ambient loop; the rest still (recipes-motion.md)' },
+  'preloader-over-painted': { tier: 'reflex', hallmark: '-', render: true, tell: 'A counter covers the page for half a second or more after its largest picture had already painted', fix: 'No loader over a page that is ready; a loader only where real progress drives it, skippable (recipes-motion.md §24)' },
+  'glass-over-nothing': { tier: 'reflex', hallmark: '-', render: true, tell: 'A frosted panel (backdrop blur) over a flat backdrop: the glass has nothing to bend', fix: 'Glass only over moving or detailed matter (Glassmorphism); over a flat ground, a plain surface one step lighter' },
   'word-budget': { tier: 'finish', hallmark: '58', render: true, tell: 'A 900px window at 1440 holding more than about 120 words', fix: 'One idea per screen; sections become objects, not paragraphs' },
   // Finish
   'doc-basics': { tier: 'finish', hallmark: 'F23', tell: 'A document without lang, a title, a viewport meta or a description', fix: 'Add them' },
@@ -70,8 +78,8 @@ export const GATES = {
 };
 
 const GRADE_RANK = { FAIL: 0, REFLEX: 1, WAIVER: 2, WAIVED: 3, NOTE: 4 };
-const APP_SKIP = new Set(['three-tiles', 'vh-hero', 'stock-second-action', 'invented-proof', 'one-face', 'safe-display-face', 'named-look']);
-const COMPONENT_SKIP = new Set(['three-tiles', 'vh-hero', 'doc-basics', 'one-face', 'named-look', 'heading-skip']);
+const APP_SKIP = new Set(['three-tiles', 'vh-hero', 'stock-second-action', 'invented-proof', 'one-face', 'safe-display-face', 'named-look', 'named-look-dark']);
+const COMPONENT_SKIP = new Set(['three-tiles', 'vh-hero', 'doc-basics', 'one-face', 'named-look', 'named-look-dark', 'heading-skip']);
 const PER_GATE_CAP = 12;
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -536,6 +544,8 @@ const WORDMARK = /logo|wordmark|brand\b|masthead|h1|display|hero__(title|head)|t
 const BUZZ = /\b(seamless(ly)?|robust|empower(s|ing)?|supercharge[sd]?|elevate[sd]?|effortless(ly)?|unlock(s|ing)?|unleash(es|ing)?|next-generation|world-class|best-in-class|industry-leading|mission-critical|future-proof|game-?changer|cutting-edge|leverage|synerg(y|ies)|revolutioni[sz]e[sd]?|reimagine[sd]?)\b/gi;
 const STOCK_ACTIONS = /^(learn more|get started|book a demo|request a demo|discover more|read more|explore|find out more|sign up|click here)$/i;
 const EMOJI_RE = /\p{Extended_Pictographic}/u;
+// Services that hand out a stand-in picture: a page that ships one has no picture of its own yet.
+const PLACEHOLDER_HOSTS = /\/\/(?:[\w-]+\.)*(?:picsum\.photos|placehold\.(?:co|it)|via\.placeholder\.com|placeholder\.com|placekitten\.com|placebear\.com|dummyimage\.com|loremflickr\.com|lorempixel\.com|fakeimg\.pl|placeimg\.com|unsplash\.it|source\.unsplash\.com|i\.pravatar\.cc|randomuser\.me\/api\/portraits|images\.placeholders\.dev)\b/i;
 
 function runChecks(ctx) {
   const report = makeReporter(ctx);
@@ -705,9 +715,65 @@ function runChecks(ctx) {
     report('named-look', 'REFLEX', where, 1, `cream paper (L ${Math.round(paper.L * 100)}, hue ${Math.round(paper.H)}) + ${displayFamily} + a terracotta accent`);
   }
 
+  // --- CSS: the catalogue's dark twin of the named look ---------------------------------------------------------------
+  // A near-black neutral ground, one coral or orange accent, a sans display, and a white pill or mono labels: the house
+  // look of a component catalogue sold for agent-built sites (references/yolo-references.md, the catalogue of 2026-11-08).
+  const darkGround = paper && paper.L <= 0.24 && paper.C <= 0.02;
+  const coral = accents.find((a) => a.C >= 0.11 && a.H >= 25 && a.H <= 65 && a.L >= 0.55);
+  const displaySans = !!displayFamily && !isSerifFamily(h1Font || displayToken) && !isMonoFamily(displayFamily);
+  const pill = rules.find((r) => !r.keyframes && INTERACTIVE_SEL.test(r.selector) && r.decls.some((d) => d.prop === 'border-radius' && ((pxOf(res(d.value).split(/\s+/)[0]) ?? 0) >= 100 || /\b(50|100)(vh|vmax|vmin)\b/.test(d.value))));
+  const monoLabels = rules.some((r) => !r.keyframes && r.decls.some((d) => d.prop === 'font-family' && isMonoFamily(res(d.value))) && LABELLY.test(r.selector));
+  if (darkGround && coral && displaySans && (pill || monoLabels)) {
+    report('named-look-dark', 'REFLEX', where, 1, `near-black ground (L ${Math.round(paper.L * 100)}) + ${displayFamily} + a coral accent (hue ${Math.round(coral.H)})${pill ? ' + a pill button' : ''}${monoLabels ? ' + mono labels' : ''}`);
+  }
+
+  // --- CSS: the border beam ---------------------------------------------------------------------------------------------
+  // A conic gradient turned for ever by a keyframe, round a border or behind a mask: the most repeated part of the
+  // catalogue (19 of 548 items). Turned directly (rotate) or through an animated custom property inside the gradient.
+  const spins = new Map(); // keyframes name -> custom properties it animates; rotating keyframes map to '*'
+  for (const r of rules) {
+    if (!r.keyframes) continue;
+    const set = spins.get(r.keyframes) || new Set();
+    for (const d of r.decls) {
+      if (/^(transform|rotate)$/.test(d.prop) && /rotate|deg|turn/i.test(d.value)) set.add('*');
+      if (d.prop.startsWith('--') && /-?[\d.]+(deg|turn|rad)\b/.test(d.value)) set.add(d.prop);
+    }
+    if (set.size) spins.set(r.keyframes, set);
+  }
+  if (spins.size) {
+    for (const r of rules) {
+      if (r.keyframes || r.atRule) continue;
+      const conic = r.decls.find((d) => /^(background|background-image|border-image|border-image-source|mask|mask-image|-webkit-mask|-webkit-mask-image)$/.test(d.prop) && /conic-gradient\(/i.test(d.value));
+      if (!conic) continue;
+      const anim = r.decls.filter((d) => d.prop === 'animation' || d.prop === 'animation-name').map((d) => d.value).join(' ');
+      const turned = [...spins].find(([name, props]) => new RegExp(`(^|[\\s,])${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[\\s,])`).test(anim)
+        && (props.has('*') || [...props].some((p) => conic.value.includes(`var(${p}`))));
+      const forever = /infinite/i.test(anim) || r.decls.some((d) => d.prop === 'animation-iteration-count' && /infinite/i.test(d.value));
+      if (turned && forever) report('border-beam', 'REFLEX', r.file, conic.line, `conic-gradient on ${r.selector} turned for ever by @keyframes ${turned[0]}`);
+    }
+  }
+
   // --- HTML --------------------------------------------------------------------------------------------------------------
   for (const doc of docs) {
     const { all, file } = doc;
+
+    // placeholder pictures: a placeholder service, or one picture standing in across three or more sections
+    const imgSrcs = all.filter((n) => n.name === 'img' || (n.name === 'source' && n.attrs.srcset)).flatMap((n) => [n.attrs.src, ...(n.attrs.srcset || '').split(',').map((s) => s.trim().split(/\s+/)[0])].filter(Boolean).map((src) => ({ n, src })));
+    const cssUrls = rules.flatMap((r) => r.decls.flatMap((d) => [...d.value.matchAll(/url\(\s*['"]?([^'")]+)['"]?\s*\)/gi)].map((m) => ({ src: m[1], line: d.line, file: r.file }))));
+    const hosted = [...imgSrcs.map((x) => ({ src: x.src, file, line: x.n.line })), ...cssUrls].find((x) => PLACEHOLDER_HOSTS.test(x.src));
+    if (hosted) report('placeholder-image', 'REFLEX', hosted.file, hosted.line, `a placeholder service: ${trunc(hosted.src, 60)}`);
+    const sectionOf = (n) => closest(n, (p) => /^(section|article|header|footer|aside)$/.test(p.name));
+    const bySrc = new Map();
+    for (const { n, src } of imgSrcs) {
+      if (n.name !== 'img' || /\.svg(\?|#|$)/i.test(src) || /^data:/i.test(src)) continue;
+      const w = parseFloat(n.attrs.width || '0'), h = parseFloat(n.attrs.height || '0');
+      if ((w && w <= 64) || (h && h <= 64)) continue; // icons and avatars-in-a-list are not a stand-in picture
+      const sec = sectionOf(n);
+      if (!sec) continue;
+      if (!bySrc.has(src)) bySrc.set(src, { sections: new Set(), line: n.line });
+      bySrc.get(src).sections.add(sec);
+    }
+    for (const [src, v] of bySrc) if (v.sections.size >= 3) report('placeholder-image', 'REFLEX', file, v.line, `the same picture (${trunc(src.split('/').pop(), 40)}) stands in ${v.sections.size} sections`);
     const html = all.find((n) => n.name === 'html');
     const basics = [];
     if (!html?.attrs.lang) basics.push('no lang on <html>');
