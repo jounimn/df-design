@@ -317,6 +317,9 @@ Loading cost: how heavy the site is to load. Pick one:
    Cost: <e.g. "+40 KB of script, heavier images">.
 3. High expensive loading: <what it adds, e.g. "a 3D loaf you can turn">.
    Cost: <e.g. "+300 KB of script, needs a fallback on older phones">.
+   3D or illustration: <does this option use 3D or illustration, and is an
+   illustrator or a 3D artist supplied? e.g. "yes, the loaf is modelled;
+   no 3D artist, so the concept art is generated for your approval first">.
 4. YOLO, the no-savings tier for flagship sites: <what it adds, e.g. "the
    bakery as a 3D world you scroll through, with the oven's sound on a tap">.
    Cost: <the weight in MB, e.g. "about 10 to 15 MB after a full scroll,
@@ -324,11 +327,22 @@ Loading cost: how heavy the site is to load. Pick one:
    No ceiling, but the Floor still applies: <the fallback for this project,
    e.g. "a still of the oven for phones that cannot run it and under reduced
    motion, the menu and hours as plain text, no sound until they tap it">.
+   3D or illustration: <does this option use 3D or illustration, and is an
+   illustrator or a 3D artist supplied? e.g. "yes, the oven world is
+   modelled and the panels drawn; no artist supplied, so the concepts are
+   generated for your approval first">.
 
 <If the cheapest tier cannot fully deliver the identity: say exactly what
 it cannot do and which tier can. Otherwise: "Fast does everything this
 identity needs.">
 ```
+
+The "3D or illustration" line sits on the High and YOLO options only, the
+two tiers that allow 3D and layered illustration. When the author's answer
+is yes, no model or layered picture is built before its concept is
+approved (`illustration-concept.md` §0); when no illustrator or 3D artist
+is supplied, the concept art is generated (`drawn-assets.md` §7) and
+approved first.
 
 The YOLO line is always offered and never the recommendation. Its cost is
 the transfer in MB for this project, with the first view stated apart, not

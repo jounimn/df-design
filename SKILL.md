@@ -157,9 +157,10 @@ Step 0 conditions  →  Author intent  →  Identity definition  →  Reference 
       →  [Playwright decision]  →  Design direction  →  HTML audition*
       →  Tier message (with the auditions; on the design path, with the direction)
       →  Author selection*  →  [selling-positioning: now / end / skip]**
-      →  Assets (icon set + approved images; any 3D or layered illustration:
-           concept options + scene keys → author approves → look +
-           turnarounds → layer sheet, illustration-concept.md §0)
+      →  Assets (icon set + approved images; 3D or layered illustration on High
+           or YOLO: concept references (research log) → concept options +
+           scene keys → author approves → look + turnarounds → layer sheet,
+           illustration-concept.md §0)
       →  Loading tier confirmed (images priced; combinations re-priced)  →  Identity brief
       →  Implementation, one surface at a time:
            [surface spec → author approves → build → verify] → next surface
@@ -205,7 +206,7 @@ heavier tier, or the images weigh more than the first message assumed.
 | Stock photographs: asking, sources, search, treatment, weight; cutting out the subject | `references/images.md` |
 | Drawn assets: doodles, annotations, spot illustrations, a drawn icon set, in the identity's own line; characters built anatomy first; key art generated locally and forced into the brief's inks (`scripts/ink-pass.mjs`); 3D characters rendered in ink; water, smoke and sparks drawn frame by frame | `references/drawn-assets.md` |
 | The YOLO reference sites, scene by scene, read before probing them again | `references/yolo-references.md` |
-| Any 3D model, procedural scene or layered illustration: concept first (2 or 3 options per scene, character and key idea, each scene with its inventory key and story-requirements check; the author's approval; a concept for every object that will be built; the look; turnarounds; the layer sheet) before anything is built (§0); for an illustration-led identity with no concept art from the author, the concept bible (story spine, character, form and style sheets), written before any art and carried through the build | `references/illustration-concept.md` |
+| A 3D model, procedural scene or layered illustration on High or YOLO: concept first (real illustration references searched and logged as in the Research stage; 2 or 3 options per scene, character and key idea, each scene with its inventory key and story-requirements check; the author's approval; a concept for every object that will be built; the look; turnarounds; the layer sheet) before anything is built (§0); for an illustration-led identity with no concept art from the author, the concept bible (story spine, character, form and style sheets), written before any art and carried through the build | `references/illustration-concept.md` |
 | Looking at it | `references/verification.md` |
 | Watermark: question, layer, preview and final | `references/watermark.md` |
 | Selling-positioning: logo, positioning, mockups, slideshow, export | `references/selling-positioning.md` |
@@ -253,8 +254,9 @@ The rules that govern every stage:
   and fails the Floor. Choosing YOLO also commits the build to at least one
   `techniques/yolo.md` technique built at flagship scale (authored media or
   a real-time 3D scene); a page under the High ceiling is a high build, and
-  `check-motion` reports it as built below the chosen tier. On any tier, no
-  3D model, procedural scene or layered illustration is built before its
+  `check-motion` reports it as built below the chosen tier. On High and
+  YOLO, the two tiers that allow it, no 3D model, procedural scene or
+  layered illustration is built before its
   concept is approved, its turnarounds checked and its layer sheet drawn
   (`illustration-concept.md` §0); on YOLO the concepts are judged before
   production, while it is still unknown what reaches the page. The flagship
@@ -461,7 +463,7 @@ is an acceptable sentence. "Done" without having looked is not.
 | "The page looks empty, a doodle will help" | Every drawing has a job: annotate, divide, explain, stand in, label or mark. An empty screen needs a photograph, the product or better type. `drawn-assets.md` §1. |
 | "The palette already looks good" | Looking good is the base pair. Name the design hint, its feeling and its places, or write `Hint: none` with the reason. `recipes-design.md` §2. |
 | "The author gave the identity, so the YOLO build can start" | On the yolo tier both paths build three light prototypes of the experience first, and the author picks one. A full build is days; a prototype is an afternoon. `audition.md` §2. |
-| "I'll model it now and the look will come in Blender" | The concept is the base of anything 3D. Concept options, the author's approval, the look (textures, colour, line, finish, marks), turnarounds the author checks and a layer sheet, then the model. Layers lifted from a flat picture afterwards come out blotchy. `illustration-concept.md` §0. |
+| "I'll model it now and the look will come in Blender" | The concept is the base of anything 3D. Real references logged, concept options, the author's approval, the look (textures, colour, line, finish, marks), turnarounds the author checks and a layer sheet, then the model. Layers lifted from a flat picture afterwards come out blotchy. `illustration-concept.md` §0. |
 | "Three.js will make it feel premium" | Cheapest viable tier first. Masks and blends are CSS. |
 | "Fast tier obviously fits; I'll just use it" | Recommending is yours, choosing is the author's. Send the tier message. |
 | "Every candidate is fast, so there is nothing to ask" | The question is asked every run, with the candidates. Fast is the recommendation, not the answer. The message says what medium and high would add, or that they add nothing. |

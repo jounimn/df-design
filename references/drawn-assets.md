@@ -205,8 +205,11 @@ a four-step model whose weights are Apache-2.0.
 A drawn identity with a hand (comic ink, etching, woodcut, scratchboard)
 when no illustrator is supplied: the illustrated scroll story
 (`techniques/yolo.md`), the webcomic experience (`identities/digital.md`).
-Ask first: the tier message asks whether an illustrator or a 3D artist is
-supplied, and generated art is what the author agrees to when none is. It is
+Ask first: on its High and YOLO options the tier message asks whether the
+project will use 3D or illustration and whether an illustrator or a 3D
+artist is supplied (`audition.md` §4), and generated art is what the author
+agrees to when none is; a yes to 3D or illustration starts concept first
+(`illustration-concept.md` §0). It is
 never a product photograph, a real person, or a brand's own characters.
 
 It closes part of the gap to an illustrator, not all of it. In a trial of

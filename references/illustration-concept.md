@@ -7,9 +7,9 @@ art**, and carries it through the build. The bible is text; the concept art
 of §0 is drawn from it. Every panel, render and transition that follows is
 made from it and checked against it.
 
-Whatever the identity, any 3D or layered illustration in a project starts
-with §0: concept, the author's approval, turnarounds, a layer sheet, and
-only then the models and the pictures.
+Whatever the identity, every modelled 3D asset and layered illustration in
+a project starts with §0: references, concept, the author's approval,
+turnarounds, a layer sheet, and only then the models and the pictures.
 
 Without a bible each picture is invented on its own: the character's coat
 changes between shots, the story's object is drawn as something else, the
@@ -27,20 +27,36 @@ YOLO prototypes (`audition.md` §2), which test its beats and cuts cheaply.
 
 **The concept is the base of anything 3D.** No 3D model, procedural scene
 or layered illustration is built until its concept is approved by the
-author. This holds on every tier, whenever 3D or layered illustration enters
-a project: a Rendered 3D still, a real-time world, a drawn scroll story, and
-the YOLO build where it is not yet known what will reach the final page.
-The concepts are judged before the product, never after it.
+author. It binds on the two tiers that allow 3D and layered illustration,
+High and YOLO, whenever a project uses them: a High card that models
+(Rendered 3D; Clay 3D shaped as an object or a character; a Glass object or
+an Object that travels between sections that is a model;
+`techniques/high.md`), and the YOLO films, worlds and scroll stories
+(`techniques/yolo.md`), including the YOLO build where it is not yet known
+what will reach the final page. Fast and Medium do not use 3D
+illustration, and this adds none to them. The tier message asks whether
+the project will use 3D or illustration and whether an illustrator or a 3D
+artist is supplied (`audition.md` §4); a yes starts this section. The
+concepts are judged before the product, never after it.
 
 In this order, each step recorded in the concept ledger below:
 
-1. **The concept.** If the author supplied concept art, it is the base, and
+1. **The references.** Before any option is made, search for real
+   illustrations close to each scene, character and object (comics, picture
+   books, concept art, illustrated sites). This is the Research stage
+   (`identity.md` §6) carried on for the concept, not a new stage:
+   shortlist them, log the rejects in the same research log with one line
+   of reason each, and record each kept reference's source URL and licence.
+   They are references, never copied, and never stored in the project: link
+   them, do not embed them.
+2. **The concept.** If the author supplied concept art, it is the base, and
    the steps below start from it. If not, generate concept art (`drawn-assets.md`
    §7, forced into the inks by §8), from the bible when there is one, and
    show it to the author: **two or three options for each scene, each
    character and each key idea** (the story's object, a recurring set, the
-   product as a model).
-2. **The scene concept sheet.** Every scene or scenery option is shown with
+   product as a model). Each option names the references of step 1 it draws
+   on.
+3. **The scene concept sheet.** Every scene or scenery option is shown with
    two numbered keys:
    - **The inventory key:** every object, character and building visible in
      the scene, numbered on the image and named ("1. four-storey building,
@@ -50,33 +66,35 @@ In this order, each step recorded in the concept ledger below:
      needs buildings → items 1, 3, 5"). A requirement with no item is a
      blocker, fixed before the author sees the sheet: an abandoned town with
      no buildings never reaches approval.
-3. **The author approves** one option per piece, or combines, rejects or
+4. **The author approves** one option per piece, or combines, rejects or
    redirects, as with an audition (`identity.md` §5). For a scene the author
    confirms it against both keys, may add, remove or change items, and then
    approves; the approved inventory is the scene's spec. Nothing below
    starts on a piece that is not approved.
-4. **Every object that will be built**, modelled in 3D or drawn as its own
+5. **Every object that will be built**, modelled in 3D or drawn as its own
    layer, gets its own concept, approved like the rest: no object is too
    small. An item that exists only inside a painted plane is covered by the
    approved scene sheet and its inventory. **Nothing is modelled or drawn
    that is not in an approved inventory, and nothing in an approved
    inventory is silently dropped**: a change goes back to the author as a
    change to the sheet.
-5. **The look.** The approved concept specifies the whole visual identity of
+6. **The look.** The approved concept specifies the whole visual identity of
    each object, character and scenery piece: its materials and textures
    (surface, grain, wear), its colour and palette (from the brief's inks and
    the hint's places), its line or ink treatment, its finish (matte, satin,
    gloss) and its marks and details (a carved initial, a seam, a chipped
-   edge). It is written on the piece's sheet (§2, §3) and drawn on its
-   turnaround sheet, so nothing about the look is invented at modelling or
-   texturing time.
-6. **Turnarounds** of the approved concept, for each built object, character
-   and scenery piece: front, back, top, both sides and 3/4, plus any angle
-   that piece needs (the underside of a boat, the palm of a hand), each
-   carrying the look of step 5. They are what makes the model match the
-   concept exactly. **The author checks the turnarounds before modelling
-   starts.**
-7. **The layer sheet.** Every piece is planned as layers before it is made:
+   edge). It is written on the piece's sheet (§2, §3) and, for a built
+   piece, drawn on its turnaround sheet, so nothing about the look is
+   invented at modelling or texturing time.
+7. **Turnarounds** of the approved concept, for each piece that is built
+   (modelled in 3D or drawn as its own layer): object, character or scenery
+   piece. Front, back, top, both sides and 3/4, plus any angle that piece
+   needs (the underside of a boat, the palm of a hand), each carrying the
+   look of step 6. They are what makes the model match the concept exactly.
+   **The author checks the turnarounds before modelling starts.** Scenery
+   that exists only as a painted plane gets no turnarounds: its approved
+   scene sheet, inventory and look are its spec.
+8. **The layer sheet.** Every piece is planned as layers before it is made:
    - the depth planes, far, mid and near, and the plane each piece sits on
      (`recipes-motion.md` §17);
    - what each plane hides behind the planes in front of it, so it is drawn
@@ -84,13 +102,13 @@ In this order, each step recorded in the concept ledger below:
    - the model sheet of every element carried across scenes (§1, "Carries
      across"; `recipes-motion.md` §18), so it is one object on both sides of
      the cut.
-8. **Only then the 3D models and the illustrations**, built from the approved
+9. **Only then the 3D models and the illustrations**, built from the approved
    concept and inventory, the turnarounds and the layer sheet, and checked against them
    (§5). A look the sheets do not give is not invented on the model: the
    sheet is updated and shown to the author first.
 
-On the YOLO tier the three prototypes (`audition.md` §2) are made of concept
-art and rough blocking, never of a built model. On the design path the
+The three YOLO prototypes (`audition.md` §2) are made of concept art and
+rough blocking, never of a built model. On the design path the
 concept options are shown and approved before the prototypes are built from
 them; on the audition path each prototype carries its candidate's concept,
 and the options for the chosen one are shown after the pick. Either way the
@@ -107,13 +125,14 @@ size its closest shot needs.
 surface ledger (`identity.md` §8): one row per scene, character, key idea
 and built object, none built before its row reads approved and checked. A
 scene's row names its keys; an object's row names the inventory item it
-comes from.
+comes from; every row names its references by their place in the research
+log.
 
-| Piece | Options shown | Keys / from | Approved by author | Look | Turnarounds checked | Layer sheet | Built |
-|---|---|---|---|---|---|---|---|
-| harbour scene | 3, 2026-11-10 | 9 items; 4 of 4 requirements met | B, 2026-11-11, item 6 removed | §3 sheet | yes, 2026-11-12 (the set from front, sides, top and 3/4) | far: cliffs; mid: houses, whole behind the boat | no |
-| dory | 2, 2026-11-11 | harbour item 2 | A, 2026-11-12 | §3 sheet | yes, 2026-11-13 | near plane; whole under the oar | no |
-| lead character | 3, 2026-11-10 | - | waiting | - | no | - | no |
+| Piece | Kind | References | Options shown | Keys / from | Approved by author | Look | Turnarounds checked | Layer sheet | Built |
+|---|---|---|---|---|---|---|---|---|---|
+| <scene> | painted plane | <log refs, each with URL and licence> | <n>, <date> | <n> items; <met> of <n> requirements | <option>, <date>, <changes> | <sheet §> | none: painted plane | <far / mid / near; what each plane hides> | no |
+| <object> | built: 3D or own layer | <log refs> | <n>, <date> | <scene> item <n> | <option>, <date> | <sheet §> | yes, <date> | <plane; drawn whole behind what> | no |
+| <character> | built | <log refs> | <n>, <date> | - | waiting | - | no | - | no |
 
 ---
 
