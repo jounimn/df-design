@@ -204,6 +204,7 @@ and the two are tested to agree.
 | device frames | Reflex | J | A phone, laptop, terminal or editor frame; more than one | One frame with real content inside, or none | 47b |
 | text under an element | Floor | J | A line of text painted under an opaque box, an image or another run of text | Give the text its own space | 73 |
 | icon libraries | Reflex | J | Two icon libraries on one page | One set (`icons-and-assets.md` §0) | 30b |
+| concept first | Floor | J | A 3D model, procedural scene or layered illustration on the page with no row in the concept ledger (`docs/concept.md`) reading approved, look specified, turnarounds checked and layer sheet drawn; a scene sheet without its inventory key or with a story requirement no item fulfils; a built piece that is not in an approved inventory, or an inventory item silently dropped; a look (texture, colour, line, finish, marks) the sheet does not give. A script cannot tell an approved concept from an invented one | Stop the build of that piece and run `illustration-concept.md` §0 for it: options with both keys, the author's approval, the look, turnarounds the author checks, the layer sheet | - |
 
 ---
 
@@ -349,6 +350,7 @@ surface are the usual failures.
 |---|---|
 | Each audition, before it is shown (`audition.md` §3) | `check-slop <auditions/> --render` beside `check-auditions`; a candidate that fails the Floor is fixed before the author compares |
 | Each surface, after the build, before the verification gate | `check-slop --render` until 0 FAIL and every REFLEX fixed or waived; then the judged gates in §3 and §5 from the screenshots it wrote |
+| Before any 3D model, procedural scene or layered illustration is built | The concept first gate (§3) from the concept ledger: the piece's row approved, look specified, turnarounds checked, layer sheet drawn (`illustration-concept.md` §0) |
 | A redesign | `check-kept record` before, `check-kept check` after (`redesign.md`) |
 | The reviews (`reviews.md`) | The reviewer reads this file's §3 and §5 and the screenshots; never the CSS, which the script has already read |
 

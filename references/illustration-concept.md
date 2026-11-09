@@ -3,8 +3,13 @@
 When an identity is led by illustration (a drawn scroll story, a webcomic
 experience, a site whose pictures are drawn for it) and the author supplies
 no concept art, the skill writes the concept bible itself, **before any
-art**, and carries it through the build. It is text only. Every panel,
-render and transition that follows is made from it and checked against it.
+art**, and carries it through the build. The bible is text; the concept art
+of §0 is drawn from it. Every panel, render and transition that follows is
+made from it and checked against it.
+
+Whatever the identity, any 3D or layered illustration in a project starts
+with §0: concept, the author's approval, turnarounds, a layer sheet, and
+only then the models and the pictures.
 
 Without a bible each picture is invented on its own: the character's coat
 changes between shots, the story's object is drawn as something else, the
@@ -15,6 +20,100 @@ It lives in the project beside the identity brief (`docs/concept.md`, next to
 `docs/identity.md`), the brief's `Drawn:` line points at it (`identity.md`
 §8), and it is written after the identity is chosen and before the three
 YOLO prototypes (`audition.md` §2), which test its beats and cuts cheaply.
+
+---
+
+## 0. Concept first
+
+**The concept is the base of anything 3D.** No 3D model, procedural scene
+or layered illustration is built until its concept is approved by the
+author. This holds on every tier, whenever 3D or layered illustration enters
+a project: a Rendered 3D still, a real-time world, a drawn scroll story, and
+the YOLO build where it is not yet known what will reach the final page.
+The concepts are judged before the product, never after it.
+
+In this order, each step recorded in the concept ledger below:
+
+1. **The concept.** If the author supplied concept art, it is the base, and
+   the steps below start from it. If not, generate concept art (`drawn-assets.md`
+   §7, forced into the inks by §8), from the bible when there is one, and
+   show it to the author: **two or three options for each scene, each
+   character and each key idea** (the story's object, a recurring set, the
+   product as a model).
+2. **The scene concept sheet.** Every scene or scenery option is shown with
+   two numbered keys:
+   - **The inventory key:** every object, character and building visible in
+     the scene, numbered on the image and named ("1. four-storey building,
+     roof collapsed; 2. overturned car; 3. dead tree").
+   - **The story-requirements check:** each thing the brief or the story
+     requires, mapped to the inventory items that fulfil it ("the story
+     needs buildings → items 1, 3, 5"). A requirement with no item is a
+     blocker, fixed before the author sees the sheet: an abandoned town with
+     no buildings never reaches approval.
+3. **The author approves** one option per piece, or combines, rejects or
+   redirects, as with an audition (`identity.md` §5). For a scene the author
+   confirms it against both keys, may add, remove or change items, and then
+   approves; the approved inventory is the scene's spec. Nothing below
+   starts on a piece that is not approved.
+4. **Every object that will be built**, modelled in 3D or drawn as its own
+   layer, gets its own concept, approved like the rest: no object is too
+   small. An item that exists only inside a painted plane is covered by the
+   approved scene sheet and its inventory. **Nothing is modelled or drawn
+   that is not in an approved inventory, and nothing in an approved
+   inventory is silently dropped**: a change goes back to the author as a
+   change to the sheet.
+5. **The look.** The approved concept specifies the whole visual identity of
+   each object, character and scenery piece: its materials and textures
+   (surface, grain, wear), its colour and palette (from the brief's inks and
+   the hint's places), its line or ink treatment, its finish (matte, satin,
+   gloss) and its marks and details (a carved initial, a seam, a chipped
+   edge). It is written on the piece's sheet (§2, §3) and drawn on its
+   turnaround sheet, so nothing about the look is invented at modelling or
+   texturing time.
+6. **Turnarounds** of the approved concept, for each built object, character
+   and scenery piece: front, back, top, both sides and 3/4, plus any angle
+   that piece needs (the underside of a boat, the palm of a hand), each
+   carrying the look of step 5. They are what makes the model match the
+   concept exactly. **The author checks the turnarounds before modelling
+   starts.**
+7. **The layer sheet.** Every piece is planned as layers before it is made:
+   - the depth planes, far, mid and near, and the plane each piece sits on
+     (`recipes-motion.md` §17);
+   - what each plane hides behind the planes in front of it, so it is drawn
+     or modelled whole and nothing needs inpainting later;
+   - the model sheet of every element carried across scenes (§1, "Carries
+     across"; `recipes-motion.md` §18), so it is one object on both sides of
+     the cut.
+8. **Only then the 3D models and the illustrations**, built from the approved
+   concept and inventory, the turnarounds and the layer sheet, and checked against them
+   (§5). A look the sheets do not give is not invented on the model: the
+   sheet is updated and shown to the author first.
+
+On the YOLO tier the three prototypes (`audition.md` §2) are made of concept
+art and rough blocking, never of a built model. On the design path the
+concept options are shown and approved before the prototypes are built from
+them; on the audition path each prototype carries its candidate's concept,
+and the options for the chosen one are shown after the pick. Either way the
+turnarounds and the layer sheet come after the pick and before production.
+
+Why: on a 2026-11 YOLO example the panels were drawn as flat single images
+and the layers were lifted afterwards by segmentation and inpainting. The
+fills behind the characters came out blotchy, the close-ups had no
+high-resolution source, and the layers stayed stuck in the composition they
+were cut from. Planned at concept time, each plane is made whole and at the
+size its closest shot needs.
+
+**The concept ledger** sits at the top of `docs/concept.md`, kept like the
+surface ledger (`identity.md` §8): one row per scene, character, key idea
+and built object, none built before its row reads approved and checked. A
+scene's row names its keys; an object's row names the inventory item it
+comes from.
+
+| Piece | Options shown | Keys / from | Approved by author | Look | Turnarounds checked | Layer sheet | Built |
+|---|---|---|---|---|---|---|---|
+| harbour scene | 3, 2026-11-10 | 9 items; 4 of 4 requirements met | B, 2026-11-11, item 6 removed | §3 sheet | yes, 2026-11-12 (the set from front, sides, top and 3/4) | far: cliffs; mid: houses, whole behind the boat | no |
+| dory | 2, 2026-11-11 | harbour item 2 | A, 2026-11-12 | §3 sheet | yes, 2026-11-13 | near plane; whole under the oar | no |
+| lead character | 3, 2026-11-10 | - | waiting | - | no | - | no |
 
 ---
 
@@ -57,6 +156,8 @@ One sheet per living character, built anatomy first (`drawn-assets.md` §6):
   thumbnail size (the hair, the coat, a prop).
 - **Costume and props:** the one garment and the one object they carry, the
   same in every shot.
+- **The look** (§0): the materials and textures of skin, hair, garment and
+  prop, their colours, the line, the finish, and the marks and details.
 - **What the camera may and may not show:** for example no full face at full
   screen; silhouette, hands, eyes and profile only.
 - **The hint:** whether and how the design hint touches them (the light of
@@ -80,6 +181,8 @@ One sheet for the story's object, and one for each recurring set and prop:
   need the thing, not its meaning.
 - **What it must never be drawn as:** the readings it slides into (a sun, a
   moon, a mountain, a boat, a comet).
+- **The look** (§0): its textures (surface, grain, wear), its colours, the
+  line, the finish, and its marks and details.
 - **Its light:** whether it gives light, what colour, what it lights and how
   far (the hint's places, `recipes-design.md` §2).
 - **Its ground:** which ground it lives on, and how it reads on the others.
@@ -104,7 +207,8 @@ One sheet for the story's object, and one for each recurring set and prop:
 
 - Every panel, render and transition is checked against the bible before it
   goes on the page: the character sheet, the form sheet, the style sheet,
-  the beat table's cut and ground.
+  the beat table's cut and ground, and for a model or a layered picture its
+  turnarounds and layer sheet (§0).
 - A generation that breaks a sheet is **rejected, not patched**: regenerate
   with a new seed or a corrected prompt. The small fixes `drawn-assets.md` §7
   allows (erasing a stray moon, cutting a prop from another generation) are
