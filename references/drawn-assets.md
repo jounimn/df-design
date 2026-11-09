@@ -13,7 +13,10 @@ the same ink (§9) and how water, smoke and sparks are drawn frame by frame
 (§10). When the identity is led by
 illustration and the author supplies no concept art, the concept bible
 (story spine, character, form and style sheets) is written first, in
-`illustration-concept.md`, and every drawing here is made from it.
+`illustration-concept.md`, and every drawing here is made from it. Any 3D
+model or layered illustration (§6, §7, §9) is made only after its concept
+is approved: options with the scene's inventory key, the look, turnarounds
+the author checks and a layer sheet (`illustration-concept.md` §0).
 
 Library icon sets and stock illustration are in `icons-and-assets.md` and
 `images.md`. A drawing never replaces a photograph or the product
@@ -373,7 +376,9 @@ left.
 A drawn character can hold a pose; it cannot turn and walk through a cut
 without an animator's frames. When the story needs that movement
 (`recipes-motion.md` §16), the character is 3D, built on the anatomical
-base of §6, and rendered so it carries the sets' line and tone. The recipe
+base of §6 from its approved concept and the turnarounds the author checked
+(`illustration-concept.md` §0), and rendered so it carries the sets' line
+and tone. The recipe
 below is adapted from the `blender-stylized-npr`, `blender-character-rigging`,
 `blender-animation`, `blender-rendering` and `blender-export-pipelines`
 skills (EL4CTEO/blender-skills, MIT) and the `threejs-materials` and
@@ -526,6 +531,7 @@ this project", the script and seed that made it, the frame count and rate.
 | "The label is part of the drawing" | Live text inside an SVG is not read, translated or found. Set it in the page. |
 | "It looks right at 200px" | Run `sheet`: it has to read at 24px and inverted too. |
 | "The doodles can be in the hint colour" | The hint goes on a drawing only when it is the subject or the mark, and it counts toward the hint's places. |
+| "I'll paint the scene flat and cut the layers out later" | Segmentation and inpainting leave blotchy fills behind the figures and no high-resolution source for the close-ups. Plan the planes on the layer sheet, each drawn whole, before any art (`illustration-concept.md` §0). |
 | "The figure reads well enough from its silhouette" | A living character starts from its skeleton and proportions, then volume, then clothing (§6). Without them every pose looks wrong. |
 | "The generated panel is close enough to the identity" | Run the ink pass (§8): the model's greys, glow and off-palette colour are not the brief's inks. |
 | "I'll wait for this generation to finish" | Run it in the background with a progress file (§7). One image can take an hour on a laptop. |

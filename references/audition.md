@@ -155,6 +155,11 @@ afternoon.
 - **What each one is.** One light HTML file with 4 to 6 key beats of the same
   story or content, and the transitions between them actually working. The art
   is rough on purpose; no mass production, no final renders.
+- **Concept first.** The rough art is concept art and blocking, never a built
+  model. Any 3D or layered illustration in it follows
+  `illustration-concept.md` §0: the concept options and the author's
+  approval, then, after the pick and before production, the look,
+  turnarounds the author checks and the layer sheet.
 - **What it says.** A short cost note under each: the time, the tools
   (Blender, an image model, a 3D scene), and the weight full production would
   take.

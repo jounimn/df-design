@@ -253,7 +253,7 @@ Hint:          <base pair → the design hint, its feeling in one word, and the 
 Origin:        <the references kept from the research log, with their class>
 Never:         <the drifts this identity forbids, e.g. "generic SaaS card grid">
 Icons:         <the one set, its stroke and size logic, and why it fits (icons-and-assets.md §0)>
-Drawn:         <only when the identity draws its own: what (doodles, annotations, spot illustrations, the icon set), the line (stroke, caps, character, roughen seed and amount), and each drawing's job (drawn-assets.md)>
+Drawn:         <only when the identity draws its own or uses 3D: what (doodles, annotations, spot illustrations, the icon set), the line (stroke, caps, character, roughen seed and amount), and each drawing's job (drawn-assets.md); for any 3D or layered illustration, the concept ledger path (docs/concept.md: options, approval, look, turnarounds, layer sheet; illustration-concept.md §0)>
 Images:        <author's answer on stock images; if yes: sources, treatment, which pages; asset record path (images.md §5)>
 Loading tier:  <fast / medium / high / yolo / custom, as chosen by the author (audition.md §4), and what justifies it; for yolo, also the measured weight in MB and the Floor fallback>
 Surfaces:      <every surface in scope: landing, app, admin, docs, 404...; name out-of-scope surfaces as untouched>
