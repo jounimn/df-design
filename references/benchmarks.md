@@ -307,3 +307,18 @@ Run the same day over the live sites, as the check of the rebuilt tool against t
 | www.igloo.inc | works without JS (no headings or paragraphs), no audio before a gesture (18 files, in the second of two runs) | no canvas found |
 
 It agrees with the judgement on the readable column and on sound for every site, though not on every run: igloo.inc fetched no sound in a first run and 18 files in a second, so its sound depends on timing. It is stricter on reduced motion: it caught films and drawings that kept moving where the screenshots looked still. It cannot judge a scene it cannot find (igloo.inc and messenger.abeto.co draw behind a loader or a "Begin" button), so on such a page the reduced-motion and lighter-path columns still need the look.
+
+### A built illustrated scroll story, measured 2026-11-13
+
+Not part of the cohort: an example built with this skill (kept outside the repository), traced with real wheel input at 1440 x 900 on a laptop's integrated GPU, three runs each, every run started only with the CPU load under 20 % (`verification.md`, "Measuring frames and the loader").
+
+| Measure | Value |
+|---|---|
+| Story | 15 scenes on one WebGL stage, 46,778 px of scroll, a drawn ending |
+| Art, all of it | 4.96 MB in 95 files; the ending's 0.8 MB fetched after the entry |
+| Sound | 0 bytes: synthesized in the browser after the reader's click |
+| Loader, median | 2.8 s on a quiet machine after the shader split (4.3 s before it, same session); 4.5 s on a busier day |
+| Frames over 50 ms | 0 in each of three runs; mean frame 17.6 to 17.7 ms; worst frame per scene 18 to 19 ms, with a missed vsync (36 ms) in a few |
+| `check-motion --tier yolo` | no check failed |
+
+It is the only page in this file that passes the whole Floor with an illustrated story: the stills and the text without scripts, the stills under reduced motion, no sound before a click.

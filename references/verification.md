@@ -149,6 +149,45 @@ blank for a whole frame, does the end of the page arrive. `check-slop
 section, a scroll-driven animation or a virtual scroller, and `--motion`
 asks for it on any page.
 
+### The builder's own print session
+
+On a scroll story the capture's sheets are not enough, and neither are
+sheets an agent picked: a 2026-11 example passed round after round on sheets
+the agent chose, while the author, scrolling it, found elements stacked on
+each other, layers stuck in place and long frames in the cuts. Before reporting a pass, the builder runs a print session
+itself:
+
+- the page served over http at 1440 x 900, driven by real mouse-wheel input
+  (not `scrollTo`, which a smooth-scroll library ignores);
+- one screenshot every 600 px over the whole page, and one every 150 px
+  (down to 20 to 50 px for a cut being fixed) through every scene and cut
+  that changed;
+- every shot looked at, in order, before anything is reported; the sheets
+  shown to the author are made from these shots, never chosen to flatter.
+
+For a before and after of one change, freeze the page's clock and diff the
+two builds at the same positions; the frozen clock must still only move
+forward (advance by real time, never back), or the scenes land in the wrong
+state. Write every scratch file to an absolute path outside the project,
+and check afterwards that the project gained no files.
+
+### Measuring frames and the loader
+
+Frame times and loader times on a shared machine measure the machine as
+much as the page: with the load just under 20 %, antivirus bursts put up to
+nine frames per run over 50 ms that a quieter run of the same build, minutes
+later, did not have. So:
+
+- start each run only once the CPU load averages under 20 % over a few
+  samples, and record the load before and after; parse the number with the
+  decimal comma in mind (PowerShell in a Portuguese locale prints `45,3`),
+  and stop the run loudly if it does not parse;
+- three runs at least, report the median and the spread, never one number;
+- compare against the previous build traced in the same session,
+  alternating the two (A, B, A, B), never against a number from yesterday;
+- to find a hitch, switch suspects off with URL flags and run each variant
+  three times.
+
 ---
 
 ## Probe, do not squint
@@ -192,8 +231,10 @@ the page downloads by type (images, video, models, audio, script), which is
 the price the tier message names. It fails the Floor: a canvas or a video
 that moves under reduced motion, a blank canvas without WebGL, less than
 40 % of the headings and paragraphs readable without JavaScript (text under
-an opaque loader counts as missing), and any sound file fetched before the
-visitor clicked. It also reports, without failing, a page built below the
+an opaque loader counts as missing), and any sound file fetched, or any
+AudioContext made or resumed, before the visitor clicked. The sound check
+fails on `--tier high` as well: run it over http(s) on a High page with
+sound. It also reports, without failing, a page built below the
 chosen tier: none of the yolo techniques it can see, or less in all than
 the High ceiling. Tell the author; build the techniques or re-send the tier
 message.

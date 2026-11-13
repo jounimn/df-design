@@ -277,7 +277,12 @@ point, and inside it both scenes are rendered and moving:
   has stopped and the other has not started, no black hold, no zoom into a
   frozen frame;
 - inside a scene the camera passes through its keys on one smooth curve; it
-  does not ease out and back in at each one.
+  does not ease out and back in at each one;
+- one drawn effect per cut, never two at once, over at least 1.2 screens of
+  scroll, so no cut happens inside a frame or two;
+- once the effect covers the whole frame, draw the incoming scene alone
+  until the next cut: drawing the covered scene under it is what put long
+  frames in a cut's tail on a 2026-11 example.
 
 **3. Scroll is time, with eased velocity.** Map the scroll to one position
 on the episode's timeline, and let the rendered position follow it with a
@@ -347,6 +352,17 @@ each cut on the contact sheets, three frames in: both scenes in motion, the
 mask advancing, nothing frozen. Rebuild after every change to the camera or
 the cuts and record again: a fix to one cut can stop the next one.
 
+Measure a cut on wheel-driven prints every 50 to 150 px through it
+(`verification.md`, "The builder's own print session"), never from its
+easing maths: its length is the visible window, from the first changed pixel
+to the frame fully covered, and its dead beat runs from the first fully
+covered frame to the first frame where the next scene reads as content.
+Drive a covering radius from the real far corner of the screen, not a fixed
+constant, and keep any overshoot to the last 10 to 15 %. A ragged edge needs
+its position wobbled (a rolling centre line, a width that swells along it),
+not only its thickness, or the first 10 % of the reveal reads as a ruled
+line: check that first tenth at 1:1.
+
 ---
 
 ## The grammar of a drawn scroll story (§17–§26)
@@ -381,6 +397,10 @@ dead stop.
 - **Split every set into planes** when it is drawn or generated: the ink pass
   writes the figure and background planes (`drawn-assets.md` §8); a set gets
   three to six planes, each with a `data-depth` from 0 (fixed) to 1 (nearest).
+  A set lifted from a finished panel gets three at most (far, mid, near),
+  each approved on a sheet before it enters, and no plane of one scene ever
+  shows over another scene: more planes cut from one picture drift apart
+  and stay stuck in the composition they came from.
 - **Pointer by depth, damped.** Displacement = depth x strength, eased with a
   damping that does not depend on the frame rate (`1 - exp(-λ·dt)`), never a
   fixed lerp per frame. Strength 16 to 32 px at depth 1 on a 1440 px screen;
@@ -391,6 +411,10 @@ dead stop.
 - **Ambient drift** of 10 to 20 % of the pointer amplitude, each plane out of
   phase with the next (a 120° offset reads as alive, not as one block
   swaying).
+- **Secondary motion on twos** where the story has energy and the drawing
+  would go dead: the sea heaving after an impact, the splash riding it one
+  drawing later, a few pixels, on the same 8-to-12-a-second clock as the
+  line boil (§25), calming over the hold.
 - **Overlap the planes,** and keep their edges from lining up: an edge of the
   near plane that sits exactly on an edge of the far one flattens the depth.
 
@@ -456,6 +480,13 @@ never loses their place because one shape carries them across.
   drops while the carrier rises; the eye follows what moves against the rest.
 - **Shape before detail.** Match the silhouette first (the table top and the
   pillar capital share a width), then let the detail change inside it.
+- **One carrier per cut at most, and only where the story asks for it.** It
+  is drawn once, from one model sheet (`illustration-concept.md` §0, the
+  layer sheet), and built for that cut: a generic system that carries any
+  element across any cut is the stacking this section is not.
+- **Anticipation.** The carrier gathers before it goes: it draws back a few
+  per cent along its own path over the first fifth of the cut, then moves.
+  The reference cuts on action; the wind-up gives the move its weight.
 
 The whole span is one scroll-scrubbed timeline, so it plays backwards when
 the reader scrolls back:
@@ -596,6 +627,11 @@ The reference sets almost no paragraphs. Its type does three things:
   narration in a thin rule box) enters on its own, a short move of 12 to 24 px
   with a clip from one edge, and leaves before the next one comes. Captions are
   HTML, never letters in the art, so they are read, translated and found.
+  One rhythm for every caption, whatever the hold's length: it enters after
+  its scene has settled (a 2026-11 example used 0.22 screen in, 0.18 screen
+  out) and is gone 0.1 screen before the cut begins. A line the story turns
+  on gets a longer moving hold, so it is read whole; a caption from the last
+  scene never shows over the next.
 - **Assembly by tracking.** The title cards ("THE NOTTURNO EXPERIENCE",
   "INDULGE NOW / ATONE LATER") gather from very wide tracking to their set
   tracking as the scroll arrives, the letters fading up as they close; they
@@ -663,6 +699,15 @@ the background answers. `dfStory.hold` is the control:
 - **The press answers in under 100 ms** (scale to 0.97 on press), and the
   release falls back gently rather than snapping.
 - **Hold time 1 to 2 s.** Shorter is a click; longer is a chore.
+- **A real control that never takes the wheel.** A `<button>` named in the
+  page's language; pointer capture on press, released on `pointerup`,
+  `pointercancel`, `lostpointercapture` and window `blur`; Space or Enter
+  held (no key repeat) does the same; `touch-action: none` and the context
+  menu blocked on the button only. The wheel still scrolls while it is held,
+  and the button leaves before its scene's cut, letting go of a press.
+  `check-slop --render` fails a page the wheel cannot scroll
+  (`wheel-hijack`); a held key or a held mouse must leave the scroll where
+  it was.
 - The background keeps moving during the hold (§17): the hold is a beat, not
   a pause.
 
@@ -717,6 +762,8 @@ Because every scene is bound to the scroll, restarting is scrolling to the
 top: nothing has to be reset by hand. The carousel is a real list of links
 or buttons that works without scripts; its arrows are buttons with names.
 
+An ending piece that draws itself in from a full clip (`clip-path: inset(0 0 100% 0)`) or a zero-size mask is never seen by an `IntersectionObserver` watching it: observe an unclipped wrapper, or read its rectangle in the frame loop the stage already runs, and check the computed clip after scrolling to it.
+
 ---
 
 ## 24. Preload everything, honestly
@@ -752,7 +799,33 @@ document.documentElement.dataset.ready = '';
 
 - **Honest:** the figure moves only when work is done, never backwards, and
   reaches 100 % only after the compile. three.js's `LoadingManager` reports per
-  file, not per byte, so weight the files by size if they differ a lot.
+  file, not per byte, so weight the files by size if they differ a lot. A
+  2026-11 example split its progress as streamed bytes 60 %, decode 15 %,
+  upload with one draw per texture 15 %, compile 10 %.
+- **Nothing draws with the real material before the downloads.** The first
+  `renderer.render` under the loader compiles the whole program
+  synchronously before any fetch starts; clear the canvas for the loader's
+  own drawing, start `compileAsync` before the downloads and await it after
+  the decode. Time the loader's phases (when the bytes end, when the compile
+  ends, when the upload ends) before blaming the textures.
+- **One program per scene family, not one uber-shader.** A single program
+  holding every scene's effects behind runtime flags, inlined twice for the
+  two sides of a cut, was what the loader waited on: splitting it into
+  programs keyed by (cut, side A's features, side B's features), assembled
+  from shared GLSL chunks and listed from the scene data so none is made on
+  the fly, took the heaviest compile from 2.2 s to 0.34 s and the loader from
+  4.3 s to 2.8 s on the same machine. Each program is drawn once under the
+  loader to warm it; log any program the scene list did not plan. On Windows
+  the compile cost can be timed exactly by running D3DCompile on the HLSL
+  ANGLE translates; flag a rise of more than about 15 % from the last
+  checkpoint.
+- **The far scenes may load after the entry, behind a guard.** The loader
+  carries the scenes up to the first cut the reader can reach in its first
+  seconds; the rest is fetched, decoded and uploaded one texture per idle
+  slice after the entry, the far programs compiled the same way and drawn
+  once into a 1 x 1 scissor. If the reader gets there first, the stage holds
+  the frame and says in a line that the drawings are still loading. Still
+  honest: nothing the reader can reach is drawn half-loaded.
 - **Text is not behind the loader.** The story's text and the first panel are
   in the HTML and readable while the rest loads (`techniques/yolo.md`, the
   Floor). The loader covers the stage, not the page.
@@ -979,8 +1052,9 @@ effect working.
 - [ ] Image reveals play once, after decode, animating only transform, opacity, filter, clip-path or mask
 - [ ] In a scroll story, every scene change is a designed cut from the transition list, both scenes move through it, and the recording shows no stall (§16)
 - [ ] In a drawn story, every set is split into depth planes that answer the pointer and keep a moving hold (§17); each cut names the element it carries across (§18); the focus field, the captions and the title cards are bound to the scroll and play backwards (§20, §21)
-- [ ] Every hold beat can be tapped, held from the keyboard or scrolled past (§22); the ending is a scene with a restart (§23)
-- [ ] Images are decoded, uploaded and the shaders compiled before the first cut, behind a progress figure that tells the truth, with the text readable meanwhile (§24)
+- [ ] Every hold beat can be tapped, held from the keyboard or scrolled past, and the wheel scrolls while it is held (§22); the ending is a scene with a restart (§23)
+- [ ] Images are decoded, uploaded and the shaders compiled before the first cut, behind a progress figure that tells the truth, with the text readable meanwhile (§24); one program per scene family, each warmed with one draw; anything loaded after the entry is behind a guard
+- [ ] A drawn story's structure holds: one stage, the scenes as data, three planes at most for a set lifted from a panel (§17), one drawn effect and at most one carried element per cut (§16, §18), one caption rhythm (§21), no global overlay
 - [ ] Liquids, smoke and sparks are drawn frame loops on twos, not shader effects (§25); under reduced motion the whole story is its stills (§26)
 - [ ] Smooth scroll only where a scrub needs it, never under reduced motion, and the page works the same without it (§27)
 - [ ] Every cursor-driven effect has an idle autopilot: a slow path until the hand moves, back after about 3 s, the path only on touch, off under reduced motion (§28)

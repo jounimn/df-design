@@ -309,6 +309,19 @@ every step: the panel, the seed, the step, the start and end times, the
 output. Check the progress file; never hold the session on one blocking
 call that runs for an hour.
 
+**The machine first.** Before queueing, run one tiny probe (the smallest
+size, one step) and log the lowest free memory it reaches: the free memory
+at the start, less the weights' resident size, must stay above the system's
+floor with a margin. On a 2026-11 example a laptop generating on its CPU
+fell from 12 GB free to its 3 GB floor with every quantization tried, a step took
+six minutes, and the agent's host killed the runs for memory; that machine
+cannot generate, and the tier message says so (the art then comes from the
+author, from repair of approved panels, or from generation on a GPU or a
+cloud service). When a run is killed, list the processes it started and stop
+the orphans; the queue checks a stop file between jobs. Blender may not be
+installed either: a portable Blender, unpacked and run headless with Cycles
+on the CPU, needs no installer.
+
 **The record.** Each generated file gets a row in the asset record
 (`images.md` §5): the model, its quantization, source repository and
 licence; every checksum; the runner and its version; the seed, steps, cfg,
@@ -474,6 +487,16 @@ every toon material.
 A figure that reads as a mannequin beside the drawn sets goes back to
 modelling and shading; it does not go on the page.
 
+**Moving figures, not close-ups.** A render inked by a fixed pass holds up at
+scene size, where a rower is fifty pixels tall; at close-up size its
+regular hatching reads as a machine's next to hand-cut engraving. Where the
+close-up exists as a drawing, repair the drawing and use the render only as
+the guide to pose and occlusion (`illustration-concept.md` §0, "Repair
+before replace"). Hands built for ink are one mass: contours only between
+different bodies, the hatch laid across the whole hand rather than along
+each finger, the shading smoothed inside the mass before it is hatched; a
+finger modelled and hatched as its own part reads as bone.
+
 ---
 
 ## 10. Drawn effects, frame by frame
@@ -540,4 +563,6 @@ this project", the script and seed that made it, the frame count and rate.
 | "I'll wait for this generation to finish" | Run it in the background with a progress file (§7). One image can take an hour on a laptop. |
 | "A particle system will do for the pour" | In a drawn world the liquid, the smoke and the sparks are drawn frames on twos (§10). A shader effect is the one thing that breaks the etching. |
 | "The 3D figure is shaded, so it fits the sets" | Bands with an ink-tinted shadow, a contour, the Standard view transform and the ink pass (§9). A smooth-shaded figure beside etched sets is a mannequin. |
+| "The render is cleaner than the panel, so it replaces it" | A render through an ink pass reads as a machine beside hand-cut engraving. Repair the panel in its own line and use the render as the structural guide (§9; `illustration-concept.md` §0). |
+| "The generator will run overnight" | Probe the memory floor first (§7). On a machine that cannot hold the weights, say so in the tier message and get the art another way. |
 | "Any open model will do" | Only weights whose own licence allows commercial use, with the checksum recorded; never a dev or non-commercial release (§7). |

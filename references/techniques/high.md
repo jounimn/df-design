@@ -1,6 +1,6 @@
 # High techniques
 
-High expensive loading: heavy script, large media, and main-thread and GPU cost, so it needs a fallback. The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. Each card here links its lighter version, in [medium.md](medium.md) or [fast.md](fast.md), except Clay 3D, Rendered 3D and the four cards added from the 2026-11-07 template research (Fluid ink, Glass object, Reflective water floor, Object that travels between sections), which say why there is none, as do the three added from the component catalogue read on 2026-11-08 (Glass letters, Images that fray and smear, Type on geometry). Those seven, and the scroll morph in Particles, were measured on example pages built for them (`docs/examples/motion-techniques/`), because the pages that show them publish only recordings.
+High expensive loading: heavy script, large media, and main-thread and GPU cost, so it needs a fallback. The tier is described in [audition.md §4](../audition.md#4-loading-cost-cheapest-viable-option-first); this file does not restate it. Each card here links its lighter version, in [medium.md](medium.md) or [fast.md](fast.md), except Clay 3D, Rendered 3D and the four cards added from the 2026-11-07 template research (Fluid ink, Glass object, Reflective water floor, Object that travels between sections), which say why there is none, as do the three added from the component catalogue read on 2026-11-08 (Glass letters, Images that fray and smear, Type on geometry) and Synthesized sound. Those seven, and the scroll morph in Particles, were measured on example pages built for them (`docs/examples/motion-techniques/`), because the pages that show them publish only recordings.
 
 **Own art direction, own material.** A card here is a move, not a look. The strongest pieces of the two catalogues read in November 2026 each had their own art direction and made the effect out of the page's own content: the headline refracted, the section's photographs frayed, the product's labels turned in depth. Their commodity parts wore one house look and ran the effect on a demo's stock picture ([yolo-references.md](../yolo-references.md#a-component-catalogue-read-2026-11-08)). Build the move from what the page already says and shows, in the identity's colours and type; a move copied with its demo's look is the kit again, and the gates name the kit (`named-look-dark`, `border-beam`).
 
@@ -21,6 +21,7 @@ High expensive loading: heavy script, large media, and main-thread and GPU cost,
 | [Glass letters](#glass-letters) | The headline cast in clear glass, the photograph bent through it | Short words over a picture of their subject |
 | [Images that fray and smear](#images-that-fray-and-smear) | A strip of photographs that unravels into threads at its edges, under a smearing lens | Pictures that are the product, shown as a run |
 | [Type on geometry](#type-on-geometry) | Names written along a ribbon tied in a knot, turning in depth | Lists of names that belong to an object |
+| [Synthesized sound](#synthesized-sound) | A quiet score made in the browser, off until the visitor turns it on | Scroll stories and scenes meant to be watched |
 
 ## Particles
 
@@ -1445,3 +1446,42 @@ The page is `docs/examples/motion-techniques/type-geometry/page.html`.
 Fixed measurement examples; the project's references come from research (`identity.md` §6).
 
 - docs/examples/motion-techniques/type-geometry/page.html, the example page built for this card, served compressed over http and probed 2026-11-08: motion code 11 KB, 8 KB in all; Intel UHD GPU through ANGLE (Direct3D11), median frame 16.7 ms, slowest 5 % 16.7 ms; SwiftShader (software) 71 frames in 4 s at 1440 x 900; reduced motion honoured, pauses off screen, fallback without WebGL; the wheel recording reached the end with no stalls.
+
+## Synthesized sound
+
+### What it is
+
+Sound made in the browser while the page plays, with no recorded file: a low bed of wind or hum for each scene, cross-faded through each cut, and short cues on the story's beats. It is offered to the author, never on by default, and silent until the visitor turns it on.
+
+### Where it comes from
+
+Subtractive synthesis, the method of the classic analogue synthesizers, shapes noise and simple waves with filters and envelopes ([Wikipedia, Subtractive synthesis](https://en.wikipedia.org/wiki/Subtractive_synthesis)).
+
+### Suits
+
+Scroll stories and scenes meant to be watched, where a quiet score adds to the picture: [Sleep and sound](../identities/industry.md#sleep-and-sound), [Gaming launch / game studio](../identities/industry.md#gaming-launch--game-studio), [Record label / musician](../identities/industry.md#record-label--musician). Never utilities, forms or shops.
+
+### What it costs the visitor
+
+Measured on the sound module of an example scroll story (2026-11-13): 17 KB of script (6 KB compressed), loaded only when the visitor turns the sound on, and no sound file. With recorded samples it is the YOLO [Sound design](yolo.md#sound-design) card, 1.2 to 8.5 MB of sound.
+
+### Lighter version
+
+No lighter version: silence is the fallback, and it is the default until the visitor turns the sound on.
+
+### For the builder
+
+Web Audio, no library: noise through filters, envelopes and plain oscillators, one bed per scene cross-faded through each cut and short cues tied to the story's beats, each faded with its scene. It needs no licence beyond the project's own code. The heavier version, recorded music and effects in MB, is the YOLO [Sound design](yolo.md#sound-design) card; on YOLO either may be used, or both.
+
+- **Opt-in only.** The tier message offers it ("Sound:", `audition.md` §4) and the author accepts or declines; it is never on by default.
+- **Started inside the click.** The `AudioContext` is created or resumed inside the toggle's click, and only then is the sound module imported (`import()`); nothing plays on load or on scroll. The toggle is a real `<button>` with `aria-pressed`.
+- **Off fades out.** Turning it off or hiding the tab fades and suspends the context; every envelope ramps from zero, so nothing pops.
+- **Reduced motion:** it stays off until the button is pressed, and then plays only the bed of the scene in view, with no beat cues.
+- **An agent cannot hear it.** Measure each bed and cue offline (`OfflineAudioContext`, RMS and peak in dBFS; a 2026-11 example set beds at -39 to -30 dBFS RMS and cues at -26 to -12 dBFS peak under a gentle master compressor), report the numbers, and ask the author to listen on speakers before calling it done.
+- **Checks:** `node scripts/check-motion.mjs <page> --tier high`, over http(s): it fails a sound file fetched, or an `AudioContext` made or resumed, before a click.
+
+#### Where the cost was measured
+
+Fixed measurement examples; the project's references come from research (`identity.md` §6).
+
+- The sound module of an example scroll story built 2026-11 (one bed per scene, beat cues, a master compressor), measured 2026-11-13: 17,373 bytes of script, 6,291 bytes gzip, no sound file.

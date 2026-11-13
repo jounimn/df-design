@@ -24,7 +24,7 @@ export const GATES = {
   'focus-visible': { tier: 'floor', hallmark: '26a', tell: 'No `:focus-visible` styling anywhere, or an outline removed with nothing in its place', fix: 'A ring at 3:1 or better on every interactive element, instant' },
   'focus-fades': { tier: 'floor', hallmark: '15', tell: 'A focus ring that transitions in', fix: 'Instant: no transition on outline or box-shadow in :focus-visible' },
   'reduced-motion': { tier: 'floor', hallmark: '27', tell: 'Motion present and no `prefers-reduced-motion: reduce` fallback (WCAG 2.3.3)', fix: 'Add the fallback (recipes-motion.md, the reduced-motion contract)' },
-  'hidden-at-rest': { tier: 'floor', hallmark: '62', tell: 'Content hidden at rest (opacity 0 or visibility hidden) that depends on a script to appear', fix: 'Visible by default; hide only under a `.js` class the script adds, or animate from visible with @starting-style' },
+  'hidden-at-rest': { tier: 'floor', hallmark: '62', tell: 'Content hidden at rest (opacity 0 or visibility hidden) that depends on a script to appear', fix: 'Visible by default; hide only under a class an inline script adds to <html> (`.js`, or any `classList.add` there), or animate from visible with @starting-style' },
   'decorative-svg': { tier: 'floor', hallmark: '33', tell: 'An inline <svg> with neither aria-hidden="true" nor a label', fix: 'Hide it or name it' },
   'img-alt': { tier: 'floor', hallmark: '76', tell: 'An <img> without alt, or without a source', fix: 'alt="" when decorative, a description otherwise; a real file' },
   'autoplay-unmuted': { tier: 'floor', hallmark: '28a', tell: 'A video autoplaying without muted', fix: '`autoplay muted loop playsinline`' },
@@ -684,11 +684,20 @@ function runChecks(ctx) {
 
   // --- CSS: hidden at rest, grid tracks ----------------------------------------------------------------------------------
   const hasScript = docs.some((d) => d.all.some((n) => n.name === 'script'));
+  // Any class an inline script puts on <html> scopes a reveal as `.js` does (`classList.add('fx')`, `className += ' fx'`).
+  const scriptClasses = new Set();
+  for (const d of docs) for (const n of d.all) {
+    if (n.name !== 'script' || n.attrs.src || !n.raw) continue;
+    for (const m of n.raw.matchAll(/documentElement\.classList\.(?:add|toggle)\(([^)]*)\)/g)) for (const q of m[1].matchAll(/(['"`])([\w-]+)\1/g)) scriptClasses.add(q[2]);
+    for (const m of n.raw.matchAll(/documentElement\.className\s*\+?=\s*(['"`])([^'"`]*)\1/g)) for (const c of m[2].split(/\s+/).filter(Boolean)) scriptClasses.add(c);
+  }
+  const byScript = scriptClasses.size ? new RegExp(`(^|[\\s,>])(html)?\\.(${[...scriptClasses].map((c) => c.replace(/-/g, '\\-')).join('|')})(?![\\w-])`) : null;
   for (const r of rules) {
     if (r.keyframes || r.atRule || r.starting || hasPseudoClass(r.selector) || hasPseudoElement(r.selector) || !mediaAtRest(r.media)) continue;
     const hidden = r.decls.find((d) => (d.prop === 'opacity' && /^0(\.0+)?$/.test(d.value.trim())) || (d.prop === 'visibility' && /hidden/.test(d.value)));
     if (!hidden) continue;
     if (/(^|\s)(html)?\.(js|has-js|wf-active)\b|\[data-js|\.no-js|\[hidden\]|\.hidden\b|sr-only|visually-hidden|skip|\.is-|\.was-|:not\(/.test(r.selector)) continue;
+    if (byScript?.test(r.selector)) continue;
     if (r.decls.some((d) => /^animation(-name)?$/.test(d.prop) && !/none/.test(d.value))) continue;
     if (!hasScript) continue;
     const used = docs.some((d) => d.all.some((n) => splitTop(r.selector, ',').some((s) => compoundMatches(lastCompound(s), n)) && allText(n).length > 0));

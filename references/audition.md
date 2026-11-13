@@ -193,7 +193,7 @@ serves the identity. Unnecessary cost is always wrong.
 |---|---|---|
 | **[Fast expensive loading](techniques/fast.md)** | CSS only (gradients, masks, clip-path, blend modes, `@keyframes`, scroll-driven animations), SVG, system fonts or one or two subset webfonts, small vanilla JS | Adds roughly nothing past the fonts; works without JS |
 | **[Medium expensive loading](techniques/medium.md)** | Several webfonts, a small motion library (GSAP core, Motion from motion.dev, Lenis), Lottie for a few illustrations, heavy optimised imagery, `backdrop-filter` across panels | Tens of KB of JS, or noticeable image weight and GPU work |
-| **[High expensive loading](techniques/high.md)** | WebGL / Three.js / shader scenes, 3D models rendered live or offline in Blender, physics, background video, large Lottie or Rive sets, canvas particle systems | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
+| **[High expensive loading](techniques/high.md)** | WebGL / Three.js / shader scenes, 3D models rendered live or offline in Blender, physics, background video, large Lottie or Rive sets, canvas particle systems, sound synthesized in the browser (offered, off until the visitor asks) | 100+ KB JS and/or MBs of media; main-thread and GPU cost; needs a fallback |
 | **[YOLO](techniques/yolo.md)** | Real-time 3D worlds, pre-rendered 3D films, scroll-scrubbed image sequences, illustrated scroll stories, sound, physics | No ceiling. Measured on eight flagship sites: 5.6 to 26.7 MB of transfer after a full scroll (median 13.8 MB), 376 to 976 KB of script. Still owes the Floor: reduced motion, a lighter path, the content readable without it, no sound before the visitor asks; `check-motion --tier yolo` proves it |
 
 The measured finding (`benchmarks.md`) supports starting cheap: premium
@@ -227,7 +227,7 @@ The number beside a technique is the motion code of a production page that shows
 - [Glassmorphism](techniques/medium.md#glassmorphism): 0 to 282 KB
 - [Cursor-painted reveal](techniques/medium.md#cursor-painted-reveal): 11 KB (an example page built for the card, 2026-11-07)
 
-**[High](techniques/high.md), 12 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D, Rendered 3D, Fluid ink, Glass object, Reflective water floor and Object that travels between sections, which say why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph, Rendered 3D and Halftone say "not measured".
+**[High](techniques/high.md), 16 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D, Rendered 3D, Fluid ink, Glass object, Reflective water floor, Object that travels between sections, Glass letters, Images that fray and smear, Type on geometry and Synthesized sound, which say why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph, Rendered 3D and Halftone say "not measured".
 
 - [Particles](techniques/high.md#particles): 340 KB, the ceiling itself; 11 KB for the version that re-forms by scroll (example page, 2026-11-07)
 - [Holographic](techniques/high.md#holographic): 340 KB, the ceiling itself
@@ -238,6 +238,10 @@ The number beside a technique is the motion code of a production page that shows
 - [Glass object](techniques/high.md#glass-object): 148 KB (example page, 2026-11-07)
 - [Reflective water floor](techniques/high.md#reflective-water-floor): 151 KB (example page, 2026-11-07)
 - [Object that travels between sections](techniques/high.md#object-that-travels-between-sections): 144 to 173 KB (example page, 2026-11-07); with a modelled product of several MB it is the YOLO [Real-time 3D world](techniques/yolo.md#real-time-3d-world)
+- [Glass letters](techniques/high.md#glass-letters): 11 KB of motion code, 127 KB in all with the photograph (example page, 2026-11-08)
+- [Images that fray and smear](techniques/high.md#images-that-fray-and-smear): 11 KB of motion code, 164 KB in all with three photographs (example page, 2026-11-08)
+- [Type on geometry](techniques/high.md#type-on-geometry): 11 KB of motion code, 8 KB of page, no image or library (example page, 2026-11-08)
+- [Synthesized sound](techniques/high.md#synthesized-sound): 17 KB of script and no sound file (an example scroll story, 2026-11-13); offered, never on by default
 - Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Rendered 3D](techniques/high.md#rendered-3d) (Blender, offline), [Halftone](techniques/high.md#halftone)
 
 **[YOLO](techniques/yolo.md), 6 techniques:** no ceiling, priced in MB of transfer, not in motion code (`benchmarks.md`, "YOLO, measured"). Each names its Floor fallback and links the nearest lower card where one exists. The number is the whole page after a full scroll. What the flagship sites show, scene by scene, and what makes each one absurd is in [yolo-references.md](yolo-references.md): a YOLO build reads it before probing them again, and adds to it what a new probe finds, with the date.
@@ -320,6 +324,10 @@ Loading cost: how heavy the site is to load. Pick one:
    3D or illustration: <does this option use 3D or illustration, and is an
    illustrator or a 3D artist supplied? e.g. "yes, the loaf is modelled;
    no 3D artist, so the concept art is generated for your approval first">.
+   Sound (optional): <offer sound made in the browser, with its cost, for the
+   author to accept or decline, e.g. "a low hum and a soft click as the loaf
+   turns, off until the visitor taps it: about 17 KB of script, no sound
+   files; yes or no?">.
 4. YOLO, the no-savings tier for flagship sites: <what it adds, e.g. "the
    bakery as a 3D world you scroll through, with the oven's sound on a tap">.
    Cost: <the weight in MB, e.g. "about 10 to 15 MB after a full scroll,
@@ -331,6 +339,10 @@ Loading cost: how heavy the site is to load. Pick one:
    illustrator or a 3D artist supplied? e.g. "yes, the oven world is
    modelled and the panels drawn; no artist supplied, so the concepts are
    generated for your approval first">.
+   Sound (optional): <offer sound made in the browser or recorded, with its
+   cost, for the author to accept or decline, e.g. "the oven's roar and the
+   shop bell, off until the visitor taps it: recorded, about 3 MB fetched on
+   the tap, or made in the browser, about 17 KB of script; yes or no?">.
 
 <If the cheapest tier cannot fully deliver the identity: say exactly what
 it cannot do and which tier can. Otherwise: "Fast does everything this
@@ -343,6 +355,14 @@ is yes, no model or layered picture is built before its concept is
 approved (`illustration-concept.md` §0); when no illustrator or 3D artist
 is supplied, the concept art is generated (`drawn-assets.md` §7) and
 approved first.
+
+The "Sound" line also sits on the High and YOLO options only. It is an
+offer, never a default: the author accepts or declines it, and a no means
+no sound. On High it is sound made in the browser
+([Synthesized sound](techniques/high.md#synthesized-sound)); on YOLO it may
+also be recorded ([Sound design](techniques/yolo.md#sound-design)). Either
+way it is silent until the visitor turns it on, and `check-motion` fails it
+on both tiers when it is not.
 
 The YOLO line is always offered and never the recommendation. Its cost is
 the transfer in MB for this project, with the first view stated apart, not

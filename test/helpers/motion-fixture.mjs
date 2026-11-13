@@ -13,13 +13,13 @@ export const KINDS = [
   'hiddenUnderReduce', 'removedUnderReduce', 'swapsCanvasForFallback', 'threeLoops', 'lateTwoD',
   'eightCanvases', 'eightOneRogue', 'shadowCanvas', 'fixedCanvas', 'offscreenWorker', 'opacityZero', 'resizing',
   'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty',
-  'loaderCover', 'audioOnLoad', 'audioOnClick', 'videoIgnoresReducedMotion', 'videoHonoursReducedMotion',
+  'loaderCover', 'audioOnLoad', 'audioOnClick', 'synthOnLoad', 'synthOnClick', 'videoIgnoresReducedMotion', 'videoHonoursReducedMotion',
   'parallaxPlanes', 'imageSequence',
 ];
 
 const NO_SPACER = new Set([
   'noCanvas', 'cssOnly', 'revealOnScroll', 'jsRendered', 'revealOneOfTwenty', 'revealTwoOfTwenty',
-  'loaderCover', 'audioOnLoad', 'audioOnClick', 'videoIgnoresReducedMotion', 'videoHonoursReducedMotion',
+  'loaderCover', 'audioOnLoad', 'audioOnClick', 'synthOnLoad', 'synthOnClick', 'videoIgnoresReducedMotion', 'videoHonoursReducedMotion',
   'parallaxPlanes', 'imageSequence',
 ]);
 export const PAD_BYTES = 300000;
@@ -164,6 +164,16 @@ function build(kind) {
     case 'audioOnClick': return {
       body: '<h1>Sound on request</h1><p>The page fetches its sound only when asked.</p><button id="sound">Sound on</button>',
       call: "document.getElementById('sound').addEventListener('click', () => fetch('tone.mp3'));",
+    };
+    // synthOn*: sound made in the browser (an oscillator), so no file is fetched; the AudioContext is made as the page
+    // opens, or only inside a click.
+    case 'synthOnLoad': return {
+      body: '<h1>A synthesized score</h1><p>The page starts its sound at once.</p>',
+      call: '{ const a = new AudioContext(); const o = a.createOscillator(); o.connect(a.destination); o.start(); }',
+    };
+    case 'synthOnClick': return {
+      body: '<h1>A synthesized score</h1><p>The page starts its sound only when asked.</p><button id="sound">Sound on</button>',
+      call: "document.getElementById('sound').addEventListener('click', () => { const a = new AudioContext(); a.resume(); });",
     };
     case 'videoIgnoresReducedMotion':
     case 'videoHonoursReducedMotion': return {

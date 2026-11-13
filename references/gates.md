@@ -167,7 +167,7 @@ and the two are tested to agree.
 | `transition-all` | Floor | M | `transition: all` | List the properties | 10a |
 | `animates-layout` | Floor | M | A keyframe or transition on width, height, top or left | `transform` and `opacity` (`recipes-motion.md`) | 10a |
 | `reduced-motion` | Floor | M | Motion present with no `prefers-reduced-motion: reduce` fallback | Add it: the reduced-motion contract in `recipes-motion.md` | 27 |
-| `hidden-at-rest` | Floor | M | A reveal class setting `opacity: 0` or `visibility: hidden` with no `.js` scoping and no self-running animation, so the page ships blank when a script fails | Visible by default; hide only under a `.js` class the script adds, or animate from visible with `@starting-style` | 62 |
+| `hidden-at-rest` | Floor | M | A reveal class setting `opacity: 0` or `visibility: hidden` with no `.js` scoping and no self-running animation, so the page ships blank when a script fails | Visible by default; hide only under a class an inline script adds to `<html>` (`.js`, or any class its `classList.add` or `className` sets), or animate from visible with `@starting-style` | 62 |
 | `hidden-without-script` | Floor | R | With scripting off, headings, text or images stay invisible | Same fix, measured | 62 |
 | `focus-visible` | Floor | M | No `:focus-visible` styling anywhere, or an outline removed with nothing in its place | A ring at 3:1 or better on every interactive element | 26a |
 | `focus-ring` | Floor | R | Tabbing reaches an element with no visible focus state | Same, measured by tabbing | 26a |
@@ -180,6 +180,7 @@ and the two are tested to agree.
 | hover on everything | Reflex | J | The same lift or scale on every card; an image scaling on hover; a hover state on a non-interactive element | One signal per element, on the container, never on the image | 11 |
 | bounce | Reflex | J | Overshoot easing on UI state | Exponential ease-out; the signature curve in `recipes-motion.md` | 12 |
 | the loop | Floor | J | Auto-rotating or looping content past 5 seconds with no pause on hover and focus and no visible pause control | `patterns.md`, "A loop that can pause" (WCAG 2.2.2) | 18 |
+| stacked story | Floor | J | In a scroll story: a plane, caption or card of one scene showing over another scene; two drawn effects in one cut; a cut over in a frame or two; a caption left over from the last scene; a title, header or bar pinned over the story; a page-wide grain or overlay | The structure in `techniques/yolo.md` ("Structure before art"): one stage, scenes as data, three planes at most for a set lifted from a panel, one effect and one carried element per cut, one caption rhythm (`recipes-motion.md` §16–§21) | - |
 | eight states | Reflex | J | A control with no `:active` or `:disabled`; input borders that shift between states; a focus ring built from `border` | All eight states; constant border, `outline`, shared height (`patterns.md`) | 26b, 39a |
 
 ### Assets and access
@@ -336,6 +337,14 @@ own sections here (the menu, the lineup, the issues, the record), and could
 this exact sequence of sections sit under a different business's name? If it
 could, the page has no anatomy of its own yet.
 
+**The stacked story.** A scroll story built in passes fails by stacking: each
+pass fixes one scene by adding a system (a carry pass, a parting plane, a
+shader cut, a card), and the page fills with things on top of things. Judge
+it only on the builder's own wheel-driven prints (`verification.md`, "The
+builder's own print session"), every shot, never on sheets picked to show a
+scene at its best. One clean frame per scene proves nothing; the stacking
+shows between them, in the cuts.
+
 **Contrast.** Probe computed colours, do not squint (`verification.md`).
 Body text 4.5:1 against what it is drawn over; large text, icons, focus
 rings and field edges 3:1. Button text within a hair of its fill, a dark
@@ -351,6 +360,8 @@ surface are the usual failures.
 | Each audition, before it is shown (`audition.md` §3) | `check-slop <auditions/> --render` beside `check-auditions`; a candidate that fails the Floor is fixed before the author compares |
 | Each surface, after the build, before the verification gate | `check-slop --render` until 0 FAIL and every REFLEX fixed or waived; then the judged gates in §3 and §5 from the screenshots it wrote |
 | Before any 3D model, procedural scene or layered illustration is built | The concept first gate (§3) from the concept ledger: the piece's row approved, look specified, turnarounds checked, layer sheet drawn (`illustration-concept.md` §0) |
+| A High build with sound | `check-motion --tier high` (sound fetched or started before a click), over http(s); the levels measured offline and the author asked to listen (`techniques/high.md`, Synthesized sound) |
+| A scroll story or any YOLO build, after each scene | `check-motion --tier yolo` (the Floor, sound fetched or started before a click); the builder's own print session (`verification.md`), every shot looked at, then the stacked story judged (§3, §5); frames and loader measured on a quiet machine, A/B against the last build |
 | A redesign | `check-kept record` before, `check-kept check` after (`redesign.md`); with a migration map, `check-kept map` to 0 FAIL before the handoff (`redesign.md` §4) |
 | The reviews (`reviews.md`) | The reviewer reads this file's §3 and §5 and the screenshots; never the CSS, which the script has already read |
 
