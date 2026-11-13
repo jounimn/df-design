@@ -231,8 +231,10 @@ the page downloads by type (images, video, models, audio, script), which is
 the price the tier message names. It fails the Floor: a canvas or a video
 that moves under reduced motion, a blank canvas without WebGL, less than
 40 % of the headings and paragraphs readable without JavaScript (text under
-an opaque loader counts as missing), and any sound file fetched before the
-visitor clicked. It also reports, without failing, a page built below the
+an opaque loader counts as missing), and any sound file fetched, or any
+AudioContext made or resumed, before the visitor clicked. The sound check
+fails on `--tier high` as well: run it over http(s) on a High page with
+sound. It also reports, without failing, a page built below the
 chosen tier: none of the yolo techniques it can see, or less in all than
 the High ceiling. Tell the author; build the techniques or re-send the tier
 message.

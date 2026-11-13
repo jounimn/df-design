@@ -1,6 +1,7 @@
 // The checks of check-motion, run on one page. A page with no canvas has nothing to judge on the canvas: the four
 // canvas checks are 'na' and only the weight is reported. The page checks after them (works without JS, video under
-// reduced motion, audio before a gesture, weight by type) are the Floor that the yolo tier still owes.
+// reduced motion, audio before a gesture, weight by type) are the Floor that the yolo tier still owes; the high tier
+// also fails on audio before a gesture, since it offers sound too.
 // status: 'pass' | 'fail' | 'na' (nothing to judge) | 'report' (a number with no ceiling to hold it to).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,6 +18,8 @@ export const TIERS = ['fast', 'medium', 'high', 'yolo', 'custom'];
 const UNWEIGHED = new Set(['fast', 'yolo', 'custom']);
 // Tiers that fail when the content is not there without JavaScript: fast by its rule, yolo by the Floor.
 const NO_JS_FAILS = new Set(['fast', 'yolo']);
+// Tiers that fail on sound fetched or started before a gesture: high and yolo, the two that offer sound.
+const AUDIO_FAILS = new Set(['high', 'yolo']);
 
 export const CHECK_NAMES = [
   'canvas is alive',
@@ -270,7 +273,7 @@ function audioCheck(audio, tier, contexts = 0) {
   const fetched = audio.length ? `${plural(audio.length, 'sound file')} fetched before any click or tap: ${files}${audio.length > 5 ? `, and ${audio.length - 5} more` : ''}. ` : '';
   const made = contexts ? `${plural(contexts, 'AudioContext')} made or resumed before any click or tap. ` : '';
   const detail = `${fetched}${made}Fetch or start sound only after the visitor turns it on.`;
-  return tier === 'yolo' ? { name, status: 'fail', detail } : { name, status: 'report', detail: `${detail} (only the yolo tier fails on this)` };
+  return AUDIO_FAILS.has(tier) ? { name, status: 'fail', detail } : { name, status: 'report', detail: `${detail} (only the high and yolo tiers fail on this)` };
 }
 
 // transfer: { firstView, full } summaries (full is null when the page was not scrolled). Reported on every tier and

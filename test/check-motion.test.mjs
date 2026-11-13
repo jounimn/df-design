@@ -334,13 +334,15 @@ async function checkServed(kind, { tier, files = {}, beforeScene = '' } = {}) {
 }
 const TONE = Buffer.alloc(40000, 7);
 
-test('no audio before a gesture: a sound fetched as the page opens fails yolo and is reported on other tiers', async () => {
+test('no audio before a gesture: a sound fetched as the page opens fails yolo and high and is reported on other tiers', async () => {
   const yolo = await checkServed('audioOnLoad', { tier: 'yolo', files: { 'tone.mp3': TONE } });
   assert.deepEqual(failedNames(yolo), ['no audio before a gesture']);
   assert.match(byName(yolo)['no audio before a gesture'].detail, /tone\.mp3/);
   const high = await checkServed('audioOnLoad', { tier: 'high', files: { 'tone.mp3': TONE } });
-  assert.equal(byName(high)['no audio before a gesture'].status, 'report');
-  assert.equal(high.ok, true);
+  assert.deepEqual(failedNames(high), ['no audio before a gesture']);
+  const medium = await checkServed('audioOnLoad', { tier: 'medium', files: { 'tone.mp3': TONE } });
+  assert.equal(byName(medium)['no audio before a gesture'].status, 'report');
+  assert.equal(medium.ok, true);
 });
 
 test('no audio before a gesture: a sound fetched only on a click passes', async () => {
@@ -349,17 +351,21 @@ test('no audio before a gesture: a sound fetched only on a click passes', async 
   assert.equal(result.ok, true);
 });
 
-test('no audio before a gesture: sound synthesized as the page opens fails yolo though no file is fetched', async () => {
+test('no audio before a gesture: sound synthesized as the page opens fails yolo and high though no file is fetched', async () => {
   const yolo = await checkServed('synthOnLoad', { tier: 'yolo' });
   assert.deepEqual(failedNames(yolo), ['no audio before a gesture']);
   assert.match(byName(yolo)['no audio before a gesture'].detail, /1 AudioContext made or resumed/);
   const high = await checkServed('synthOnLoad', { tier: 'high' });
-  assert.equal(byName(high)['no audio before a gesture'].status, 'report');
+  assert.deepEqual(failedNames(high), ['no audio before a gesture']);
+  const medium = await checkServed('synthOnLoad', { tier: 'medium' });
+  assert.equal(byName(medium)['no audio before a gesture'].status, 'report');
 });
 
-test('no audio before a gesture: an AudioContext made only inside a click passes', async () => {
-  const result = await checkServed('synthOnClick', { tier: 'yolo' });
-  assert.equal(byName(result)['no audio before a gesture'].status, 'pass');
+test('no audio before a gesture: an AudioContext made only inside a click passes on yolo and high', async () => {
+  for (const tier of ['yolo', 'high']) {
+    const result = await checkServed('synthOnClick', { tier });
+    assert.equal(byName(result)['no audio before a gesture'].status, 'pass', tier);
+  }
 });
 
 test('page weight by type: reported with the first view and the full scroll, the sound counted as audio', async () => {

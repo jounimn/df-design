@@ -173,7 +173,7 @@ Fixed measurement examples; the project's references come from research (`identi
 
 ### What it is
 
-Music and effects that answer what the visitor does: a pour, a click, wind on the mountain.
+Music and effects that answer what the visitor does: a pour, a click, wind on the mountain. On YOLO they may be recorded samples, made in the browser, or both.
 
 ### Where it comes from
 
@@ -189,13 +189,13 @@ On four sites (santionispirits.com, igloo.inc, lusion.co and messenger.abeto.co,
 
 ### Lighter version
 
-No lighter version: silence is the fallback, and it is the default until the visitor turns the sound on.
+[Synthesized sound](high.md#synthesized-sound): the same score made in the browser, about 17 KB of script and no sound file. Silence stays the fallback, and the default until the visitor turns the sound on.
 
 ### For the builder
 
-Web Audio or Howler; fetch the files only after an explicit "sound on" tap, never on load or on scroll, and say on the button that it loads sound. Leave it off under reduced motion. `check-motion --tier yolo` fails any sound file fetched, and any AudioContext made or resumed, while the page is opened, scrolled and read without a click.
+Web Audio or Howler; fetch the files only after an explicit "sound on" tap, never on load or on scroll, and say on the button that it loads sound. Leave it off under reduced motion. `check-motion --tier yolo` (and `--tier high`) fails any sound file fetched, and any AudioContext made or resumed, while the page is opened, scrolled and read without a click.
 
-Sound can also be made in the browser with no file at all: noise through filters, envelopes and plain oscillators, one low bed per scene cross-faded through each cut and short cues tied to the story's beats, each faded with its scene. It weighs nothing and needs no licence beyond the project's own code. The rules stay: the `AudioContext` is created or resumed inside the toggle's click and only then is the sound module imported; the toggle is a real `<button>` with `aria-pressed`; turning it off or hiding the tab fades and suspends the context; every envelope ramps from zero, so nothing pops. Under reduced motion it stays off as well until the button is pressed, and then plays only the bed of the scene in view, with no beat cues. An agent cannot hear it: measure each bed and cue offline (`OfflineAudioContext`, RMS and peak in dBFS; a 2026-11 example set beds at -39 to -30 dBFS RMS and cues at -26 to -12 dBFS peak under a gentle master compressor), report the numbers, and ask the author to listen on speakers before calling it done.
+Sound can also be made in the browser with no file at all, alone or under the samples: that is the High [Synthesized sound](high.md#synthesized-sound) card, with its rules (started inside the click, imported then, faded and suspended when off or hidden, the bed only under reduced motion) and its levels measured offline. An agent cannot hear either: report the levels and ask the author to listen on speakers before calling it done.
 
 #### Where the cost was measured
 

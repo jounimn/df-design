@@ -360,6 +360,7 @@ surface are the usual failures.
 | Each audition, before it is shown (`audition.md` §3) | `check-slop <auditions/> --render` beside `check-auditions`; a candidate that fails the Floor is fixed before the author compares |
 | Each surface, after the build, before the verification gate | `check-slop --render` until 0 FAIL and every REFLEX fixed or waived; then the judged gates in §3 and §5 from the screenshots it wrote |
 | Before any 3D model, procedural scene or layered illustration is built | The concept first gate (§3) from the concept ledger: the piece's row approved, look specified, turnarounds checked, layer sheet drawn (`illustration-concept.md` §0) |
+| A High build with sound | `check-motion --tier high` (sound fetched or started before a click), over http(s); the levels measured offline and the author asked to listen (`techniques/high.md`, Synthesized sound) |
 | A scroll story or any YOLO build, after each scene | `check-motion --tier yolo` (the Floor, sound fetched or started before a click); the builder's own print session (`verification.md`), every shot looked at, then the stacked story judged (§3, §5); frames and loader measured on a quiet machine, A/B against the last build |
 | A redesign | `check-kept record` before, `check-kept check` after (`redesign.md`); with a migration map, `check-kept map` to 0 FAIL before the handoff (`redesign.md` §4) |
 | The reviews (`reviews.md`) | The reviewer reads this file's §3 and §5 and the screenshots; never the CSS, which the script has already read |
