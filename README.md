@@ -483,6 +483,10 @@ not evidence about typographic heroes.
 npm test        # 483 tests in 31 files, node:test, no network — a local fixture server
 ```
 
+The browser files make the full run longer than ten minutes on a laptop, past
+an agent's foreground limit: run it in the background, or run the files you
+touched (`node --test test/check-slop.test.mjs`).
+
 ---
 
 ## What is in here

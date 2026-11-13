@@ -55,7 +55,11 @@ In this order, each step recorded in the concept ledger below:
    show it to the author: **two or three options for each scene, each
    character and each key idea** (the story's object, a recurring set, the
    product as a model). Each option names the references of step 1 it draws
-   on.
+   on. When the piece is a procedural mark inside a plane already approved
+   (rain on twos, a glint on a star), the options may be prototypes drawn by
+   the page's own program over the real scene, behind a switch that shows
+   each one (`?rain=a|b|c`); the sheet still carries the inventory, the story
+   check, the look and the layer note, and records the switch.
 3. **The scene concept sheet.** Every scene or scenery option is shown with
    two numbered keys:
    - **The inventory key:** every object, character and building visible in
@@ -65,7 +69,9 @@ In this order, each step recorded in the concept ledger below:
      requires, mapped to the inventory items that fulfil it ("the story
      needs buildings → items 1, 3, 5"). A requirement with no item is a
      blocker, fixed before the author sees the sheet: an abandoned town with
-     no buildings never reaches approval.
+     no buildings never reaches approval. The scene's caption and dialogue
+     are requirements too: a 2026-11 example's caption spoke of a hand the
+     panel did not show, and only the inventory caught it.
 4. **The author approves** one option per piece, or combines, rejects or
    redirects, as with an audition (`identity.md` §5). For a scene the author
    confirms it against both keys, may add, remove or change items, and then
@@ -120,6 +126,33 @@ fills behind the characters came out blotchy, the close-ups had no
 high-resolution source, and the layers stayed stuck in the composition they
 were cut from. Planned at concept time, each plane is made whole and at the
 size its closest shot needs.
+
+**Repair before replace.** When approved drawn art already exists (the
+author's panels, or a set approved earlier) and one piece is wrong, repair
+it in its own line: keep every mark that is right and fix only the defect.
+On the same 2026-11 example the close-ups of hands had two faults (fists
+clenched on a handle that was never drawn, an index finger with no joints
+and far too long). Three rounds of Blender renders through a procedural ink
+pass never matched the panels' hand-cut engraving; repairing the panels did,
+in two rounds: the fists turned on their own pixels to a grip axis, the
+missing oar drawn in the plank's own grain, the wrong hand rebuilt with cuts sampled from the old
+one. Blender is the structural guide (pose, geometry, what hides what), not
+the final line. A figure placed into an existing drawn plate takes its eye
+height from the drawn horizon and two or three contact points pinned to the
+drawing (a seat, an oarlock); a metric camera fitted to a drawing fails,
+since a drawing is not one consistent perspective. A repaired or generated
+piece passes a fidelity check, recorded on its sheet before the author
+sees it:
+
+- the silhouette's overlap (IoU) with the approved shape, and every pixel
+  changed outside the repair zone counted (it should be 0);
+- fingers counted per hand, each one visible and outlined, none merged or
+  extra;
+- the locked elements (a carved initial, a star a fingertip must touch)
+  measured in place: moved, scaled and visible share;
+- the colours: a two-tone plate is still exactly two tones, the hint only
+  where the sheet puts it;
+- line widths (median stroke) against the panel's own.
 
 **The concept ledger** sits at the top of `docs/concept.md`, kept like the
 surface ledger (`identity.md` §8): one row per scene, character, key idea

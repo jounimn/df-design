@@ -207,7 +207,7 @@ heavier tier, or the images weigh more than the first message assumed.
 | Drawn assets: doodles, annotations, spot illustrations, a drawn icon set, in the identity's own line; characters built anatomy first; key art generated locally and forced into the brief's inks (`scripts/ink-pass.mjs`); 3D characters rendered in ink; water, smoke and sparks drawn frame by frame | `references/drawn-assets.md` |
 | The YOLO reference sites, scene by scene, read before probing them again | `references/yolo-references.md` |
 | A 3D model, procedural scene or layered illustration on High or YOLO: concept first (real illustration references searched and logged as in the Research stage; 2 or 3 options per scene, character and key idea, each scene with its inventory key and story-requirements check; the author's approval; a concept for every object that will be built; the look; turnarounds; the layer sheet) before anything is built (§0); for an illustration-led identity with no concept art from the author, the concept bible (story spine, character, form and style sheets), written before any art and carried through the build | `references/illustration-concept.md` |
-| Looking at it | `references/verification.md` |
+| Looking at it: the capture, the builder's own wheel-driven print session, frames and loader measured on a quiet machine | `references/verification.md` |
 | Watermark: question, layer, preview and final | `references/watermark.md` |
 | Selling-positioning: logo, positioning, mockups, slideshow, export | `references/selling-positioning.md` |
 | The visitor's job: where the action lives, the category's own sections, how the page ends | `references/anatomy.md` |
@@ -272,6 +272,10 @@ The rules that govern every stage:
   (depth planes, a shape carried across each cut, the ink-out, the focus
   field, hold beats, the ending as a scene, everything preloaded, drawn
   effects) is §17–§26, with its runtime in `templates/scroll-story.js`.
+  Its structure is fixed before any scene is dressed (one stage, the scenes
+  as data, three planes at most for a set lifted from a panel, one effect and one carried
+  element per cut, no global overlay; `techniques/yolo.md`, "Structure
+  before art"), then it is built one scene at a time.
 - **Icons always; stock images only with the author's yes.** Every image
   must be free for commercial use, need no credit line, and carry no
   watermark in the file that ships. In `motion` and `both`, icons and
@@ -464,6 +468,9 @@ is an acceptable sentence. "Done" without having looked is not.
 | "The palette already looks good" | Looking good is the base pair. Name the design hint, its feeling and its places, or write `Hint: none` with the reason. `recipes-design.md` §2. |
 | "The author gave the identity, so the YOLO build can start" | On the yolo tier both paths build three light prototypes of the experience first, and the author picks one. A full build is days; a prototype is an afternoon. `audition.md` §2. |
 | "I'll model it now and the look will come in Blender" | The concept is the base of anything 3D. Real references logged, concept options, the author's approval, the look (textures, colour, line, finish, marks), turnarounds the author checks and a layer sheet, then the model. Layers lifted from a flat picture afterwards come out blotchy. `illustration-concept.md` §0. |
+| "One more layer will fix this scene" | A scroll story built pass on pass stacks systems until things sit on things. Fix the structure first, then build scene by scene. `techniques/yolo.md`, "Structure before art". |
+| "The sheets I picked show every scene clean" | Agent-picked sheets hide the stacking between scenes. Run your own wheel-driven print session, every shot looked at, before reporting a pass. `verification.md`. |
+| "The render is cleaner than the drawn panel, so it replaces it" | Repair the panel in its own line; the render is the structural guide. Then the fidelity check. `illustration-concept.md` §0. |
 | "Three.js will make it feel premium" | Cheapest viable tier first. Masks and blends are CSS. |
 | "Fast tier obviously fits; I'll just use it" | Recommending is yours, choosing is the author's. Send the tier message. |
 | "Every candidate is fast, so there is nothing to ask" | The question is asked every run, with the candidates. Fast is the recommendation, not the answer. The message says what medium and high would add, or that they add nothing. |
@@ -474,6 +481,8 @@ is an acceptable sentence. "Done" without having looked is not.
 | "It's YOLO, so reduced motion and no-JS don't matter" | YOLO removes the ceiling, never the Floor. Reduced motion, a lighter path, readable content without the experience and honest loading are still owed; `check-motion --tier yolo` fails them. |
 | "The text is in the DOM, so it reads without JS" | Not under an opaque loader. Readable is judged on what can be seen; `check-motion` counts covered text as missing. |
 | "The sound is part of the experience, so it loads with the page" | No sound is fetched before the visitor asks for it. Silence is the default; the button says it loads sound. |
+| "The sound is synthesized, so nothing loads and it can start" | No AudioContext before the visitor's click either; `check-motion --tier yolo` counts them. You cannot hear it: measure the levels offline and ask the author to listen. `techniques/yolo.md`, Sound design. |
+| "The trace shows 50 ms frames, so the cut is too heavy" | On a shared machine it may be the antivirus. Re-run with the CPU under 20 %, three runs, A/B against the last build in the same session. `verification.md`. |
 | "They said rebrand, so tokens and type" | A rebrand changes structure. Swapping tokens on an unchanged layout is a reskin — name it that, or do the real thing. |
 | "The motion spec says 400ms ease-out, so I'm done" | Parameters are not a design. What *moves*, and why, is the design. |
 | "The plan is obvious, I'll go straight to code" | Write the plan, then ask what you'd have made for a similar brief. Whatever comes out the same is a default. `recipes-design.md` §8. |
