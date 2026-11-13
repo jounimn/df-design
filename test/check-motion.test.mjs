@@ -349,6 +349,19 @@ test('no audio before a gesture: a sound fetched only on a click passes', async 
   assert.equal(result.ok, true);
 });
 
+test('no audio before a gesture: sound synthesized as the page opens fails yolo though no file is fetched', async () => {
+  const yolo = await checkServed('synthOnLoad', { tier: 'yolo' });
+  assert.deepEqual(failedNames(yolo), ['no audio before a gesture']);
+  assert.match(byName(yolo)['no audio before a gesture'].detail, /1 AudioContext made or resumed/);
+  const high = await checkServed('synthOnLoad', { tier: 'high' });
+  assert.equal(byName(high)['no audio before a gesture'].status, 'report');
+});
+
+test('no audio before a gesture: an AudioContext made only inside a click passes', async () => {
+  const result = await checkServed('synthOnClick', { tier: 'yolo' });
+  assert.equal(byName(result)['no audio before a gesture'].status, 'pass');
+});
+
 test('page weight by type: reported with the first view and the full scroll, the sound counted as audio', async () => {
   const result = await checkServed('audioOnLoad', { tier: 'yolo', files: { 'tone.mp3': TONE } });
   const c = byName(result)['page weight by type'];

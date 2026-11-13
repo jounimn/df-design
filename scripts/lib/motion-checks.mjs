@@ -101,7 +101,7 @@ function verdict(name, canvases, judge, { naDetail, passDetail }) {
 }
 
 // page: what the page checks need, read by runMotionChecks; null when they were not run (a presentation's slide).
-//   { url, videos: { count, playing: [names] } | null, audio: [urls], transfer: { firstView, full } }
+//   { url, videos: { count, playing: [names] } | null, audio: [urls], audioContexts: number, transfer: { firstView, full } }
 export function evaluateMotion(trace, { tier, ceilings, content = null, includeWithoutJs = true, page = null }) {
   const { canvases } = trace;
   const none = 'no canvas on the page';
@@ -165,7 +165,7 @@ export function evaluateMotion(trace, { tier, ceilings, content = null, includeW
   if (includeWithoutJs) {
     checks.push(withoutJsCheck(content, tier));
     checks.push(videoCheck(page?.videos ?? null, tier));
-    checks.push(audioCheck(page?.audio ?? null, tier));
+    checks.push(audioCheck(page?.audio ?? null, tier, page?.audioContexts ?? 0));
     checks.push(weightCheck(page?.transfer ?? null, page?.url ?? '', tier));
     checks.push(ambitionCheck(trace, page, tier, ceilings));
   }
@@ -259,14 +259,17 @@ function videoCheck(videos, tier) {
   return tier === 'yolo' ? { name, status: 'fail', detail } : { name, status: 'report', detail: `${detail} (only the yolo tier fails on this)` };
 }
 
-// audio: the URLs of every sound file the page fetched while it was opened, scrolled and read. The check never
-// clicks, taps or types, so any of them was fetched before the visitor did anything.
-function audioCheck(audio, tier) {
+// audio: the URLs of every sound file the page fetched while it was opened, scrolled and read. contexts: how many
+// AudioContexts the page constructed or resumed meanwhile; sound synthesized in the browser fetches no file, so the
+// context is what shows it. The check never clicks, taps or types, so any of them came before the visitor did anything.
+function audioCheck(audio, tier, contexts = 0) {
   const name = CHECK_NAMES[7];
   if (!audio) return { name, status: 'na', detail: 'the page was not weighed' };
-  if (!audio.length) return { name, status: 'pass', detail: 'no sound file fetched before the visitor did anything' };
+  if (!audio.length && !contexts) return { name, status: 'pass', detail: 'no sound file fetched and no AudioContext made before the visitor did anything' };
   const files = audio.slice(0, 5).map((u) => u.split(/[?#]/)[0].split('/').pop() || u).join(', ');
-  const detail = `${plural(audio.length, 'sound file')} fetched before any click or tap: ${files}${audio.length > 5 ? `, and ${audio.length - 5} more` : ''}. Fetch sound only after the visitor turns it on.`;
+  const fetched = audio.length ? `${plural(audio.length, 'sound file')} fetched before any click or tap: ${files}${audio.length > 5 ? `, and ${audio.length - 5} more` : ''}. ` : '';
+  const made = contexts ? `${plural(contexts, 'AudioContext')} made or resumed before any click or tap. ` : '';
+  const detail = `${fetched}${made}Fetch or start sound only after the visitor turns it on.`;
   return tier === 'yolo' ? { name, status: 'fail', detail } : { name, status: 'report', detail: `${detail} (only the yolo tier fails on this)` };
 }
 
@@ -441,6 +444,28 @@ async function videosUnderReducedMotion(browser, url, viewport) {
   }
 }
 
+// Counts every AudioContext the page constructs or resumes. Installed before navigation; the checks never click, so
+// every count is a context made before the visitor asked for sound (a synthesized score fetches no file to catch).
+async function installAudioProbe(context) {
+  await context.addInitScript(() => {
+    if (window.__dfAudio) return;
+    const state = { contexts: 0 };
+    Object.defineProperty(window, '__dfAudio', { value: state });
+    for (const key of ['AudioContext', 'webkitAudioContext']) {
+      const Native = window[key];
+      if (typeof Native !== 'function') continue;
+      const Counted = function (...args) { state.contexts += 1; return Reflect.construct(Native, args, new.target || Counted); };
+      Counted.prototype = Native.prototype;
+      const resume = Native.prototype.resume;
+      if (resume && !resume.__dfCounted) {
+        Native.prototype.resume = function (...args) { state.contexts += 1; return resume.apply(this, args); };
+        Native.prototype.resume.__dfCounted = true;
+      }
+      window[key] = Counted;
+    }
+  });
+}
+
 // Loads the page with its loop running (no __DF_EXPORT__: the export freezes it) and judges the trace.
 export async function runMotionChecks(target, { tier, browser, ceilings = loadCeilings(), includeWithoutJs = true }) {
   if (!TIERS.includes(tier)) throw new UsageError(`unknown tier "${tier}"`);
@@ -448,6 +473,7 @@ export async function runMotionChecks(target, { tier, browser, ceilings = loadCe
   const { page, context } = await newPage(browser, { reducedMotion: 'no-preference' });
   try {
     await installCanvasTrace(context);
+    await installAudioProbe(context);
     const transfer = includeWithoutJs ? await watchTransfer(page) : null;
     await page.goto(url, { waitUntil: 'load' });
     await settle(page);
@@ -461,10 +487,11 @@ export async function runMotionChecks(target, { tier, browser, ceilings = loadCe
     const audio = transfer.entries().filter((e) => kindOf(e) === 'audio').map((e) => e.url);
     const videoCount = await page.evaluate(() => document.querySelectorAll('video').length);
     const audioElements = await page.evaluate(() => document.querySelectorAll('audio').length);
+    const audioContexts = await page.evaluate(() => window.__dfAudio?.contexts ?? 0);
     const ambition = {
       sequenceFrames: sequenceFrames(transfer.entries()),
       videoBytes: full.byKind.video,
-      audio: audio.length > 0 || audioElements > 0,
+      audio: audio.length > 0 || audioElements > 0 || audioContexts > 0,
       planes,
       total: full.total,
       local: /^file:/i.test(url),
@@ -475,7 +502,7 @@ export async function runMotionChecks(target, { tier, browser, ceilings = loadCe
       tier,
       ceilings,
       content: { withJs, withoutJs },
-      page: { url, videos, audio, transfer: { firstView, full }, ambition },
+      page: { url, videos, audio, audioContexts, transfer: { firstView, full }, ambition },
     });
   } finally {
     await context.close();

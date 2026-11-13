@@ -121,6 +121,18 @@ test('a waiver reason under 24 characters is rejected', () => {
   assert.ok(gates(r, 'REFLEX').includes('eyebrow'));
 });
 
+test('hidden-at-rest trusts any class an inline script adds to <html>, not only .js', () => {
+  const page = (script) => `<!doctype html><html lang="en"><head><title>t</title><meta name="viewport" content="width=device-width">
+<script>${script}</script>
+<style>:root{--ink:#222;--paper:#fdfbf7;--font-body:system-ui}html,body{overflow-x:clip}body{color:var(--ink);background:var(--paper);font-family:var(--font-body)}
+html.fx .cap{opacity:0} a:focus-visible{outline:2px solid var(--ink)}</style></head>
+<body><p class="cap">The night is the 312th.</p><a href="#x">Go</a></body></html>`;
+  const scoped = lintStatic([{ file: 'x.html', text: page("document.documentElement.classList.add('fx');") }]);
+  assert.ok(!gates(scoped, 'FAIL').includes('hidden-at-rest'));
+  const unscoped = lintStatic([{ file: 'x.html', text: page("window.ready = true;") }]);
+  assert.ok(gates(unscoped, 'FAIL').includes('hidden-at-rest'));
+});
+
 test('a stylesheet linked from the page is read with the page', () => {
   const files = collectFiles([path.join(FIX, 'linked')]);
   const r = lintStatic(files);
