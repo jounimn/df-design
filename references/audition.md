@@ -227,7 +227,7 @@ The number beside a technique is the motion code of a production page that shows
 - [Glassmorphism](techniques/medium.md#glassmorphism): 0 to 282 KB
 - [Cursor-painted reveal](techniques/medium.md#cursor-painted-reveal): 11 KB (an example page built for the card, 2026-11-07)
 
-**[High](techniques/high.md), 12 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D, Rendered 3D, Fluid ink, Glass object, Reflective water floor and Object that travels between sections, which say why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph, Rendered 3D and Halftone say "not measured".
+**[High](techniques/high.md), 16 techniques:** lit 3D, per-pixel drawing and heavy script. Each names its lighter version (a Fast card or the Medium card of the same name), except Clay 3D, Rendered 3D, Fluid ink, Glass object, Reflective water floor, Object that travels between sections, Glass letters, Images that fray and smear, Type on geometry and Synthesized sound, which say why there is none. Each ends with its weight against the ceiling where it was measured; Liquid morph, Rendered 3D and Halftone say "not measured".
 
 - [Particles](techniques/high.md#particles): 340 KB, the ceiling itself; 11 KB for the version that re-forms by scroll (example page, 2026-11-07)
 - [Holographic](techniques/high.md#holographic): 340 KB, the ceiling itself
@@ -238,6 +238,9 @@ The number beside a technique is the motion code of a production page that shows
 - [Glass object](techniques/high.md#glass-object): 148 KB (example page, 2026-11-07)
 - [Reflective water floor](techniques/high.md#reflective-water-floor): 151 KB (example page, 2026-11-07)
 - [Object that travels between sections](techniques/high.md#object-that-travels-between-sections): 144 to 173 KB (example page, 2026-11-07); with a modelled product of several MB it is the YOLO [Real-time 3D world](techniques/yolo.md#real-time-3d-world)
+- [Glass letters](techniques/high.md#glass-letters): 11 KB of motion code, 127 KB in all with the photograph (example page, 2026-11-08)
+- [Images that fray and smear](techniques/high.md#images-that-fray-and-smear): 11 KB of motion code, 164 KB in all with three photographs (example page, 2026-11-08)
+- [Type on geometry](techniques/high.md#type-on-geometry): 11 KB of motion code, 8 KB of page, no image or library (example page, 2026-11-08)
 - [Synthesized sound](techniques/high.md#synthesized-sound): 17 KB of script and no sound file (an example scroll story, 2026-11-13); offered, never on by default
 - Not measured yet: [Liquid morph](techniques/high.md#liquid-morph), [Rendered 3D](techniques/high.md#rendered-3d) (Blender, offline), [Halftone](techniques/high.md#halftone)
 
